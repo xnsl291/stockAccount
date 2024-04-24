@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import zb.accountMangement.member.type.RoleType;
+import zb.accountMangement.member.model.RoleType;
 
 import java.io.IOException;
 

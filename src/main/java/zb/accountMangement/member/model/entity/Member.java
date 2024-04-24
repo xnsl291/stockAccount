@@ -1,4 +1,4 @@
-package zb.accountMangement.member.domain;
+package zb.accountMangement.member.model.entity;
 
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -17,7 +17,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import zb.accountMangement.member.type.RoleType;
+import zb.accountMangement.member.model.RoleType;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)

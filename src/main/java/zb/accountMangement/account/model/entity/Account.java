@@ -1,9 +1,9 @@
-package zb.accountMangement.account.domain;
+package zb.accountMangement.account.model.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import zb.accountMangement.account.type.AccountStatus;
+import zb.accountMangement.account.model.AccountStatus;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

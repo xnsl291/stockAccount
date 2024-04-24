@@ -2,7 +2,7 @@ package zb.accountMangement.account.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 
 import java.util.List;
 import java.util.Optional;

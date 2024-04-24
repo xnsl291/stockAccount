@@ -12,7 +12,7 @@ class AuthenticationServiceTest {
   @Mock
   private MemberRepository memberRepository;
   @InjectMocks
-  private AuthenticationService authenticationService;
+  private MemberService memberService;
 
   private final String token = "TMPTOKEN";
   @Test
@@ -25,7 +25,7 @@ class AuthenticationServiceTest {
 
 //    String encodedPassword = "encodedPassword";
 //    when(passwordEncoder.encode(dto.getPassword())).thenReturn(encodedPassword);
-    authenticationService.signUp(token,dto);
+    memberService.signUp(token,dto);
 
 //    verify(memberRepository).save(any(Member.class));
   }

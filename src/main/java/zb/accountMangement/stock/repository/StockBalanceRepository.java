@@ -2,7 +2,7 @@ package zb.accountMangement.stock.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import zb.accountMangement.stock.domain.StockBalance;
+import zb.accountMangement.stock.model.entity.StockBalance;
 
 import java.util.List;
 import java.util.Optional;

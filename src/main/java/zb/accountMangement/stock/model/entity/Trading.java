@@ -1,9 +1,9 @@
-package zb.accountMangement.stock.domain;
+package zb.accountMangement.stock.model.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import zb.accountMangement.stock.type.TradeType;
+import zb.accountMangement.stock.model.TradeType;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

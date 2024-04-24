@@ -9,12 +9,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.SearchAccountDto;
 import zb.accountMangement.account.repository.AccountRepository;
-import zb.accountMangement.account.type.AccountStatus;
-import zb.accountMangement.common.error.exception.NotFoundAccountException;
+import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.service.MemberService;
 
@@ -42,7 +42,7 @@ public class AccountService {
      */
     public Account getAccountById(Long accountId){
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundAccountException(ErrorCode.ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
@@ -52,7 +52,7 @@ public class AccountService {
      */
     public Account getAccountByNumber(String accountNumber){
         return accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new NotFoundAccountException(ErrorCode.ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
@@ -90,7 +90,7 @@ public class AccountService {
     public Account getAccountInfo(Long accountId) {
         Account account = getAccountById(accountId);
         if (account.isDeletedAccount())
-            throw new NotFoundAccountException(ErrorCode.DELETED_ACCOUNT);
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         return account;
     }
 
@@ -109,9 +109,9 @@ public class AccountService {
             account.setPassword(accountManagementDto.getPassword());
         }
         else if (account.isDeletedAccount())
-            throw new NotFoundAccountException(ErrorCode.DELETED_ACCOUNT);
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         else
-            throw new NotFoundAccountException(ErrorCode.PENDING_ACCOUNT);
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
 
         return account;
     }

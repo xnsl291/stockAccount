@@ -1,4 +1,4 @@
-package zb.accountMangement.stock.domain;
+package zb.accountMangement.stock.model.entity;
 
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -12,14 +12,18 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Stock {
+public class StockBalance {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long code; // 종목코드
+  private Long accountId;
 
-  private String name; // 종목명
+  private Long stockId;
 
-  private Double currentPrice ;   //// ??? 현재가 ????
+  private Double avgPrice; // 평균 매수가
+
+  private Double profitNLoss; // 평가손익
+
+  private int quantity; // 수량
 }

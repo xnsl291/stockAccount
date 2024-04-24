@@ -3,12 +3,12 @@ package zb.accountMangement.account.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.SearchAccountDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.common.auth.JwtTokenProvider;
-import zb.accountMangement.common.util.ValidationService;
+import zb.accountMangement.common.service.ValidationService;
 
 import java.util.List;
 
