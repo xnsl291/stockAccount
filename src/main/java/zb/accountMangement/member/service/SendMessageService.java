@@ -11,8 +11,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.service.RedisService;
-import zb.accountMangement.common.error.exception.InvalidTokenException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.SmsVerificationDto;
 
@@ -73,7 +73,7 @@ public class SendMessageService {
         //TODO : getMsgVerificationInfo 사용해서 토큰 정보 맞는지 확인. (인증번호 + 토큰 일치해야함)
         SmsVerificationDto info = redisService.getMsgVerificationInfo(senderPhoneNumber);
         if (info==null)
-            throw new InvalidTokenException(ErrorCode.INVALID_TOKEN);
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         return info.getVerificationCode().equals(smsVerificationDto.getVerificationCode());
     }
 }

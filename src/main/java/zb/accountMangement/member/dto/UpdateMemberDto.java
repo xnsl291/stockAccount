@@ -10,7 +10,7 @@ import javax.validation.constraints.Pattern;
 @Getter
 @Setter
 @Builder
-public class UpdateUserDto {
+public class UpdateMemberDto {
 
   @NotBlank
   private String name;

@@ -9,14 +9,14 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.SearchAccountDto;
 import zb.accountMangement.account.repository.AccountRepository;
-import zb.accountMangement.account.type.AccountStatus;
-import zb.accountMangement.common.error.exception.NotFoundAccountException;
+import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
-import zb.accountMangement.member.service.MemberService;
+import zb.accountMangement.member.repository.MemberRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class AccountService {
     private final int ACCOUNT_NUMBER_LENGTH = 14;
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final MemberService memberService;
+    private final MemberRepository memberRepository;
     /**
      * 계좌번호 생성
      * @return 계좌번호
@@ -42,7 +42,7 @@ public class AccountService {
      */
     public Account getAccountById(Long accountId){
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundAccountException(ErrorCode.ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
@@ -52,17 +52,17 @@ public class AccountService {
      */
     public Account getAccountByNumber(String accountNumber){
         return accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new NotFoundAccountException(ErrorCode.ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
      * 계좌 개설
-     * @param userId - 사용자 ID
+     * @param memberId - 사용자 ID
      * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
      * @return Account
      */
     @Transactional
-    public Account openAccount(Long userId, AccountManagementDto accountManagementDto) {
+    public Account openAccount(Long memberId, AccountManagementDto accountManagementDto) {
         // 계좌번호 랜덤생성 - 중복 생성 x
         String accountNumber = createAccountNumber();
 
@@ -72,7 +72,7 @@ public class AccountService {
 
         Account account = Account.builder()
               .accountNumber(accountNumber)
-              .userId(userId)
+              .memberId(memberId)
               .nickname(accountManagementDto.getNickname())
               .password(passwordEncoder.encode(accountManagementDto.getPassword()))
               .status(AccountStatus.EXISTS)
@@ -90,7 +90,7 @@ public class AccountService {
     public Account getAccountInfo(Long accountId) {
         Account account = getAccountById(accountId);
         if (account.isDeletedAccount())
-            throw new NotFoundAccountException(ErrorCode.DELETED_ACCOUNT);
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         return account;
     }
 
@@ -109,9 +109,9 @@ public class AccountService {
             account.setPassword(accountManagementDto.getPassword());
         }
         else if (account.isDeletedAccount())
-            throw new NotFoundAccountException(ErrorCode.DELETED_ACCOUNT);
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         else
-            throw new NotFoundAccountException(ErrorCode.PENDING_ACCOUNT);
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
 
         return account;
     }
@@ -126,10 +126,10 @@ public class AccountService {
         boolean result = false;
         Account account = getAccountById(accountId);
 
-        List<Account> userAccounts = getAllAccounts(account.getUserId());
+        List<Account> memberAccounts = getAllAccounts(account.getMemberId());
 
         // 사용자가 2개 이상의 계좌를 가지고 있어야 삭제 가능
-        if( account.isExistsAccount() && userAccounts.size() >= 2 ) {
+        if( account.isExistsAccount() && memberAccounts.size() >= 2 ) {
             account.setStatus(AccountStatus.DELETED);
             account.setDeletedAt(LocalDateTime.now());
             result = true;
@@ -139,8 +139,8 @@ public class AccountService {
     }
 
     // 전체 계좌 조회
-    public List<Account> getAllAccounts(Long userId){
-        return accountRepository.findByUserId(userId);
+    public List<Account> getAllAccounts(Long memberId){
+        return accountRepository.findByMemberId(memberId);
     }
 
     /**
@@ -151,10 +151,12 @@ public class AccountService {
      */
     public SearchAccountDto searchAccount(Long accountId, Long requesterId) {
         Account account = getAccountById(accountId);
-        String username = memberService.getUserById(account.getUserId()).getName();
+        String username = memberRepository.findById(account.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST))
+                .getName();
 
-        // 본인의 계좌
-        if (account.getUserId().equals(requesterId)) {
+        // 본인 계좌
+        if (account.getMemberId().equals(requesterId)) {
             return SearchAccountDto.builder()
                     .accountId(account.getId())
                     .accountNumber(account.getAccountNumber())

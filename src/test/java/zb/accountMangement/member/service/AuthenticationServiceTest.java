@@ -9,23 +9,22 @@ import zb.accountMangement.member.repository.MemberRepository;
 
 @SpringBootTest
 class AuthenticationServiceTest {
-  @Mock
-  private MemberRepository memberRepository;
+//  @Mock
+//  private MemberRepository memberRepository;
   @InjectMocks
-  private AuthenticationService authenticationService;
+  private AuthenticationService authService;
 
-  private final String token = "TMPTOKEN";
   @Test
   void signUp() {
     SignUpDto dto = SignUpDto.builder()
         .name("test")
-        .password("password123")
+        .loginPassword("password123")
         .phoneNumber("1234567890")
         .build();
 
 //    String encodedPassword = "encodedPassword";
 //    when(passwordEncoder.encode(dto.getPassword())).thenReturn(encodedPassword);
-    authenticationService.signUp(token,dto);
+    authService.signUp(dto);
 
 //    verify(memberRepository).save(any(Member.class));
   }

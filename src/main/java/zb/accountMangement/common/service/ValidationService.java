@@ -1,12 +1,11 @@
-package zb.accountMangement.common.util;
+package zb.accountMangement.common.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.common.auth.JwtTokenProvider;
-import zb.accountMangement.common.error.exception.NotFoundUserException;
-import zb.accountMangement.common.error.exception.UnauthorizedAccessException;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.repository.MemberRepository;
 
@@ -21,18 +20,18 @@ public class ValidationService {
     public void validTokenNAccountOwner(String token, Long accountId){
         Account account = accountService.getAccountInfo(accountId);
         Long userId = tokenProvider.getId(token);
-        if (!account.getUserId().equals(userId))
-            throw new UnauthorizedAccessException(ErrorCode.MISMATCH_ACCOUNT_OWNER);
+        if (!account.getMemberId().equals(userId))
+            throw new CustomException(ErrorCode.MISMATCH_ACCOUNT_OWNER);
     }
-    public void validTokenNUserId(String token, Long userId){
+    public void validTokenNMemberId(String token, Long userId){
         Long tokenProviderId = tokenProvider.getId(token);
         if (!tokenProviderId.equals(userId))
-            throw new UnauthorizedAccessException(ErrorCode.MISMATCHED_USER_ID);
+            throw new CustomException(ErrorCode.MISMATCHED_USER_ID);
     }
 
-    public void validTokenNUserPhoneNumber(String token, String phoneNum){
+    public void validTokenNMemberPhoneNumber(String token, String phoneNum){
         Long userId = memberRepository.findByPhoneNumber(phoneNum)
-                .orElseThrow(() -> new NotFoundUserException(ErrorCode.USER_NOT_EXIST)).getId();
-        validTokenNUserId(token, userId);
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST)).getId();
+        validTokenNMemberId(token, userId);
     }
 }

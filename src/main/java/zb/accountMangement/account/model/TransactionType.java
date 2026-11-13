@@ -1,4 +1,4 @@
-package zb.accountMangement.account.type;
+package zb.accountMangement.account.model;
 
 public enum TransactionType {
   DEPOSIT, WITHDRAWN, TRANSFER

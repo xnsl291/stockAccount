@@ -3,12 +3,12 @@ package zb.accountMangement.account.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.SearchAccountDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.common.auth.JwtTokenProvider;
-import zb.accountMangement.common.util.ValidationService;
+import zb.accountMangement.common.service.ValidationService;
 
 import java.util.List;
 
@@ -80,15 +80,15 @@ public class AccountController {
   /**
    * 사용자가 소유한 전체계좌조회
    * @param token - 토큰
-   * @param userId - 사용자 ID
+   * @param memberId - 사용자 ID
    * @return 사용자가 소유한 계좌 리스트
    */
-  @GetMapping("/{user_id}")
+  @GetMapping("/{member_id}")
   public ResponseEntity<List<Account>> getAllAccounts(
           @RequestHeader(value = "Authorization") String token,
-          @PathVariable("user_id")Long userId){
-    validationService.validTokenNUserId(token,userId);
-    return ResponseEntity.ok().body(accountService.getAllAccounts(userId));
+          @PathVariable("member_id")Long memberId){
+    validationService.validTokenNMemberId(token,memberId);
+    return ResponseEntity.ok().body(accountService.getAllAccounts(memberId));
   }
 
   /**

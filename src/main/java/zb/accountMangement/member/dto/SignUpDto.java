@@ -20,7 +20,7 @@ public class SignUpDto {
   private String phoneNumber;
 
   @NotBlank
-  private String password; //로그인 패스워드
+  private String loginPassword;
 
   @NotBlank
   private String initialAccountPassword; //초기 생성되는 계좌 비밀번호

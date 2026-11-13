@@ -3,22 +3,22 @@ package zb.accountMangement.stock.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.TransactionDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
-import zb.accountMangement.common.error.exception.*;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
-import zb.accountMangement.stock.domain.Stock;
-import zb.accountMangement.stock.domain.StockBalance;
-import zb.accountMangement.stock.domain.Trading;
+import zb.accountMangement.stock.model.entity.Stock;
+import zb.accountMangement.stock.model.entity.StockBalance;
+import zb.accountMangement.stock.model.entity.Trading;
 import zb.accountMangement.stock.dto.DateDto;
 import zb.accountMangement.stock.dto.TradeStockDto;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.stock.repository.TradingRepository;
-import zb.accountMangement.stock.type.TradeType;
+import zb.accountMangement.stock.model.TradeType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ public class StockService {
      */
     public Stock getStockById(Long stockId){
         return stockRepository.findById(stockId)
-                .orElseThrow(() -> new InsufficientStockException(ErrorCode.INSUFFICIENT_STOCK));
+                .orElseThrow(() -> new CustomException(ErrorCode.INSUFFICIENT_STOCK));
     }
 
     /**
@@ -56,7 +56,7 @@ public class StockService {
      */
     public StockBalance getStockBalanceByAccountIdAndStockId(Long accountId, Long stockId){
         return stockBalanceRepository.findByAccountIdAndStockId(accountId, stockId)
-                .orElseThrow(() -> new InsufficientStockException(ErrorCode.NO_STOCK_BALANCE));
+                .orElseThrow(() -> new CustomException(ErrorCode.NO_STOCK_BALANCE));
     }
 
     /**
@@ -100,7 +100,7 @@ public class StockService {
         double totalCost = calculateTotalPrice(buyStockDto);
 
         if (account.getBalance() < totalCost)
-            throw new InsufficientBalanceException(ErrorCode.EXCEED_BALANCE);
+            throw new CustomException(ErrorCode.EXCEED_BALANCE);
 
         Trading tradeHistory = Trading.builder()
                 .stockId(buyStockDto.getStockId())
@@ -154,7 +154,7 @@ public class StockService {
         StockBalance stockBalance = getStockBalanceByAccountIdAndStockId(sellStockDto.getAccountId(),sellStockDto.getStockId());
 
         if (stockBalance.getQuantity() < sellStockDto.getQuantity())
-            throw new InsufficientStockException(ErrorCode.INSUFFICIENT_STOCK);
+            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
 
         Trading tradeHistory = Trading.builder()
                 .stockId(sellStockDto.getStockId())
@@ -189,17 +189,17 @@ public class StockService {
         Account senderAccount = accountService.getAccountById(transferStockDto.getSenderAccountId());
 
         Long senderId = senderAccount.getId();
-        Long receiverId = accountService.getAccountById(transferStockDto.getReceiverAccountId()).getUserId();
+        Long receiverId = accountService.getAccountById(transferStockDto.getReceiverAccountId()).getMemberId();
 
         // 본인 계좌에 이체할 경우 수수료 X
         double transferFee = senderId.equals(receiverId) ?
                 calculateTransferFee(transferStockDto.getStockId() , transferStockDto.getQuantity()) : 0 ;
 
         if (senderAccount.getBalance() < transferFee)
-            throw new InsufficientBalanceException(ErrorCode.EXCEED_BALANCE);
+            throw new CustomException(ErrorCode.EXCEED_BALANCE);
 
         if (senderStockBalance.getQuantity() < transferStockDto.getQuantity()) {
-            throw new InsufficientStockException(ErrorCode.INSUFFICIENT_STOCK);
+            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
         }
 
         senderStockBalance.setQuantity(senderStockBalance.getQuantity() - transferStockDto.getQuantity());
@@ -297,7 +297,7 @@ public class StockService {
 
         // 요청된 날짜가 오늘 이후인지
         if (requestedDate.isAfter(LocalDate.now()))
-            throw new InvalidInputException(ErrorCode.INVALID_REQUEST_DATE);
+            throw new CustomException(ErrorCode.INVALID_REQUEST_DATE);
 
         LocalDateTime startDate = LocalDateTime.of(dateDto.getYear(), dateDto.getMonth(), 1, 0, 0);
         LocalDateTime endDate = startDate.plusMonths(1).minusNanos(1); // 월의 마지막 일시

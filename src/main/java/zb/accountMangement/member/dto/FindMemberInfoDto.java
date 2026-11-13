@@ -8,7 +8,7 @@ import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
-public class FindUserInfoDto {
+public class FindMemberInfoDto {
 
   @NotBlank
   private String name;

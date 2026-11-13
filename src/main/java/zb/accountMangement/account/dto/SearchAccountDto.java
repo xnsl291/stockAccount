@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-import zb.accountMangement.account.type.AccountStatus;
+import zb.accountMangement.account.model.AccountStatus;
 
 import javax.validation.constraints.NotBlank;
 
