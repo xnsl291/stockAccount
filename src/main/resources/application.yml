@@ -1,3 +1,4 @@
+
 server:
   port: 8080
 
@@ -12,9 +13,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/accountSystem?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: rtrt
+    url: ${DB_URL:jdbc:mysql://localhost:3306/accountSystem?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:account}
+    password: ${DB_PASSWORD:account}
 
   jpa:
     hibernate:
@@ -29,5 +30,17 @@ spring:
       matching-strategy: ant_path_matcher
 
   redis:
-    host: localhost #127.0.0.1
-    port: 6379
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+jwt:
+  expiration:
+    access-token-seconds: ${JWT_ACCESS_TOKEN_SECONDS:1800}
+    refresh-token-seconds: ${JWT_REFRESH_TOKEN_SECONDS:1209600}
+
+coolsms:
+  api-key: ${COOLSMS_API_KEY:}
+  secret-key: ${COOLSMS_SECRET_KEY:}
+
+provider:
+  phone-number: ${SMS_SENDER_PHONE_NUMBER:}

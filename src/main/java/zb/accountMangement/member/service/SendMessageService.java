@@ -2,11 +2,11 @@ package zb.accountMangement.member.service;
 
 import static zb.accountMangement.common.type.RedisTime.PHONE_VALID;
 
-import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.nurigo.java_sdk.api.Message;
-import net.nurigo.java_sdk.exceptions.CoolsmsException;
+import net.nurigo.sdk.NurigoApp;
+import net.nurigo.sdk.message.model.Message;
+import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,21 +42,16 @@ public class SendMessageService {
      */
     public String sendVerificationMessage(String token, String phoneNumber) {
         String verificationCode = RandomStringUtils.random(VERIFY_CODE_LEN, false, true);
-        Message message = new Message(apiKey, secretKey);
-
-        HashMap<String, String> params = new HashMap<>();
-        params.put("to", phoneNumber);
-        params.put("from", senderPhoneNumber);
-        params.put("type", "SMS");
-        params.put("text", "핸드폰 인증 메세지 \n 인증번호는 [" + verificationCode + "] 입니다.");
-        params.put("app_version", "test app 1.2");
+        Message message = new Message();
+        message.setFrom(senderPhoneNumber);
+        message.setTo(phoneNumber);
+        message.setText("핸드폰 인증 메세지 \n 인증번호는 [" + verificationCode + "] 입니다.");
 
         try {
-            message.send(params);
-            //TODO : setMsgVerificationInfo 사용해서 토큰 정보도 함꼐 저장
-//            redisUtil.setMsgVerificationInfo(token, phoneNumber, verificationCode, PHONE_VALID.getTime());
+            NurigoApp.INSTANCE.initialize(apiKey, secretKey, "https://api.coolsms.co.kr")
+                    .sendOne(new SingleMessageSendingRequest(message));
             redisService.setData(phoneNumber,verificationCode, PHONE_VALID.getTime());
-        } catch (CoolsmsException e) {
+        } catch (Exception e) {
             log.info(e.getMessage());
             throw new RuntimeException(e);
         }
