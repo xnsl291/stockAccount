@@ -36,7 +36,7 @@ public enum ErrorCode {
     PENDING_ACCOUNT(HttpStatus.BAD_REQUEST,"거래정지된 계좌입니다."),
     EXCEED_BALANCE(HttpStatus.BAD_REQUEST,"잔액을 초과할 수 없습니다"),
     INVALID_ACCOUNT(HttpStatus.BAD_REQUEST,"거래할 수 없는 계좌 입니다."),
-    SAME_ACCOUNT_TRANSFER(HttpStatus.BAD_REQUEST,"같은 계좌로는 송금할 수 없습니다."),
+    SAME_ACCOUNT_TRANSFER(HttpStatus.BAD_REQUEST,"같은 계좌로는 보낼 수 없습니다."),
     IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT,"다른 요청에 이미 사용한 Idempotency-Key 입니다."),
 
     MISMATCH_ACCOUNT_OWNER(HttpStatus.FORBIDDEN,"계좌 소유자와 유저 정보가 일치하지 않습니다."),
@@ -47,6 +47,8 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST,"보유량이 부족합니다"),
     NO_STOCK_BALANCE(HttpStatus.BAD_REQUEST,"보유량이 없습니다"),
     INVALID_REQUEST_DATE(HttpStatus.BAD_REQUEST,"날짜가 유효하지 않습니다."),
+    ORDER_NOT_EXIST(HttpStatus.NOT_FOUND,"주문 정보가 존재하지 않습니다."),
+    ORDER_NOT_PENDING(HttpStatus.BAD_REQUEST,"체결되지 않은 주문만 취소할 수 있습니다."),
     ;
 
     private final HttpStatus status;

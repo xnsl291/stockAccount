@@ -1,17 +1,9 @@
 package zb.accountMangement.account;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +19,8 @@ import zb.accountMangement.account.model.entity.Transaction;
 import zb.accountMangement.account.repository.TransactionRepository;
 import zb.accountMangement.account.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
-import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.stock.model.entity.Stock;
-import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,8 +38,6 @@ class TransactionConsistencyTest extends ApiTest {
 	IdempotencyService idempotencyService;
 	@Autowired
 	TransactionRepository transactionRepository;
-	@Autowired
-	StockRepository stockRepository;
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
@@ -220,12 +208,12 @@ class TransactionConsistencyTest extends ApiTest {
 	void 주식_매수와_매도_대금도_거래_기록에_남는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);
-		Stock stock = stockRepository.save(Stock.builder().code(5930L).name("테스트전자").currentPrice(1_000).build());
+		Stock stock = saveStock(1_000);
 		Map<String, Object> order = Map.of("accountId", account.getId(), "stockId", stock.getId(), "price", 1_000,
 				"quantity", 3, "accountPassword", ACCOUNT_PASSWORD);
 
-		postJson("/api/stocks/buy", member, order).andExpect(status().isOk()).andExpect(content().string("true"));
-		postJson("/api/stocks/sell", member, order).andExpect(status().isOk()).andExpect(content().string("true"));
+		postJson("/api/stocks/buy", member, order).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("FILLED"));
+		postJson("/api/stocks/sell", member, order).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("FILLED"));
 
 		assertThat(ledgerOf(account)).containsExactly("DEPOSIT 10000 10000", "STOCK_BUY -3000 7000", "STOCK_SELL 3000 10000");
 		assertThat(balanceOf(account)).isEqualTo(10_000);
@@ -353,31 +341,5 @@ class TransactionConsistencyTest extends ApiTest {
 		} catch (InterruptedException e) {
 			throw new IllegalStateException(e);
 		}
-	}
-
-	/**
-	 * 여러 스레드가 같은 순간에 작업을 시작하게 한 뒤 결과를 모음. 업무 규칙에 걸려 거절된 작업의 결과는 null
-	 */
-	private <T> List<T> runConcurrently(int threads, IntFunction<Callable<T>> taskOf) throws Exception {
-		ExecutorService executor = Executors.newFixedThreadPool(threads);
-		CountDownLatch start = new CountDownLatch(1);
-		List<Future<T>> futures = new ArrayList<>();
-		for (int i = 0; i < threads; i++) {
-			Callable<T> task = taskOf.apply(i);
-			futures.add(executor.submit(() -> {
-				start.await();
-				try {
-					return task.call();
-				} catch (CustomException e) {
-					return null;
-				}
-			}));
-		}
-		start.countDown();
-		List<T> results = new ArrayList<>();
-		for (Future<T> future : futures)
-			results.add(future.get(30, TimeUnit.SECONDS));
-		executor.shutdown();
-		return results;
 	}
 }

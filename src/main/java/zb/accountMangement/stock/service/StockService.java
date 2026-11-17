@@ -12,17 +12,15 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.model.entity.Trading;
-import zb.accountMangement.stock.dto.DateDto;
-import zb.accountMangement.stock.dto.TradeStockDto;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.stock.repository.TradingRepository;
+import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -41,13 +39,13 @@ public class StockService {
     private final TradingRepository tradeHistoryRepository;
 
     /**
-     * 주식 ID를 이용한 잔고조회
+     * 주식 ID를 이용한 종목 조회
      * @param stockId - 주식 ID
-     * @return StockBalance
+     * @return Stock
      */
     public Stock getStockById(Long stockId){
         return stockRepository.findById(stockId)
-                .orElseThrow(() -> new CustomException(ErrorCode.INSUFFICIENT_STOCK));
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_EXIST));
     }
 
     /**
@@ -71,6 +69,15 @@ public class StockService {
     }
 
     /**
+     * 종목 검색
+     * @param keyword - 종목코드 또는 종목명의 일부
+     * @return 종목 리스트
+     */
+    public List<Stock> searchStocks(String keyword) {
+        return stockRepository.findByCodeContainingOrNameContaining(keyword, keyword);
+    }
+
+    /**
      * 주식 수량이 0이면 StockBalance에서 해당 주식 종목 삭제
      * @param stockBalance - 잔고
      */
@@ -78,107 +85,6 @@ public class StockService {
         if (stockBalance.getQuantity() == 0) {
             stockBalanceRepository.delete(stockBalance);
         }
-    }
-
-    /**
-     * 총금액 계산
-     * @param dto - TradeStockDto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
-     * @return 총금액
-     */
-    private long calculateTotalPrice(TradeStockDto dto){
-        return Math.multiplyExact(dto.getQuantity(), dto.getPrice());
-    }
-
-    /**
-    * 주식 매수
-    * @param buyStockDto - 매수 dto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
-    * @return 주문 체결 여부
-    */
-    @Transactional
-    public Boolean buyStock(TradeStockDto buyStockDto) {
-        Account account = accountService.getAccountForUpdate(buyStockDto.getAccountId());
-        Stock stock = getStockById(buyStockDto.getStockId());
-
-        long totalCost = calculateTotalPrice(buyStockDto);
-
-        if (account.getBalance() < totalCost)
-            throw new CustomException(ErrorCode.EXCEED_BALANCE);
-
-        Trading tradeHistory = Trading.builder()
-                .stockId(buyStockDto.getStockId())
-                .accountId(buyStockDto.getAccountId())
-                .price(buyStockDto.getPrice())
-                .quantity(buyStockDto.getQuantity())
-                .type(TradeType.BUY)
-                .tradeAt(LocalDateTime.now())
-                .isConcluded(false)
-                .build();
-        tradeHistoryRepository.save(tradeHistory);
-
-        // 신청한 매수가가 현재가보다 같거나 높으면 체결
-        if (stock.getCurrentPrice() <= buyStockDto.getPrice()) {
-            transactionService.changeBalance(account.getId(), TransactionType.STOCK_BUY, totalCost, stock.getName(), null);
-            Optional<StockBalance> optionalStockBalance =
-                stockBalanceRepository.findByAccountIdAndStockId(buyStockDto.getAccountId(), buyStockDto.getStockId());
-            StockBalance stockBalance;
-
-            if (optionalStockBalance.isPresent()) {
-                stockBalance = optionalStockBalance.get();
-
-                // 평단가 변경
-                stockBalance.setAvgPrice((stockBalance.getAvgPrice() * stockBalance.getQuantity() + totalCost) /
-                                            (stockBalance.getQuantity() + buyStockDto.getQuantity()));
-                stockBalance.setQuantity(stockBalance.getQuantity() + buyStockDto.getQuantity());
-
-            } else {
-                stockBalance = StockBalance.builder()
-                    .accountId(buyStockDto.getAccountId())
-                    .stockId(buyStockDto.getStockId())
-                    .avgPrice(buyStockDto.getPrice())
-                    .quantity(buyStockDto.getQuantity())
-                    .build();
-                stockBalanceRepository.save(stockBalance);
-            }
-            tradeHistory.setConcluded(true);
-        }
-        return tradeHistory.isConcluded();
-    }
-
-    /**
-     * 주식 매도
-     * @param sellStockDto - 매도 dto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
-     * @return 주문 체결 여부
-     */
-    @Transactional
-    public Boolean sellStock(TradeStockDto sellStockDto) {
-        Account account = accountService.getAccountForUpdate(sellStockDto.getAccountId());
-        Stock stock = getStockById(sellStockDto.getStockId());
-        StockBalance stockBalance = getStockBalanceByAccountIdAndStockId(sellStockDto.getAccountId(),sellStockDto.getStockId());
-
-        if (stockBalance.getQuantity() < sellStockDto.getQuantity())
-            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
-
-        Trading tradeHistory = Trading.builder()
-                .stockId(sellStockDto.getStockId())
-                .accountId(sellStockDto.getAccountId())
-                .price(sellStockDto.getPrice())
-                .quantity(sellStockDto.getQuantity())
-                .type(TradeType.SELL)
-                .tradeAt(LocalDateTime.now())
-                .isConcluded(false)
-                .build();
-        tradeHistoryRepository.save(tradeHistory);
-
-        // 판매하고자 하는 금액이 현재가보다 같거나 낮으면 판매완료
-        if (stock.getCurrentPrice() >= sellStockDto.getPrice()) {
-            transactionService.changeBalance(account.getId(), TransactionType.STOCK_SELL,
-                    calculateTotalPrice(sellStockDto), stock.getName(), null);  // 잔액 증액
-            stockBalance.setQuantity(stockBalance.getQuantity() - sellStockDto.getQuantity());  // 주식 수량 증가
-            tradeHistory.setConcluded(true); // 주문 체결
-        }
-
-        quantityCheck(stockBalance);
-        return tradeHistory.isConcluded();
     }
 
     /**
@@ -244,7 +150,7 @@ public class StockService {
                 .quantity(-transferStockDto.getQuantity())
                 .type(TradeType.TRANSFER)
                 .tradeAt(LocalDateTime.now())
-                .isConcluded(true)
+                .status(OrderStatus.FILLED)
                 .build();
 
         Trading receiverTradeHistory = Trading.builder()
@@ -254,7 +160,7 @@ public class StockService {
                 .quantity(transferStockDto.getQuantity())
                 .type(TradeType.TRANSFER)
                 .tradeAt(LocalDateTime.now())
-                .isConcluded(true)
+                .status(OrderStatus.FILLED)
                 .build();
 
         tradeHistoryRepository.save(senderTradeHistory);
@@ -276,34 +182,6 @@ public class StockService {
                 .multiply(TRANSFER_FEE_RATE.getRate())
                 .setScale(0, RoundingMode.DOWN)
                 .longValueExact();
-    }
-
-    /**
-     * 거래내역 조회
-     * @param accountId - 계좌 ID
-     * @return 거래내역
-     */
-    public List<Trading> getTradeHistory(Long accountId) {
-        return tradeHistoryRepository.findByAccountIdOrderByTradeAtDesc(accountId);
-    }
-
-    /**
-     * 거래내역 조회 + 날짜 필터링
-     * @param accountId - 계좌 ID
-     * @param dateDto - 조회할 날짜, 월
-     * @return 거래내역
-     */
-    public List<Trading> getTradeHistory(DateDto dateDto, Long accountId) {
-        LocalDate requestedDate = LocalDate.of(dateDto.getYear(), dateDto.getMonth(), 1);
-
-        // 요청된 날짜가 오늘 이후인지
-        if (requestedDate.isAfter(LocalDate.now()))
-            throw new CustomException(ErrorCode.INVALID_REQUEST_DATE);
-
-        LocalDateTime startDate = LocalDateTime.of(dateDto.getYear(), dateDto.getMonth(), 1, 0, 0);
-        LocalDateTime endDate = startDate.plusMonths(1).minusNanos(1); // 월의 마지막 일시
-
-        return tradeHistoryRepository.findByAccountIdAndTradeAtBetweenOrderByTradeAtDesc(accountId, startDate, endDate);
     }
 
     /**

@@ -17,7 +17,8 @@ public class Stock {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long code; // 종목코드
+  @Column(unique = true, nullable = false)
+  private String code; // 종목코드. 0으로 시작하는 코드가 있어 문자열로 저장
 
   private String name; // 종목명
 

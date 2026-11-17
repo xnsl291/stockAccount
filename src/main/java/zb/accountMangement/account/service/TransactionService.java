@@ -109,7 +109,8 @@ public class TransactionService {
 
 		long signedAmount = type.signed(amount);
 		long balanceAfter = lockedAccount.getBalance() + signedAmount;
-		if (balanceAfter < 0)
+		// 미체결 매수 주문에 묶인 금액은 출금·송금에 쓸 수 없음
+		if (balanceAfter < lockedAccount.getHeldAmount())
 			throw new CustomException(ErrorCode.EXCEED_BALANCE);
 
 		lockedAccount.setBalance(balanceAfter);

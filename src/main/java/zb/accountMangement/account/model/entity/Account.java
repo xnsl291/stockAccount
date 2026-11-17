@@ -39,6 +39,8 @@ public class Account {
 
     private long balance; // 원 단위
 
+    private long heldAmount; // 미체결 매수 주문에 묶여 쓸 수 없는 금액
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private AccountStatus status = AccountStatus.EXISTS;
@@ -47,6 +49,10 @@ public class Account {
     private LocalDateTime createdAt;
 
     private LocalDateTime deletedAt;
+
+    public long getAvailableBalance() {
+        return balance - heldAmount;
+    }
 
     public boolean isExistsAccount() {
         return status.equals(AccountStatus.EXISTS);
