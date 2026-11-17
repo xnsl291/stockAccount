@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import type { Account } from '../api/endpoints';
 import type { MoneyFlow } from '../hooks/useMoneyFlow';
 import { MESSAGES } from '../lib/messages';
+import { IconCheck } from './icons';
 import { Amount, TextField } from './ui';
 
 /** 단계가 바뀌면 새 단계 제목으로 초점을 옮김 */
@@ -109,7 +110,7 @@ export function SubmitButton({ p, flow, label, disabled }: { p: string; flow: Mo
   return (
     <button
       type="button"
-      className="primary"
+      className="primary block"
       data-testid={`${p}-submit`}
       disabled={disabled || flow.submitting}
       aria-busy={flow.submitting || undefined}
@@ -151,8 +152,13 @@ export function ResultPanel({
 }) {
   return (
     <section className="panel" data-testid={`${p}-result-panel`}>
+      <span className="result-mark">
+        <IconCheck />
+      </span>
       <PanelTitle>처리 결과</PanelTitle>
-      <p data-testid={`${p}-result-message`}>{message}</p>
+      <p className="result-message" data-testid={`${p}-result-message`}>
+        {message}
+      </p>
       <dl className="summary">
         {children}
         {account ? (
@@ -175,7 +181,7 @@ export function ResultPanel({
         )}
       </dl>
       <div className="actions">
-        <Link to={doneTo} className="button primary" data-testid={`${p}-result-done`}>
+        <Link to={doneTo} className="button primary block" data-testid={`${p}-result-done`}>
           확인
         </Link>
       </div>

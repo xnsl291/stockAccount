@@ -181,3 +181,16 @@ export function StatusBadge({ testid, state, label }: { testid: string; state: s
     </span>
   );
 }
+
+/** 화면 제목 줄. 제목 아래 한 줄 설명과 오른쪽 배지(2차·준비 중 등)를 둘 수 있음 */
+export function PageHead({ title, sub, badge }: { title: ReactNode; sub?: ReactNode; badge?: ReactNode }) {
+  return (
+    <header className="page-head">
+      <div className="page-head-row">
+        <h1>{title}</h1>
+        {badge}
+      </div>
+      {sub && <p className="hint">{sub}</p>}
+    </header>
+  );
+}
