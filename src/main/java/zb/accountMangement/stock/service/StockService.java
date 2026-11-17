@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
-import zb.accountMangement.account.dto.WithdrawalDto;
+import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.exception.CustomException;
@@ -20,6 +20,8 @@ import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.stock.repository.TradingRepository;
 import zb.accountMangement.stock.model.TradeType;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -64,7 +66,7 @@ public class StockService {
      * @param stockId - 주식 ID
      * @return 주식 가격
      */
-    public Double getCurrentStockPrice(Long stockId) {
+    public Long getCurrentStockPrice(Long stockId) {
         return getStockById(stockId).getCurrentPrice();
     }
 
@@ -83,8 +85,8 @@ public class StockService {
      * @param dto - TradeStockDto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
      * @return 총금액
      */
-    private double calculateTotalPrice(TradeStockDto dto){
-        return dto.getQuantity() * dto.getPrice();
+    private long calculateTotalPrice(TradeStockDto dto){
+        return Math.multiplyExact(dto.getQuantity(), dto.getPrice());
     }
 
     /**
@@ -94,10 +96,10 @@ public class StockService {
     */
     @Transactional
     public Boolean buyStock(TradeStockDto buyStockDto) {
-        Account account = accountService.getAccountById(buyStockDto.getAccountId());
+        Account account = accountService.getAccountForUpdate(buyStockDto.getAccountId());
         Stock stock = getStockById(buyStockDto.getStockId());
 
-        double totalCost = calculateTotalPrice(buyStockDto);
+        long totalCost = calculateTotalPrice(buyStockDto);
 
         if (account.getBalance() < totalCost)
             throw new CustomException(ErrorCode.EXCEED_BALANCE);
@@ -115,7 +117,7 @@ public class StockService {
 
         // 신청한 매수가가 현재가보다 같거나 높으면 체결
         if (stock.getCurrentPrice() <= buyStockDto.getPrice()) {
-            account.setBalance(account.getBalance() - totalCost);
+            transactionService.changeBalance(account.getId(), TransactionType.STOCK_BUY, totalCost, stock.getName(), null);
             Optional<StockBalance> optionalStockBalance =
                 stockBalanceRepository.findByAccountIdAndStockId(buyStockDto.getAccountId(), buyStockDto.getStockId());
             StockBalance stockBalance;
@@ -149,7 +151,7 @@ public class StockService {
      */
     @Transactional
     public Boolean sellStock(TradeStockDto sellStockDto) {
-        Account account = accountService.getAccountById(sellStockDto.getAccountId());
+        Account account = accountService.getAccountForUpdate(sellStockDto.getAccountId());
         Stock stock = getStockById(sellStockDto.getStockId());
         StockBalance stockBalance = getStockBalanceByAccountIdAndStockId(sellStockDto.getAccountId(),sellStockDto.getStockId());
 
@@ -169,7 +171,8 @@ public class StockService {
 
         // 판매하고자 하는 금액이 현재가보다 같거나 낮으면 판매완료
         if (stock.getCurrentPrice() >= sellStockDto.getPrice()) {
-            account.setBalance(account.getBalance() + calculateTotalPrice(sellStockDto) );  // 잔액 증액
+            transactionService.changeBalance(account.getId(), TransactionType.STOCK_SELL,
+                    calculateTotalPrice(sellStockDto), stock.getName(), null);  // 잔액 증액
             stockBalance.setQuantity(stockBalance.getQuantity() - sellStockDto.getQuantity());  // 주식 수량 증가
             tradeHistory.setConcluded(true); // 주문 체결
         }
@@ -185,14 +188,14 @@ public class StockService {
      */
     @Transactional
     public Boolean transferStock(TransferStockDto transferStockDto){
+        Account senderAccount = accountService.getAccountForUpdate(transferStockDto.getSenderAccountId());
         StockBalance senderStockBalance = getStockBalanceByAccountIdAndStockId(transferStockDto.getSenderAccountId(), transferStockDto.getStockId());
-        Account senderAccount = accountService.getAccountById(transferStockDto.getSenderAccountId());
 
         Long senderId = senderAccount.getId();
         Long receiverId = accountService.getAccountById(transferStockDto.getReceiverAccountId()).getMemberId();
 
         // 본인 계좌에 이체할 경우 수수료 X
-        double transferFee = senderId.equals(receiverId) ?
+        long transferFee = senderId.equals(receiverId) ?
                 calculateTransferFee(transferStockDto.getStockId() , transferStockDto.getQuantity()) : 0 ;
 
         if (senderAccount.getBalance() < transferFee)
@@ -205,12 +208,8 @@ public class StockService {
         senderStockBalance.setQuantity(senderStockBalance.getQuantity() - transferStockDto.getQuantity());
 
         // 수수료 차감
-        WithdrawalDto withdrawalDto = WithdrawalDto.builder()
-                .accountId(transferStockDto.getSenderAccountId())
-                .amount(transferFee)
-                .memo("주식 이체 수수료 출금")
-                .build();
-        transactionService.withdrawal(withdrawalDto);
+        if (transferFee > 0)
+            transactionService.changeBalance(senderAccount.getId(), TransactionType.FEE, transferFee, "주식 이체 수수료", null);
 
         quantityCheck(senderStockBalance);
 
@@ -222,7 +221,7 @@ public class StockService {
         if (optionalReceiverStockBalance.isPresent()) {
             receiverStockBalance = optionalReceiverStockBalance.get();
 
-            double totalCost = transferStockDto.getPrice() * transferStockDto.getQuantity();
+            long totalCost = transferStockDto.getPrice() * transferStockDto.getQuantity();
 
             // 평단가 변경
             receiverStockBalance.setAvgPrice((receiverStockBalance.getAvgPrice() * receiverStockBalance.getQuantity() + totalCost) /
@@ -264,15 +263,19 @@ public class StockService {
     }
 
     /**
-     * 이체 수수료 계산
+     * 이체 수수료 계산 - 원 미만은 버림
      * @param stockId - 주식 ID
      * @param quantity - 수량
      * @return 수수료
      */
-    private double calculateTransferFee(Long stockId , int quantity){
+    private long calculateTransferFee(Long stockId , int quantity){
         Stock stock = getStockById(stockId);
 
-        return stock.getCurrentPrice() * quantity * TRANSFER_FEE_RATE.getRate();
+        return BigDecimal.valueOf(stock.getCurrentPrice())
+                .multiply(BigDecimal.valueOf(quantity))
+                .multiply(TRANSFER_FEE_RATE.getRate())
+                .setScale(0, RoundingMode.DOWN)
+                .longValueExact();
     }
 
     /**
@@ -317,7 +320,7 @@ public class StockService {
                 stockBalance.setProfitNLoss(calculateProfitLoss(stockBalance));  // 평가손익 업데이트
 
         //평가손익순으로 정렬
-        stockBalances.sort(Comparator.comparingDouble(StockBalance::getProfitNLoss).reversed());
+        stockBalances.sort(Comparator.comparingLong(StockBalance::getProfitNLoss).reversed());
         return stockBalances;
     }
 
@@ -326,7 +329,7 @@ public class StockService {
      * @param stockBalance - 주식 잔고
      * @return 평가손익
      */
-    private Double calculateProfitLoss(StockBalance stockBalance){
+    private long calculateProfitLoss(StockBalance stockBalance){
         Stock stock = getStockById(stockBalance.getStockId());
         return (stock.getCurrentPrice() - stockBalance.getAvgPrice()) * stockBalance.getQuantity();
     }

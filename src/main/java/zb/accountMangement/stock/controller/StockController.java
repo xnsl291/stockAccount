@@ -101,7 +101,7 @@ public class StockController {
      * @return 주식 가격
      */
     @GetMapping("/{stock_id}")
-    public ResponseEntity<Double> getStockPrice(@Validated @PathVariable("stock_id") Long stockId){
+    public ResponseEntity<Long> getStockPrice(@Validated @PathVariable("stock_id") Long stockId){
         return ResponseEntity.ok().body(stockService.getCurrentStockPrice(stockId));
     }
 }

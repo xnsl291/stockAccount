@@ -28,11 +28,11 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
-    private Double amount;
+    private long amount; // 원 단위. 잔액이 늘면 양수, 줄면 음수
 
     private String memo;
 
-    private Double balance;  // 거래 후 잔액
+    private long balanceAfter;  // 거래 후 잔액
 
     @CreatedDate
     private LocalDateTime transactedAt;

@@ -47,24 +47,9 @@ public class TransactionService {
 	 */
 	@Transactional
 	public String deposit(DepositDto depositDto) {
-		Account account = accountService.getAccountById(depositDto.getAccountId());
-		double recentBalance = account.getBalance() + depositDto.getAmount();
-
-		if (account.isExistsAccount()) {
-			Transaction transaction = Transaction.builder()
-					.accountId(depositDto.getAccountId())
-					.type(TransactionType.DEPOSIT)
-					.amount(depositDto.getAmount())
-					.name("전자입금")
-					.memo(depositDto.getMemo())
-					.balance(recentBalance)  //거래 후 잔액
-					.build();
-
-			transactionRepository.save(transaction);
-			account.setBalance(recentBalance);
-			return "입금완료";
-		}
-		throw new CustomException(ErrorCode.INVALID_ACCOUNT);
+		changeBalance(depositDto.getAccountId(), TransactionType.DEPOSIT, depositDto.getAmount(),
+				"전자입금", depositDto.getMemo());
+		return "입금완료";
 	}
 
 	/**
@@ -74,23 +59,9 @@ public class TransactionService {
 	 */
 	@Transactional
 	public String withdrawal(WithdrawalDto withdrawalDto) {
-		Account account = accountService.getAccountById(withdrawalDto.getAccountId());
-		double recentBalance = account.getBalance() - withdrawalDto.getAmount();
-
-		if (account.isExistsAccount()) {
-			Transaction transaction = Transaction.builder()
-					.accountId(withdrawalDto.getAccountId())
-					.type(TransactionType.WITHDRAWN)
-					.amount(withdrawalDto.getAmount())
-					.name("전자출금")
-					.memo(withdrawalDto.getMemo())
-					.balance(recentBalance)
-					.build();
-			transactionRepository.save(transaction);
-			account.setBalance(recentBalance);
-			return "출금완료";
-		}
-		throw new CustomException(ErrorCode.INVALID_ACCOUNT);
+		changeBalance(withdrawalDto.getAccountId(), TransactionType.WITHDRAW, withdrawalDto.getAmount(),
+				"전자출금", withdrawalDto.getMemo());
+		return "출금완료";
 	}
 
 	/**
@@ -100,44 +71,56 @@ public class TransactionService {
 	 */
 	@Transactional
 	public String transfer(Long senderAccountId, Long receiverAccountId, TransferDto transferDto) {
-		Account senderAccount = accountService.getAccountById(senderAccountId);
-		Account recipientAccount = accountService.getAccountById(receiverAccountId);
+		if (senderAccountId.equals(receiverAccountId))
+			throw new CustomException(ErrorCode.SAME_ACCOUNT_TRANSFER);
+
+		// 서로 반대 방향의 송금이 동시에 들어와도 교착 상태에 빠지지 않도록 항상 ID가 작은 계좌부터 잠금
+		Account first = accountService.getAccountForUpdate(Math.min(senderAccountId, receiverAccountId));
+		Account second = accountService.getAccountForUpdate(Math.max(senderAccountId, receiverAccountId));
+		Account senderAccount = first.getId().equals(senderAccountId) ? first : second;
+		Account receiverAccount = first.getId().equals(senderAccountId) ? second : first;
 
 		Member sender = memberService.getMemberById(senderAccount.getMemberId());
-		Member receiver = memberService.getMemberById(recipientAccount.getMemberId());
+		Member receiver = memberService.getMemberById(receiverAccount.getMemberId());
 
-		double recentSenderBalance = senderAccount.getBalance() - transferDto.getAmount();
-		double recentRecipientBalance = recipientAccount.getBalance() + transferDto.getAmount();
+		apply(senderAccount, TransactionType.TRANSFER_OUT, transferDto.getAmount(), receiver.getName(), transferDto.getMemo());
+		apply(receiverAccount, TransactionType.TRANSFER_IN, transferDto.getAmount(), sender.getName(), transferDto.getMemo());
+		return "송금완료";
+	}
 
-		if (senderAccount.getBalance() < transferDto.getAmount())
+	/**
+	 * 계좌를 잠그고 잔액을 바꾼 뒤 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드나 송금을 거쳐야 함
+	 * @param accountId - 계좌 ID
+	 * @param type - 거래 종류. 잔액이 늘어나는지 줄어드는지는 거래 종류가 정함
+	 * @param amount - 금액 (0보다 커야 함)
+	 * @param name - 거래 대상
+	 * @param memo - 메모
+	 */
+	@Transactional
+	public void changeBalance(Long accountId, TransactionType type, long amount, String name, String memo) {
+		apply(accountService.getAccountForUpdate(accountId), type, amount, name, memo);
+	}
+
+	private void apply(Account lockedAccount, TransactionType type, long amount, String name, String memo) {
+		if (amount <= 0)
+			throw new IllegalArgumentException("거래 금액은 0보다 커야 함: " + amount);
+		if (!lockedAccount.isExistsAccount())
+			throw new CustomException(ErrorCode.INVALID_ACCOUNT);
+
+		long signedAmount = type.signed(amount);
+		long balanceAfter = lockedAccount.getBalance() + signedAmount;
+		if (balanceAfter < 0)
 			throw new CustomException(ErrorCode.EXCEED_BALANCE);
 
-		if (senderAccount.isExistsAccount() && recipientAccount.isExistsAccount()) {
-			Transaction senderTransaction = Transaction.builder()
-					.accountId(senderAccountId)
-					.type(TransactionType.TRANSFER)
-					.amount(-transferDto.getAmount())
-					.name(receiver.getName()) // 수신자 이름
-					.memo(transferDto.getMemo())
-					.balance(recentSenderBalance)
-					.build();
-			transactionRepository.save(senderTransaction);
-
-			Transaction recipientTransaction = Transaction.builder()
-					.accountId(receiverAccountId)
-					.type(TransactionType.TRANSFER)
-					.amount(transferDto.getAmount())
-					.name(sender.getName()) // 발신자 이름
-					.memo(transferDto.getMemo())
-					.balance(recentRecipientBalance)
-					.build();
-			transactionRepository.save(recipientTransaction);
-
-			senderAccount.setBalance(recentSenderBalance);
-			recipientAccount.setBalance(recentRecipientBalance);
-			return "송금완료";
-		}
-		throw new CustomException(ErrorCode.INVALID_ACCOUNT);
+		lockedAccount.setBalance(balanceAfter);
+		transactionRepository.save(Transaction.builder()
+				.accountId(lockedAccount.getId())
+				.type(type)
+				.amount(signedAmount)
+				.name(name)
+				.memo(memo)
+				.balanceAfter(balanceAfter)
+				.build());
 	}
 
 	/**
@@ -160,7 +143,9 @@ public class TransactionService {
 	private TransactionDto mapToTransactionDto(Transaction transaction) {
 		return TransactionDto.builder()
 				.accountId(transaction.getAccountId())
+				.type(transaction.getType())
 				.amount(transaction.getAmount())
+				.balanceAfter(transaction.getBalanceAfter())
 				.name(transaction.getName())
 				.memo(transaction.getMemo())
 				.transactedAt(transaction.getTransactedAt())

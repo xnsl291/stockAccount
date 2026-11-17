@@ -21,9 +21,9 @@ public class StockBalance {
 
   private Long stockId;
 
-  private Double avgPrice; // 평균 매수가
+  private long avgPrice; // 평균 매수가 (원 미만 절사)
 
-  private Double profitNLoss; // 평가손익
+  private long profitNLoss; // 평가손익
 
   private int quantity; // 수량
 }

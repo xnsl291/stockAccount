@@ -63,7 +63,7 @@ public abstract class ApiTest extends IntegrationTest {
 	}
 
 	protected long balanceOf(Account account) {
-		return accountRepository.findById(account.getId()).orElseThrow().getBalance().longValue();
+		return accountRepository.findById(account.getId()).orElseThrow().getBalance();
 	}
 
 	protected ResultActions postJson(String url, Member loginMember, Map<String, Object> body) throws Exception {

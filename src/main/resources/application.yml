@@ -18,6 +18,9 @@ spring:
     password: ${DB_PASSWORD:account}
 
   jpa:
+    # 요청 하나가 영속성 컨텍스트 하나를 끝까지 공유하면 소유자 확인 때 읽어 둔 계좌가 남아,
+    # 잔액을 바꿀 때 잠금을 걸고 다시 읽어도 예전 잔액을 보게 됨
+    open-in-view: false
     hibernate:
       ddl-auto:  update  #create
     properties:

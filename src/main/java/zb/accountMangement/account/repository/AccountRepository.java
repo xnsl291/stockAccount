@@ -17,6 +17,9 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     List<Account> findByMemberId(Long userId);
 
+    @Query("select a.id from Account a where a.memberId = :memberId order by a.id")
+    List<Long> findIdsByMemberId(@Param("memberId") Long memberId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Account a where a.id = :id")
     Optional<Account> findByIdForUpdate(@Param("id") Long id);

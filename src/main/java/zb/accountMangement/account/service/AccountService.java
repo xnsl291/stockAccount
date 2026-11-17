@@ -132,19 +132,20 @@ public class AccountService {
     }
 
     /**
-     * 계좌 해지
+     * 계좌 해지 - 잔액이나 보유 주식이 남아 있으면 해지할 수 없음
      * @param accountId - 계좌 ID
      * @return 성공여부
      */
     @Transactional
     public Boolean deleteAccount(Long accountId) {
         boolean result = false;
-        Account account = getAccountById(accountId);
+        Account account = getAccountForUpdate(accountId);
 
         List<Account> memberAccounts = getAllAccounts(account.getMemberId());
 
         // 사용자가 2개 이상의 계좌를 가지고 있어야 삭제 가능
         if( account.isExistsAccount() && memberAccounts.size() >= 2 ) {
+            checkNoAssets(account);
             account.close();
             result = true;
         }
@@ -158,13 +159,19 @@ public class AccountService {
      */
     @Transactional
     public void closeAllAccounts(Long memberId) {
-        for (Account account : getAllAccounts(memberId)) {
+        // 송금과 같은 순서(ID 오름차순)로 잠가야 동시에 실행돼도 교착 상태에 빠지지 않음
+        for (Long accountId : accountRepository.findIdsByMemberId(memberId)) {
+            Account account = getAccountForUpdate(accountId);
             if (account.isDeletedAccount())
                 continue;
-            if (account.getBalance() > 0 || stockBalanceRepository.existsByAccountId(account.getId()))
-                throw new CustomException(ErrorCode.REMAINING_ASSET);
+            checkNoAssets(account);
             account.close();
         }
+    }
+
+    private void checkNoAssets(Account account) {
+        if (account.getBalance() != 0 || stockBalanceRepository.existsByAccountId(account.getId()))
+            throw new CustomException(ErrorCode.REMAINING_ASSET);
     }
 
     // 전체 계좌 조회

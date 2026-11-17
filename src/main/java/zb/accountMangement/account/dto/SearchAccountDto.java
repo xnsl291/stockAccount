@@ -26,8 +26,7 @@ public class SearchAccountDto {
 
     private String accountNickname;
 
-    @NotBlank
-    private Double balance = 0.0;
+    private Long balance;
 
     @NotBlank
     private AccountStatus status;

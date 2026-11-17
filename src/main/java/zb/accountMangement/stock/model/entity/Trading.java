@@ -24,7 +24,7 @@ public class Trading {
 
   private Long stockId;
 
-  private Double price;   // 매수가
+  private long price;   // 매수가 (원 단위)
 
   private int quantity; // 수량
 

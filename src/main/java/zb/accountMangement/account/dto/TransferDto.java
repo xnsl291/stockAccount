@@ -5,13 +5,15 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Getter
 @Setter
 public class TransferDto {
 
     @NotNull
-    private Double amount;
+    @Positive
+    private Long amount;
 
     private String memo;
 

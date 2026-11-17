@@ -37,8 +37,7 @@ public class Account {
     @Column(unique = true)
     private String accountNumber;
 
-    @Builder.Default
-    private Double balance = 0.0;
+    private long balance; // 원 단위
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

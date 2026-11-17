@@ -19,7 +19,7 @@ public class TradeStockDto {
 
     @NotNull
     @Positive
-    private Double price;
+    private Long price;
 
     @Positive
     private int quantity;
