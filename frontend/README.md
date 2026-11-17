@@ -1,6 +1,10 @@
 # StockAccount 화면 (frontend)
 
-React + Vite + TypeScript. 화면 정의(요소·data-testid·문구)는 설계 문서 `설계_3_화면.md` 3.10~3.13을 따름. 지금 스타일은 최소한이고, 새 디자인은 `src/styles/`와 `src/components/` 겉모양만 바꿔 입힘.
+React + Vite + TypeScript. 화면 정의(요소·data-testid·문구)는 설계 문서 `설계_3_화면.md` 3.10~3.13을 따르고, 디자인 반영 결과는 3.15에 있음.
+
+- 스타일: `src/styles/tokens.css`(색·글자 단계·간격, 큰 글씨 모드) → `base.css`(버튼·입력·면) → `layout.css`(메뉴·윗줄·상담) → `pages.css`(머리 카드·행 목록·막대). 입구는 `app.css`
+- 글꼴: Pretendard(SIL OFL 1.1)를 npm 패키지에서 받아 빌드에 같이 넣음. 외부 CDN 없음
+- 상담하기는 시연용 자동응답. 서버 경계는 `src/api/assistant.ts` 한 곳
 
 ## 개발 서버
 
@@ -33,6 +37,14 @@ npm run e2e:down                                        # 컨테이너 정리(�
 - 백엔드를 고치지 않았으면 `SKIP_BACKEND_BUILD=1 npm run e2e`로 jar 빌드를 건너뜀
 - 확인용 스크린샷 위치는 `E2E_SCREENSHOT_DIR`로 정함(없으면 `test-results/screenshots`)
 - 백엔드 로그: `e2e/.logs/backend-8081.log`, `backend-8082.log`
+
+## 화면 캡처
+
+E2E와 같은 서버를 띄워 1440·768·390 너비로 주요 화면을 찍고 가로 넘침을 `overflow.json`에 남김. 기본 E2E에는 들어가지 않음
+
+```bash
+CAPTURE_DIR=../../../design/ui-draft/impl-screenshots-v2 npx playwright test -c playwright.capture.config.ts
+```
 
 ## 알려진 한계
 

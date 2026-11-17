@@ -28,7 +28,8 @@ test('E-08 만료 뒤에도 로그인 화면 없이 재발급 1번으로 목록�
   await expect(page).not.toHaveURL(/\/login/);
   expect(reissues).toEqual([200]);
 
-  // 3 로그아웃
+  // 3 로그아웃(화면 설정 메뉴 안에 있어 메뉴를 먼저 엶)
+  await page.getByTestId('app-display-menu').click();
   const loggedOut = waitApi(page, 'POST', '/api/auth/logout');
   await page.getByTestId('app-logout').click();
   expect((await loggedOut).status()).toBe(200);
