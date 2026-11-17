@@ -2,6 +2,9 @@ package zb.accountMangement.account.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
@@ -17,8 +20,8 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.service.MemberService;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -125,15 +128,25 @@ public class TransactionService {
 	}
 
 	/**
-	 * 거래내역 조회
+	 * 거래내역 조회 - 최근 거래부터. 같은 시각의 거래는 나중에 기록된 것부터 보여 페이지를 넘겨도 순서가 흔들리지 않음
 	 * @param accountId - 계좌 ID
-	 * @return 거래내역 리스트
+	 * @param type - 거래 종류 (없으면 전체)
+	 * @param from - 시작일, 그날 포함 (없으면 처음부터)
+	 * @param to - 종료일, 그날 포함 (없으면 지금까지)
+	 * @param page - 페이지 번호 (0부터)
+	 * @param size - 페이지 크기
+	 * @return 거래내역 한 페이지
 	 */
-	public List<TransactionDto> getTransactionsByAccountId(Long accountId) {
-		List<Transaction> transactions = transactionRepository.findByAccountIdOrderByTransactedAtDesc(accountId);
-		return transactions.stream()
-				.map(this::mapToTransactionDto)
-				.collect(Collectors.toList());
+	public Page<TransactionDto> getTransactionsByAccountId(Long accountId, TransactionType type,
+			LocalDate from, LocalDate to, int page, int size) {
+		if (from != null && to != null && from.isAfter(to))
+			throw new CustomException(ErrorCode.INVALID_REQUEST_DATE);
+
+		LocalDateTime fromTime = from == null ? null : from.atStartOfDay();
+		LocalDateTime toTime = to == null ? null : to.plusDays(1).atStartOfDay();
+		Sort sort = Sort.by(Sort.Order.desc("transactedAt"), Sort.Order.desc("id"));
+		return transactionRepository.search(accountId, type, fromTime, toTime, PageRequest.of(page, size, sort))
+				.map(this::mapToTransactionDto);
 	}
 
 	/**

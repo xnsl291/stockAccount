@@ -92,15 +92,15 @@ public class AccountController {
   }
 
   /**
-   * 계좌 검색
+   * 계좌번호로 계좌 검색 - 해지된 계좌는 찾지 않음
    * @param loginMemberId - 로그인한 사용자 ID
-   * @param accountId - 검색하고자 하는 계좌 ID
+   * @param accountNumber - 검색하고자 하는 계좌번호
    * @return 계좌정보
    */
-  @GetMapping("/search/{account_id}")
+  @GetMapping("/search/{account_number}")
   public ResponseEntity<SearchAccountDto> searchAccounts(
           @AuthenticationPrincipal Long loginMemberId,
-          @PathVariable("account_id")Long accountId){
-    return ResponseEntity.ok().body(accountService.searchAccount(accountId,loginMemberId));
+          @PathVariable("account_number") String accountNumber){
+    return ResponseEntity.ok().body(accountService.searchAccount(accountNumber, loginMemberId));
   }
 }

@@ -7,6 +7,7 @@ import javax.persistence.*;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"account_id", "stock_id"}))
 @Getter
 @Setter
 @Builder
@@ -17,8 +18,10 @@ public class StockBalance {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Column(name = "account_id", nullable = false)
   private Long accountId;
 
+  @Column(name = "stock_id", nullable = false)
   private Long stockId;
 
   private long avgPrice; // 평균 매수가 (원 미만 절사)

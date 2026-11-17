@@ -180,13 +180,15 @@ public class AccountService {
     }
 
     /**
-     * 계좌 검색
-     * @param accountId - 계좌 Id
+     * 계좌번호로 계좌 검색 - 해지된 계좌는 없는 계좌로 봄
+     * @param accountNumber - 계좌번호
      * @param requesterId - 요구자 ID
-     * @return 계좌정보
+     * @return 계좌정보. 남의 계좌면 계좌 ID·계좌번호·소유주 이름만
      */
-    public SearchAccountDto searchAccount(Long accountId, Long requesterId) {
-        Account account = getAccountById(accountId);
+    public SearchAccountDto searchAccount(String accountNumber, Long requesterId) {
+        Account account = getAccountByNumber(accountNumber);
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.ACCOUNT_NOT_EXIST);
         String username = memberRepository.findById(account.getMemberId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST))
                 .getName();

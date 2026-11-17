@@ -1,8 +1,10 @@
 package zb.accountMangement.account.controller;
 
 import lombok.RequiredArgsConstructor;
-import java.util.List;
+import java.time.LocalDate;
 
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -11,12 +13,14 @@ import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransactionDto;
 import zb.accountMangement.account.dto.TransferDto;
 import zb.accountMangement.account.dto.WithdrawalDto;
+import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.model.entity.IdempotencyRecord;
 import zb.accountMangement.account.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.service.ValidationService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -101,16 +105,26 @@ public class TransactionController {
                 () -> transactionService.transfer(senderAccountId, receiverAccountId, transferDto)));
     }
     /**
-     * 거래내역 조회
+     * 거래내역 조회 - 최근 거래부터 페이지 단위로
      * @param loginMemberId - 로그인한 사용자 ID
      * @param accountId - 계좌 ID
-     * @return 거래내역 리스트
+     * @param type - 거래 종류 (없으면 전체)
+     * @param from - 시작일 yyyy-MM-dd, 그날 포함 (없으면 처음부터)
+     * @param to - 종료일 yyyy-MM-dd, 그날 포함 (없으면 지금까지)
+     * @param page - 페이지 번호 (0부터)
+     * @param size - 페이지 크기 (최대 100)
+     * @return 거래내역 한 페이지
      */
     @GetMapping("/{accountId}/history")
-    public ResponseEntity<List<TransactionDto>> getTransactionsByAccountId(
+    public ResponseEntity<Page<TransactionDto>> getTransactionsByAccountId(
             @AuthenticationPrincipal Long loginMemberId,
-            @PathVariable @Min(1) Long accountId) {
+            @PathVariable @Min(1) Long accountId,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
       validationService.validAccountOwner(loginMemberId,accountId);
-      return ResponseEntity.ok(transactionService.getTransactionsByAccountId(accountId));
+      return ResponseEntity.ok(transactionService.getTransactionsByAccountId(accountId, type, from, to, page, size));
     }
 }

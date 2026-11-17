@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.ResultActions;
@@ -27,6 +28,7 @@ import zb.accountMangement.stock.repository.TradingRepository;
 import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -43,6 +45,17 @@ class StockTransferTest extends ApiTest {
 	JdbcTemplate jdbcTemplate;
 	@Autowired
 	PlatformTransactionManager transactionManager;
+
+	@Test
+	void 같은_계좌의_같은_종목_보유_내역은_두_줄로_저장되지_않는다() {
+		Account account = saveAccount(saveMember());
+		Stock stock = saveStock(1_000);
+		stockBalanceRepository.saveAndFlush(StockBalance.builder().accountId(account.getId()).stockId(stock.getId()).quantity(1).build());
+
+		assertThatThrownBy(() -> stockBalanceRepository.saveAndFlush(
+				StockBalance.builder().accountId(account.getId()).stockId(stock.getId()).quantity(1).build()))
+				.isInstanceOf(DataIntegrityViolationException.class);
+	}
 
 	@Test
 	void 다른_회원에게_보내면_보내는_쪽이_시세의_1퍼센트를_수수료로_내고_받는_쪽은_평균단가를_이어받는다() throws Exception {
