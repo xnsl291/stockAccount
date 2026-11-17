@@ -9,4 +9,6 @@ import zb.accountMangement.member.model.entity.Member;
 public interface MemberRepository extends JpaRepository<Member, Long> {
   Optional<Member> findByPhoneNumber(String phoneNumber);
 
+  boolean existsByPhoneNumber(String phoneNumber);
+
 }

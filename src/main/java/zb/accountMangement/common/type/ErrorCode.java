@@ -24,6 +24,8 @@ public enum ErrorCode {
     UNMATCHED_MEMBER(HttpStatus.BAD_REQUEST,"사용자 정보가 일치하지 않습니다."),
     UNMATCHED_PASSWORD(HttpStatus.BAD_REQUEST,"비밀번호가 일치하지 않습니다."),
     UNMATCHED_VERIFICATION_CODE(HttpStatus.BAD_REQUEST,"인증 코드가 일치하지 않습니다."),
+    VERIFICATION_CODE_NOT_EXIST(HttpStatus.BAD_REQUEST,"인증 코드가 만료되었거나 발송되지 않았습니다."),
+    UNVERIFIED_PHONE_NUMBER(HttpStatus.BAD_REQUEST,"핸드폰 인증이 필요합니다."),
     MISMATCHED_USER_ID(HttpStatus.BAD_REQUEST,"토큰정보와 사용자의 정보가 일치하지 않습니다"),
 
     //account

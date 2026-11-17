@@ -106,7 +106,7 @@ public class AccountService {
 
         if (account.isExistsAccount()) {
             account.setNickname(accountManagementDto.getNickname());
-            account.setPassword(accountManagementDto.getPassword());
+            account.setPassword(passwordEncoder.encode(accountManagementDto.getPassword()));
         }
         else if (account.isDeletedAccount())
             throw new CustomException(ErrorCode.DELETED_ACCOUNT);

@@ -32,7 +32,8 @@ public class SecurityConfig {
         .and()
         .csrf().disable()
         .authorizeRequests()
-          .antMatchers("/api/auth/login", "/api/auth/sign-up", "/api/auth/reissue")
+          .antMatchers("/api/auth/login", "/api/auth/sign-up", "/api/auth/reissue",
+            "/api/auth/send-code", "/api/auth/verify-phone")
           .permitAll()
           .antMatchers("/api/accounts/**", "/api/transactions/**","/api/auth/**",
             "/api/member/**").hasRole("USER")

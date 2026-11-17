@@ -3,7 +3,6 @@ package zb.accountMangement.member.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.common.auth.JwtToken;
@@ -21,14 +20,25 @@ public class AuthenticationController {
     private final SendMessageService sendMessageService;
 
     /**
-    * 핸드폰 인증 성공 여부
+     * 가입 전 핸드폰 인증번호 발송
+     * @param sendCodeDto - 인증번호 발송 dto (핸드폰번호)
+     * @return "인증 메세지 발송 완료"
+     */
+    @PostMapping("/send-code")
+    public ResponseEntity<String> sendCode(@Valid @RequestBody SendCodeDto sendCodeDto) {
+        return ResponseEntity.ok().body(sendMessageService.sendVerificationMessage(sendCodeDto.getPhoneNumber()));
+    }
+
+    /**
+    * 가입 전 핸드폰 인증
     * @param smsVerificationDto - 문자인증 dto (인증번호, 핸드폰번호)
-    * @return 성공여부 (T/F)
+    * @return true
     */
     @PostMapping("/verify-phone")
     public ResponseEntity<Boolean> verifySMS(
             @Valid @RequestBody SmsVerificationDto smsVerificationDto) {
-        return ResponseEntity.ok().body(sendMessageService.verifyCode(smsVerificationDto));
+        return ResponseEntity.ok().body(sendMessageService.verifyPhone(
+                smsVerificationDto.getPhoneNumber(), smsVerificationDto.getVerificationCode()));
     }
 
     /**
@@ -44,12 +54,13 @@ public class AuthenticationController {
 
     /**
      * 회원탈퇴
+     * @param authentication - 인증 정보 (사용자 ID, 액세스 토큰)
      * @return true
      */
     @DeleteMapping("/sign-out")
-    public ResponseEntity<Boolean> deleteMemberInfo(
-            @AuthenticationPrincipal Long loginMemberId){
-        return ResponseEntity.ok().body(authenticationService.deleteMember(loginMemberId));
+    public ResponseEntity<Boolean> deleteMemberInfo(Authentication authentication){
+        return ResponseEntity.ok().body(authenticationService.deleteMember(
+                (Long) authentication.getPrincipal(), (String) authentication.getCredentials()));
     }
 
     /**

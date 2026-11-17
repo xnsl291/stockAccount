@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum RedisTime {
-  PHONE_VALID(2);
+  PHONE_VALID(2), PHONE_VERIFIED(10);
 
   private long time;
 

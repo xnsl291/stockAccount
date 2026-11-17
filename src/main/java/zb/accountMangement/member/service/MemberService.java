@@ -1,12 +1,13 @@
 package zb.accountMangement.member.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.common.exception.CustomException;
-import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
+import zb.accountMangement.member.model.PhoneNumber;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.repository.MemberRepository;
 import zb.accountMangement.member.model.RoleType;
@@ -17,7 +18,7 @@ import zb.accountMangement.member.model.RoleType;
 public class MemberService {
 	private final MemberRepository memberRepository;
 	private final SendMessageService sendMessageService;
-	private final RedisService redisService;
+	private final BCryptPasswordEncoder passwordEncoder;
 
 	/**
 	 * id를 이용한 회원 정보 열람
@@ -41,20 +42,30 @@ public class MemberService {
 	@Transactional
 	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
 		Member member = checkMemberPermission(loginMemberId, memberId);
-		member.update(updateMemberDto);
+		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
+
+		if (!phoneNumber.equals(member.getPhoneNumber()) && memberRepository.existsByPhoneNumber(phoneNumber))
+			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+
+		member.update(updateMemberDto.getName(), phoneNumber, passwordEncoder.encode(updateMemberDto.getPassword()));
 		return member;
 	}
 
 	/**
-	 * 비밀번호 재설정 요청
+	 * 비밀번호 재설정 요청 - 입력한 이름·핸드폰번호가 회원 정보와 같으면 등록된 번호로 인증번호 발송
 	 *
 	 * @param loginMemberId     - 로그인한 사용자 ID
 	 * @param findMemberInfoDto - 회원정보 조회 dto (이름, 핸드폰번호)
 	 * @return "인증 메세지 발송 완료"
 	 */
 	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto) {
-		checkMemberPermission(loginMemberId, memberId);
-		return sendMessageService.sendVerificationMessage(findMemberInfoDto.getPhoneNumber());
+		Member member = checkMemberPermission(loginMemberId, memberId);
+
+		if (!member.getName().equals(findMemberInfoDto.getName())
+				|| !member.getPhoneNumber().equals(PhoneNumber.normalize(findMemberInfoDto.getPhoneNumber())))
+			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
+
+		return sendMessageService.sendVerificationMessage(member.getPhoneNumber());
 	}
 
 	/**
@@ -66,23 +77,8 @@ public class MemberService {
 	@Transactional
 	public String verifyResetPw(Long loginMemberId, Long memberId, ResetPwDto resetPwDto) {
 		Member member = checkMemberPermission(loginMemberId, memberId);
-		SmsVerificationDto info = redisService.getMsgVerificationInfo(member.getPhoneNumber());
-
-		if (info == null)
-			throw new CustomException(ErrorCode.MEMBER_NOT_EXIST);
-
-		if (!member.getPhoneNumber().equals(info.getPhoneNumber()))
-			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
-
-		// 핸드폰 인증 번호가 같으면
-		if (info.getVerificationCode().equals(resetPwDto.getInputCode())) {
-			member.setPassword(resetPwDto.getNewPassword());
-
-			// 인증 정보 삭제
-			redisService.deleteMsgVerificationInfo(member.getPhoneNumber());
-		} else
-			throw new CustomException(ErrorCode.UNMATCHED_VERIFICATION_CODE);
-
+		sendMessageService.confirmCode(member.getPhoneNumber(), resetPwDto.getInputCode());
+		member.setPassword(passwordEncoder.encode(resetPwDto.getNewPassword()));
 		return "비밀번호 재설정 완료";
 	}
 
@@ -93,13 +89,21 @@ public class MemberService {
 		if(!member.getId().equals(loginMemberId))
 			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
 
+		checkActive(member);
+		return member;
+	}
+
+	/**
+	 * 탈퇴·정지 회원이면 예외
+	 *
+	 * @param member - 회원
+	 */
+	public void checkActive(Member member) {
 		if (member.getRole().equals(RoleType.WITHDRAWN))
 			throw new CustomException(ErrorCode.WITHDRAWN_MEMBER);
 
 		if (member.getRole().equals(RoleType.PENDING))
 			throw new CustomException(ErrorCode.PENDING_MEMBER);
-
-		return member;
 	}
 
 

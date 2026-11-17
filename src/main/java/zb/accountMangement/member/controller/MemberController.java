@@ -61,7 +61,7 @@ public class MemberController {
   @PostMapping("/find-pw/{member_id}")
   public ResponseEntity<String> requestResetPw(
           @AuthenticationPrincipal Long loginMemberId,
-          @PathVariable("memberId") @Min(1) Long memberId,
+          @PathVariable("member_id") @Min(1) Long memberId,
           @Valid @RequestBody FindMemberInfoDto findMemberInfoDto) {
     validationService.validMemberId(loginMemberId,memberId);
     return ResponseEntity.ok().body(memberService.requestResetPw(loginMemberId,memberId,findMemberInfoDto));

@@ -10,6 +10,7 @@ import zb.accountMangement.common.auth.JwtToken;
 import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
+import zb.accountMangement.member.model.PhoneNumber;
 import zb.accountMangement.member.model.RoleType;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.dto.*;
@@ -25,13 +26,15 @@ public class AuthenticationService {
 	private final AccountService accountService;
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
+	private final SendMessageService sendMessageService;
 
 	/**
-	 * 회원 가입
+	 * 회원 가입 - 가입 전에 핸드폰 인증을 마쳐야 함
 	 * @param signUpDto - 회원 가입 dto (이름, 핸드폰 번호, 로그인 비밀번호, 초기 계좌 비밀번호)
 	 */
+	@Transactional
 	public Boolean signUp(SignUpDto signUpDto) {
-		String phoneNumber = convert2NumericString(signUpDto.getPhoneNumber());
+		String phoneNumber = PhoneNumber.normalize(signUpDto.getPhoneNumber());
 
 		// 이름 유효성 검사
 		if (!signUpDto.getName().matches("[가-힣a-zA-Z0-9]{2,10}")) {
@@ -39,51 +42,52 @@ public class AuthenticationService {
 		}
 
 		// 핸드폰번호 중복 검사
-		if (memberService.getMemberByPhoneNumber(phoneNumber) != null)
+		if (memberRepository.existsByPhoneNumber(phoneNumber))
 			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
 
-		// 저장
-		Member member = Member.builder()
+		sendMessageService.consumeVerifiedPhone(phoneNumber);
+
+		Member member = memberRepository.save(Member.builder()
 				.name(signUpDto.getName())
 				.password(passwordEncoder.encode(signUpDto.getLoginPassword()))
 				.phoneNumber(phoneNumber)
 				.role(RoleType.USER)
-				.build();
+				.build());
 
-		// 초기 계좌 생성
+		// 초기 계좌 생성 - 계좌 비밀번호는 openAccount에서 암호화함
 		AccountManagementDto accountManagementDto = AccountManagementDto.builder()
 				.nickname(null)
-				.password(passwordEncoder.encode(signUpDto.getInitialAccountPassword()))
+				.password(signUpDto.getInitialAccountPassword())
 				.build();
-
 		accountService.openAccount(member.getId(), accountManagementDto);
-		memberRepository.save(member);
 		return true;
 	}
 
 	/**
-	 * 회원탈퇴
+	 * 회원탈퇴 - 탈퇴 처리 후 현재 토큰을 무효화함
 	 */
 	@Transactional
-	public Boolean deleteMember(Long loginMemberId) {
+	public Boolean deleteMember(Long loginMemberId, String accessToken) {
 		Member member = memberService.checkMemberPermission(loginMemberId, loginMemberId);
 		member.delete();
+		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
 		return true;
 	}
 
 	/**
-	 * 로그인 기능
+	 * 로그인 기능 - 탈퇴·정지 회원은 로그인할 수 없음
 	 *
 	 * @param signInDto - 로그인 dto (핸드폰번호, 로그인 PW)
 	 * @return token - 토큰
 	 */
 	public JwtToken signIn(SignInDto signInDto) {
-		Member member = memberService.getMemberByPhoneNumber(convert2NumericString(signInDto.getPhoneNumber()));
+		Member member = memberService.getMemberByPhoneNumber(PhoneNumber.normalize(signInDto.getPhoneNumber()));
 
 		// 비밀번호 일치여부 확인
 		if (!passwordEncoder.matches(signInDto.getPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 
+		memberService.checkActive(member);
 		return jwtTokenProvider.generateToken(member.getId(), member.getRole());
 	}
 
@@ -107,17 +111,8 @@ public class AuthenticationService {
 	 */
 	public JwtToken reissue(String refreshToken) {
 		Member member = memberService.getMemberById(jwtTokenProvider.consumeRefreshToken(refreshToken));
+		memberService.checkActive(member);
 		return jwtTokenProvider.generateToken(member.getId(), member.getRole());
 	}
 
-	/**
-	 * 문자와 숫자가 혼용된 문자열에서 숫자만 추출
-	 *
-	 * @param string - 변환하고자 하는 문자열
-	 * @return 변환된 문자열
-	 */
-	private String convert2NumericString(String string) {
-		String pattern = "[^0-9]";
-		return string.replaceAll(pattern, "");
-	}
 }

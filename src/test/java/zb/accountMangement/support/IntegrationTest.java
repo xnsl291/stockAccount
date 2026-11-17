@@ -2,10 +2,12 @@ package zb.accountMangement.support;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import zb.accountMangement.member.service.SmsSender;
 
 /**
  * MySQL·Redis 컨테이너를 띄워 실제와 같은 환경에서 돌리는 통합 테스트의 공통 부모 클래스
@@ -22,6 +24,10 @@ public abstract class IntegrationTest {
 		MYSQL.start();
 		REDIS.start();
 	}
+
+	// 모든 테스트가 같은 스프링 컨텍스트를 재사용하도록 부모 클래스에 한 번만 둔다
+	@MockBean
+	protected SmsSender smsSender;
 
 	@DynamicPropertySource
 	static void containerProperties(DynamicPropertyRegistry registry) {

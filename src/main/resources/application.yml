@@ -40,6 +40,10 @@ jwt:
     access-token-seconds: ${JWT_ACCESS_TOKEN_SECONDS:1800}
     refresh-token-seconds: ${JWT_REFRESH_TOKEN_SECONDS:1209600}
 
+sms:
+  # log: 문자를 보내지 않고 로그만 남김, coolsms: 실제 발송
+  provider: ${SMS_PROVIDER:log}
+
 coolsms:
   api-key: ${COOLSMS_API_KEY:}
   secret-key: ${COOLSMS_SECRET_KEY:}
