@@ -34,102 +34,116 @@ export function AccountDetailPage() {
 
   return (
     <>
-      <h1>
-        <span data-testid="account-nickname">{a.nickname || '별칭 없음'}</span>{' '}
-        <span data-testid="account-number">{a.accountNumber}</span>
-      </h1>
-      <p>
-        <StatusBadge testid="account-status" state={a.status} label={ACCOUNT_STATUS[a.status]} /> 개설일{' '}
-        <span data-testid="account-created-at">{formatDate(a.createdAt)}</span>
-      </p>
+      <header className="page-head">
+        <div className="page-head-row">
+          <h1 data-testid="account-nickname">{a.nickname || '별칭 없음'}</h1>
+          <StatusBadge testid="account-status" state={a.status} label={ACCOUNT_STATUS[a.status]} />
+        </div>
+        <p className="hint">
+          <span data-testid="account-number">{a.accountNumber}</span> · 개설일 <span data-testid="account-created-at">{formatDate(a.createdAt)}</span>
+        </p>
+      </header>
       {locked && <LockedBanner testid="account-locked-banner" unlockTo={unlockPath(id, here)} linkTestid="account-unlock-link" />}
 
-      <section className="statement">
-        <dl className="summary">
-          <div className="kv">
-            <dt>잔액</dt>
-            <dd>
+      <section className="panel hero" aria-labelledby="account-balance-title">
+        <div className="hero-split">
+          <div>
+            <h2 className="hero-label" id="account-balance-title">
+              잔액
+            </h2>
+            <p className="hero-amount sensitive">
               <Amount value={a.balance} testid="account-balance" />
-            </dd>
+            </p>
+            <nav className="hero-actions" aria-label="계좌 작업">
+              {locked ? (
+                <>
+                  <span className="link-disabled" data-testid="account-deposit-link" aria-disabled="true">
+                    입금
+                  </span>
+                  <span className="link-disabled" data-testid="account-withdraw-link" aria-disabled="true">
+                    출금
+                  </span>
+                  <span className="link-disabled" data-testid="account-transfer-link" aria-disabled="true">
+                    송금
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Link to={`/deposit?accountId=${id}`} className="button primary" data-testid="account-deposit-link">
+                    입금
+                  </Link>
+                  <Link to={`/withdraw?accountId=${id}`} className="button soft" data-testid="account-withdraw-link">
+                    출금
+                  </Link>
+                  <Link to={`/transfer?accountId=${id}`} className="button soft" data-testid="account-transfer-link">
+                    송금
+                  </Link>
+                </>
+              )}
+              <Link to={`/accounts/${id}/settings`} className="button" data-testid="account-settings-link">
+                계좌 설정
+              </Link>
+            </nav>
           </div>
-          <div className="kv">
-            <dt>주문에 묶임</dt>
-            <dd>
-              <Amount value={a.heldAmount} testid="account-held" />
-            </dd>
+          <div>
+            <dl className="summary">
+              <div className="kv">
+                <dt>
+                  <span className="swatch swatch-held" />
+                  주문에 묶임
+                </dt>
+                <dd>
+                  <Amount value={a.heldAmount} testid="account-held" />
+                </dd>
+              </div>
+              <div className="kv">
+                <dt>주문 가능</dt>
+                <dd>
+                  <Amount value={a.availableBalance} testid="account-orderable" />
+                </dd>
+              </div>
+              <div className="kv">
+                <dt>
+                  <span className="swatch swatch-avail" />
+                  출금 가능
+                </dt>
+                <dd>
+                  <Amount value={a.availableBalance} testid="account-withdrawable" />
+                </dd>
+              </div>
+            </dl>
+            <BalanceBar testid="account-bar" balance={a.balance} held={a.heldAmount} />
+            <p className="proof" data-testid="account-proof">
+              잔액 <Amount value={a.balance} /> − 주문에 묶임 <Amount value={a.heldAmount} /> = 주문 가능 <Amount value={a.availableBalance} />
+            </p>
+            <p className="hint" data-testid="account-withdrawable-note">
+              {MESSAGES.withdrawableNote}
+            </p>
           </div>
-          <div className="kv">
-            <dt>주문 가능</dt>
-            <dd>
-              <Amount value={a.availableBalance} testid="account-orderable" />
-            </dd>
-          </div>
-          <div className="kv">
-            <dt>출금 가능</dt>
-            <dd>
-              <Amount value={a.availableBalance} testid="account-withdrawable" />
-            </dd>
-          </div>
-        </dl>
-        <p className="hint" data-testid="account-withdrawable-note">
-          {MESSAGES.withdrawableNote}
-        </p>
-        <p className="proof" data-testid="account-proof">
-          잔액 <Amount value={a.balance} /> − 주문에 묶임 <Amount value={a.heldAmount} /> = 주문 가능 <Amount value={a.availableBalance} />
-        </p>
-        <BalanceBar testid="account-bar" balance={a.balance} held={a.heldAmount} />
+        </div>
       </section>
 
-      <nav className="actions">
-        {locked ? (
-          <>
-            <span className="link-disabled" data-testid="account-deposit-link" aria-disabled="true">
-              입금
-            </span>
-            <span className="link-disabled" data-testid="account-withdraw-link" aria-disabled="true">
-              출금
-            </span>
-            <span className="link-disabled" data-testid="account-transfer-link" aria-disabled="true">
-              송금
-            </span>
-          </>
-        ) : (
-          <>
-            <Link to={`/deposit?accountId=${id}`} data-testid="account-deposit-link">
-              입금
-            </Link>
-            <Link to={`/withdraw?accountId=${id}`} data-testid="account-withdraw-link">
-              출금
-            </Link>
-            <Link to={`/transfer?accountId=${id}`} data-testid="account-transfer-link">
-              송금
-            </Link>
-          </>
-        )}
-        <Link to={`/accounts/${id}/settings`} data-testid="account-settings-link">
-          계좌 설정
-        </Link>
-      </nav>
-
-      <div role="tablist" className="tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.key}
-            data-testid={t.testid}
-            onClick={() => setParams({ tab: t.key }, { replace: true })}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel">
-        {tab === 'tx' && <TxTab accountId={id} />}
-        {tab === 'holdings' && <HoldingsTab accountId={id} />}
-        {tab === 'orders' && <OrdersTab accountId={id} />}
-      </div>
+      <section className="panel">
+        <div role="tablist" className="tabs" aria-label="계좌 내역">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.key}
+              data-testid={t.testid}
+              onClick={() => setParams({ tab: t.key }, { replace: true })}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div role="tabpanel">
+          {tab === 'tx' && <TxTab accountId={id} />}
+          {tab === 'holdings' && <HoldingsTab accountId={id} />}
+          {tab === 'orders' && <OrdersTab accountId={id} />}
+        </div>
+      </section>
     </>
   );
 }

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { unlockAccount, verifyPhone } from '../api/endpoints';
-import { LoadError, Loading, StatusBadge, TextField } from '../components/ui';
+import { LoadError, Loading, PageHead, StatusBadge, TextField } from '../components/ui';
 import { useAccount, useMember } from '../hooks/queries';
 import { useSmsCode } from '../hooks/useSmsCode';
 import { maskPhone } from '../lib/format';
@@ -59,8 +59,8 @@ export function UnlockPage() {
   }
 
   return (
-    <>
-      <h1>계좌 잠금 해제</h1>
+    <div className="narrow">
+      <PageHead title="계좌 잠금 해제" sub="등록된 전화번호로 문자 인증을 하면 풀려요" />
       <p>
         <span data-testid="unlock-account-number">{a.accountNumber}</span>{' '}
         <StatusBadge testid="unlock-status" state={a.status} label={ACCOUNT_STATUS[a.status]} />
@@ -126,6 +126,6 @@ export function UnlockPage() {
           )}
         </section>
       )}
-    </>
+    </div>
   );
 }

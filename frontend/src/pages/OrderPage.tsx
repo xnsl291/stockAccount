@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { placeOrder, type Order } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, PasswordPanel, unlockPath } from '../components/Flow';
-import { Amount, LoadError, Loading, NotFound, NumberField, Row, SelectField, StatusBadge } from '../components/ui';
+import { Amount, LoadError, Loading, NotFound, NumberField, PageHead, Row, SelectField, StatusBadge } from '../components/ui';
 import { useAccount, useHoldings, useStockPrice } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
@@ -53,8 +53,8 @@ export function OrderPage() {
     const o = flow.result.data;
     const filled = o.status === 'FILLED';
     return (
-      <>
-        <h1>{sideLabel} 주문</h1>
+      <div className="narrow">
+        <PageHead title={`${sideLabel} 주문`} />
         <section className="panel" data-testid="order-result-panel">
           <h2>처리 결과</h2>
           <p>
@@ -95,7 +95,7 @@ export function OrderPage() {
             </Link>
           </div>
         </section>
-      </>
+      </div>
     );
   }
 
@@ -129,8 +129,8 @@ export function OrderPage() {
   }
 
   return (
-    <>
-      <h1>주문</h1>
+    <div className="narrow">
+      <PageHead title="주문" sub="화면의 계산 값은 예상이에요. 실제 값은 주문 뒤 계좌를 다시 읽어 보여 줘요" />
       <div role="tablist" className="tabs">
         <button type="button" role="tab" className="buy" aria-selected={side === 'buy'} data-testid="order-side-buy" disabled={!editing} onClick={() => setSide('buy')}>
           매수
@@ -212,7 +212,7 @@ export function OrderPage() {
           )}
         </dl>
         {editing && (
-          <button type="button" className="primary" data-testid="order-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
+          <button type="button" className="primary block" data-testid="order-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             {sideLabel} 주문 확인으로
           </button>
         )}
@@ -242,6 +242,6 @@ export function OrderPage() {
       {flow.step === 'password' && (
         <PasswordPanel p="order" flow={flow} submitLabel={`${sideLabel} 주문 내기`} unlockTo={unlockPath(choice.selectedId!, here)} />
       )}
-    </>
+    </div>
   );
 }

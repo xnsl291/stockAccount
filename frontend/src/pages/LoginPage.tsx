@@ -3,7 +3,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { login } from '../api/endpoints';
-import { TextField } from '../components/ui';
+import { Mark } from '../components/Layout';
+import { PageHead, TextField } from '../components/ui';
 import { errorMessage } from '../lib/messages';
 import { isPhone } from '../lib/validation';
 import { clearLoginNotice, peekLoginNotice, useSession, type LoginNotice, type LoginState } from '../session/SessionProvider';
@@ -49,14 +50,15 @@ export function LoginPage() {
 
   return (
     <main className="auth">
-      <h1>로그인</h1>
+      <Mark />
+      <PageHead title="로그인" sub="가입한 전화번호와 비밀번호를 넣어 주세요" />
       {notice && (
         <p className="notice" data-testid="login-notice" role="status">
           {NOTICES[notice]}
         </p>
       )}
-      <form onSubmit={(e) => void onSubmit(e)}>
-        <TextField label="전화번호" testid="login-phone-input" inputMode="tel" autoComplete="tel" value={phone} onChange={setPhone} />
+      <form className="panel" onSubmit={(e) => void onSubmit(e)}>
+        <TextField label="전화번호" testid="login-phone-input" inputMode="tel" autoComplete="tel" value={phone} onChange={setPhone} placeholder="010-0000-0000" />
         <TextField
           label="비밀번호"
           testid="login-password-input"
@@ -70,15 +72,18 @@ export function LoginPage() {
             {error}
           </p>
         )}
-        <button type="submit" className="primary" data-testid="login-submit" disabled={!phone || !password || submitting}>
+        <button type="submit" className="primary block" data-testid="login-submit" disabled={!phone || !password || submitting}>
           로그인
         </button>
       </form>
-      <p>
+      <nav className="auth-links" aria-label="계정">
         <Link to="/signup" data-testid="login-signup-link">
           회원가입
         </Link>
-      </p>
+        <Link to="/reset-password" data-testid="login-reset-link">
+          비밀번호를 잊으셨나요
+        </Link>
+      </nav>
     </main>
   );
 }

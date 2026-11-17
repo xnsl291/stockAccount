@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { withdraw } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, PasswordPanel, ResultPanel, unlockPath } from '../components/Flow';
-import { Amount, LoadError, Loading, NumberField, Row, SelectField, TextField } from '../components/ui';
+import { Amount, LoadError, Loading, NumberField, PageHead, Row, SelectField, TextField } from '../components/ui';
 import { useAccount } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
@@ -33,10 +33,10 @@ export function WithdrawPage() {
   const here = `/withdraw?accountId=${choice.selectedId}`;
   if (flow.step === 'result' && flow.result) {
     return (
-      <>
-        <h1>출금</h1>
+      <div className="narrow">
+        <PageHead title="출금" sub="출금 가능 금액 안에서만 뺄 수 있어요" />
         <ResultPanel p="withdraw" message="출금했음" account={flow.result.account} doneTo={`/accounts/${choice.selectedId}`} />
-      </>
+      </div>
     );
   }
 
@@ -56,8 +56,8 @@ export function WithdrawPage() {
   const editing = flow.step === 'input';
 
   return (
-    <>
-      <h1>출금</h1>
+    <div className="narrow">
+      <PageHead title="출금" sub="출금 가능 금액 안에서만 뺄 수 있어요" />
       <section className="panel">
         <SelectField
           label="출금할 계좌"
@@ -88,7 +88,7 @@ export function WithdrawPage() {
         />
         <TextField label="메모(선택)" testid="withdraw-memo-input" value={memo} onChange={setMemo} maxLength={MEMO_MAX} disabled={!editing} />
         {editing && (
-          <button type="button" className="primary" data-testid="withdraw-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
+          <button type="button" className="primary block" data-testid="withdraw-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             출금 확인으로
           </button>
         )}
@@ -111,6 +111,6 @@ export function WithdrawPage() {
         </ConfirmPanel>
       )}
       {flow.step === 'password' && <PasswordPanel p="withdraw" flow={flow} submitLabel="출금하기" unlockTo={unlockPath(choice.selectedId!, here)} />}
-    </>
+    </div>
   );
 }

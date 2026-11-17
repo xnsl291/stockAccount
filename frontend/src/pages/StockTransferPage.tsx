@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { transferStock } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, PasswordPanel, ResultPanel, unlockPath } from '../components/Flow';
-import { Amount, LoadError, Loading, NumberField, Row, SelectField, TextField } from '../components/ui';
+import { Amount, LoadError, Loading, NumberField, PageHead, Row, SelectField, TextField } from '../components/ui';
 import { useAccount, useHoldings, useStockPrice } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
@@ -48,14 +48,14 @@ export function StockTransferPage() {
   const name = stockId ? stockName(stockId) : '';
   if (flow.step === 'result' && flow.result) {
     return (
-      <>
-        <h1>주식 이체</h1>
+      <div className="narrow">
+        <PageHead title="주식 이체" sub="다른 회원에게 보내면 수수료 1%가 빠져요" />
         <ResultPanel p="stocktransfer" message={`${name} ${formatAmount(qtyNum)}주를 보냈어요`} account={flow.result.account} doneTo={`/accounts/${choice.selectedId}`}>
           <Link to={`/holdings?accountId=${choice.selectedId}`} data-testid="stocktransfer-result-holdings-link">
             보유 주식 보기
           </Link>
         </ResultPanel>
-      </>
+      </div>
     );
   }
 
@@ -73,8 +73,8 @@ export function StockTransferPage() {
   }
 
   return (
-    <>
-      <h1>주식 이체</h1>
+    <div className="narrow">
+      <PageHead title="주식 이체" sub="다른 회원에게 보내면 수수료 1%가 빠져요" />
       <section className="panel">
         <SelectField
           label="보내는 계좌"
@@ -139,7 +139,7 @@ export function StockTransferPage() {
           예상 수수료 <Amount value={fee} testid="stocktransfer-fee" />
         </p>
         {editing && (
-          <button type="button" className="primary" data-testid="stocktransfer-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
+          <button type="button" className="primary block" data-testid="stocktransfer-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             이체 확인으로
           </button>
         )}
@@ -164,6 +164,6 @@ export function StockTransferPage() {
       {flow.step === 'password' && (
         <PasswordPanel p="stocktransfer" flow={flow} submitLabel="이체하기" unlockTo={unlockPath(choice.selectedId!, here)} />
       )}
-    </>
+    </div>
   );
 }

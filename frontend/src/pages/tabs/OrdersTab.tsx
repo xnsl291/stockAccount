@@ -76,7 +76,7 @@ export function OrdersTab({ accountId }: { accountId: number }) {
   const years = Array.from({ length: 6 }, (_, i) => thisYear - i);
 
   return (
-    <section>
+    <section className="tab-body">
       <div className="filters">
         <SelectField
           label="주문 상태"
@@ -119,55 +119,56 @@ export function OrdersTab({ accountId }: { accountId: number }) {
         </p>
       ) : (
         <>
-          <p data-testid="orders-summary">
-            미체결 주문 {pending.length}건이 <Amount value={pendingAmount} />과 <Amount value={pendingQty} unit="주" />를 잡고 있음
+          <p className="banner banner-info" data-testid="orders-summary">
+            <span>
+              미체결 주문 {pending.length}건이 <Amount value={pendingAmount} />과 <Amount value={pendingQty} unit="주" />를 잡고 있음
+            </span>
           </p>
-          <table className="ledger">
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>시각</th>
-                <th>종목</th>
-                <th>구분</th>
-                <th className="num">주문가</th>
-                <th className="num">수량</th>
-                <th className="num">체결가</th>
-                <th className="num">묶인 것</th>
-                <th>상태</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => {
-                const held = heldOf(o);
-                const cancellable = o.status === 'PENDING' && o.type !== 'TRANSFER';
-                return (
-                  <Fragment key={o.id}>
-                    <tr data-testid="orders-row" data-id={o.id} className={o.status === 'CANCELLED' ? 'cancelled' : undefined}>
-                      <td data-testid="orders-row-id">{o.id}</td>
-                      <td data-testid="orders-row-time">{formatDateTime(o.createdAt)}</td>
-                      <td data-testid="orders-row-stock">{stockName(o.stockId)}</td>
-                      <td data-testid="orders-row-side">{tradeSide(o.type, o.quantity)}</td>
-                      <td className="num">
-                        <Amount value={o.price} testid="orders-row-price" />
-                      </td>
-                      <td className="num">
-                        <Amount value={Math.abs(o.quantity)} unit="주" testid="orders-row-quantity" />
-                      </td>
-                      <td className="num">
-                        {o.filledPrice === null ? <span data-testid="orders-row-filled-price">없음</span> : <Amount value={o.filledPrice} testid="orders-row-filled-price" />}
-                      </td>
-                      <td className="num">
-                        {held.amount !== null && <Amount value={held.amount} testid="orders-row-held" />}
-                        {held.quantity !== null && <Amount value={held.quantity} unit="주" testid="orders-row-held" />}
-                      </td>
-                      <td>
+          <ul className="rows">
+            {orders.map((o) => {
+              const held = heldOf(o);
+              const cancellable = o.status === 'PENDING' && o.type !== 'TRANSFER';
+              return (
+                <Fragment key={o.id}>
+                  <li data-testid="orders-row" data-id={o.id} className={`row wrap-sm${o.status === 'CANCELLED' ? ' cancelled' : ''}`}>
+                    <span className="row-main">
+                      <span className="row-title">
+                        <span data-testid="orders-row-stock">{stockName(o.stockId)}</span>
                         <StatusBadge testid="orders-row-status" state={o.status} label={ORDER_STATUS[o.status]} />
-                      </td>
-                      <td>
+                      </span>
+                      <span className="row-sub">
+                        <span data-testid="orders-row-side">{tradeSide(o.type, o.quantity)}</span>
+                        <span className="nowrap" data-testid="orders-row-time">{formatDateTime(o.createdAt)}</span>
+                        <span>
+                          주문 <span data-testid="orders-row-id">{o.id}</span>
+                        </span>
+                      </span>
+                      <span className="row-sub">
+                        <span>
+                          체결가{' '}
+                          {o.filledPrice === null ? <span data-testid="orders-row-filled-price">없음</span> : <Amount value={o.filledPrice} testid="orders-row-filled-price" />}
+                        </span>
+                        {held.amount !== null && (
+                          <span>
+                            묶인 것 <Amount value={held.amount} testid="orders-row-held" />
+                          </span>
+                        )}
+                        {held.quantity !== null && (
+                          <span>
+                            묶인 것 <Amount value={held.quantity} unit="주" testid="orders-row-held" />
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                    <span className="row-side">
+                      <span className="row-amount">
+                        <Amount value={o.price} testid="orders-row-price" /> × <Amount value={Math.abs(o.quantity)} unit="주" testid="orders-row-quantity" />
+                      </span>
+                      <span className="row-actions">
                         {cancellable && (
                           <button
                             type="button"
+                            className="small danger"
                             data-testid="orders-row-cancel"
                             aria-label={`주문 ${o.id} 취소`}
                             onClick={() => {
@@ -180,6 +181,7 @@ export function OrdersTab({ accountId }: { accountId: number }) {
                         )}
                         <button
                           type="button"
+                          className="small"
                           data-testid="orders-row-timeline-toggle"
                           aria-label={`주문 ${o.id} 과정 보기`}
                           aria-expanded={openTimeline === o.id}
@@ -187,60 +189,62 @@ export function OrdersTab({ accountId }: { accountId: number }) {
                         >
                           과정
                         </button>
-                      </td>
-                    </tr>
-                    {openTimeline === o.id && (
-                      <tr>
-                        <td colSpan={10}>
-                          <Timeline order={o} />
-                        </td>
-                      </tr>
-                    )}
-                    {cancelTarget === o.id && (
-                      <tr>
-                        <td colSpan={10}>
-                          <div className="panel" data-testid="orders-cancel-panel">
-                            <h3>주문 취소 확인</h3>
-                            <p>
-                              <span data-testid="orders-cancel-stock">{stockName(o.stockId)}</span> · {tradeSide(o.type, o.quantity)} ·{' '}
-                              <Amount value={o.price} /> × <Amount value={o.quantity} unit="주" />
-                            </p>
-                            <p>
-                              풀릴 {o.type === 'BUY' ? '금액' : '수량'}{' '}
+                      </span>
+                    </span>
+                  </li>
+                  {openTimeline === o.id && (
+                    <li className="row-extra">
+                      <Timeline order={o} />
+                    </li>
+                  )}
+                  {cancelTarget === o.id && (
+                    <li className="row-extra">
+                      <div className="panel" data-testid="orders-cancel-panel">
+                        <h3>주문 취소 확인</h3>
+                        <p>
+                          <span data-testid="orders-cancel-stock">{stockName(o.stockId)}</span> · {tradeSide(o.type, o.quantity)} · <Amount value={o.price} /> ×{' '}
+                          <Amount value={o.quantity} unit="주" />
+                        </p>
+                        <dl className="summary">
+                          <div className="kv">
+                            <dt>풀릴 {o.type === 'BUY' ? '금액' : '수량'}</dt>
+                            <dd>
                               {o.type === 'BUY' ? (
                                 <Amount value={held.amount ?? 0} testid="orders-cancel-release" />
                               ) : (
                                 <Amount value={o.quantity} unit="주" testid="orders-cancel-release" />
                               )}
-                            </p>
-                            {o.type === 'BUY' && account.data && (
-                              <p>
-                                취소 뒤 주문 가능(예상){' '}
-                                <Amount value={account.data.availableBalance + (held.amount ?? 0)} testid="orders-cancel-after-orderable" />
-                              </p>
-                            )}
-                            {cancelError && (
-                              <p className="error" data-testid="orders-cancel-error" role="alert">
-                                {cancelError}
-                              </p>
-                            )}
-                            <div className="actions">
-                              <button type="button" data-testid="orders-cancel-back" onClick={() => setCancelTarget(null)}>
-                                돌아가기
-                              </button>
-                              <button type="button" className="primary" data-testid="orders-cancel-submit" disabled={cancelling} onClick={() => void onCancel(o)}>
-                                주문 취소
-                              </button>
-                            </div>
+                            </dd>
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+                          {o.type === 'BUY' && account.data && (
+                            <div className="kv">
+                              <dt>취소 뒤 주문 가능(예상)</dt>
+                              <dd>
+                                <Amount value={account.data.availableBalance + (held.amount ?? 0)} testid="orders-cancel-after-orderable" />
+                              </dd>
+                            </div>
+                          )}
+                        </dl>
+                        {cancelError && (
+                          <p className="error" data-testid="orders-cancel-error" role="alert">
+                            {cancelError}
+                          </p>
+                        )}
+                        <div className="actions end">
+                          <button type="button" data-testid="orders-cancel-back" onClick={() => setCancelTarget(null)}>
+                            돌아가기
+                          </button>
+                          <button type="button" className="primary" data-testid="orders-cancel-submit" disabled={cancelling} onClick={() => void onCancel(o)}>
+                            주문 취소
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                </Fragment>
+              );
+            })}
+          </ul>
         </>
       )}
     </section>

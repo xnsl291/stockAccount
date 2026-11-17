@@ -25,64 +25,70 @@ export function StockDetailPage() {
 
   return (
     <>
-      <h1>
-        <span data-testid="stock-name">{stockName(id)}</span> <span data-testid="stock-code">{stockLabel(id)?.code ?? ''}</span>
-      </h1>
-      <p>
-        현재가 <Amount value={price.data} testid="stock-price" />
-      </p>
-      <p className="hint" data-testid="stock-price-note">
-        관리자가 넣은 값이며 실시간 시세가 아님
-      </p>
+      <header className="page-head">
+        <div className="page-head-row">
+          <h1 data-testid="stock-name">{stockName(id)}</h1>
+          <span className="hint" data-testid="stock-code">
+            {stockLabel(id)?.code ?? ''}
+          </span>
+        </div>
+      </header>
 
-      <h2>내 보유</h2>
-      {holdings.length === 0 ? (
-        <p className="empty" data-testid="stock-holding-empty">
-          이 종목을 가진 계좌가 없음
+      <section className="panel hero">
+        <h2 className="hero-label">현재가</h2>
+        <p className="hero-amount">
+          <Amount value={price.data} testid="stock-price" />
         </p>
-      ) : (
-        <table className="ledger">
-          <thead>
-            <tr>
-              <th>계좌</th>
-              <th className="num">보유</th>
-              <th className="num">팔 수 있음</th>
-              <th className="num">평균단가</th>
-            </tr>
-          </thead>
-          <tbody>
-            {holdings.map(({ account, h }) => (
-              <tr key={account.id} data-testid="stock-holding-row" data-id={account.id}>
-                <td data-testid="stock-holding-row-account">{accountLabel(account)}</td>
-                <td className="num">
-                  <Amount value={h.quantity} unit="주" testid="stock-holding-row-quantity" />
-                </td>
-                <td className="num">
-                  <Amount value={h.availableQuantity} unit="주" testid="stock-holding-row-available" />
-                </td>
-                <td className="num">
-                  <Amount value={h.avgPrice} testid="stock-holding-row-avg-price" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+        <p className="hint" data-testid="stock-price-note">
+          관리자가 넣은 값이며 실시간 시세가 아님
+        </p>
+        <div className="hero-actions">
+          <button type="button" className="buy" data-testid="stock-buy" onClick={() => navigate(`/order?stockId=${id}&side=buy`)}>
+            매수
+          </button>
+          <button
+            type="button"
+            className="sell"
+            data-testid="stock-sell"
+            disabled={holdings.length === 0}
+            onClick={() => navigate(`/order?stockId=${id}&side=sell&accountId=${holdings[0]?.account.id ?? ''}`)}
+          >
+            매도
+          </button>
+        </div>
+      </section>
 
-      <div className="actions">
-        <button type="button" className="buy" data-testid="stock-buy" onClick={() => navigate(`/order?stockId=${id}&side=buy`)}>
-          매수
-        </button>
-        <button
-          type="button"
-          className="sell"
-          data-testid="stock-sell"
-          disabled={holdings.length === 0}
-          onClick={() => navigate(`/order?stockId=${id}&side=sell&accountId=${holdings[0]?.account.id ?? ''}`)}
-        >
-          매도
-        </button>
-      </div>
+      <section className="panel">
+        <h2>내 보유</h2>
+        {holdings.length === 0 ? (
+          <p className="empty" data-testid="stock-holding-empty">
+            이 종목을 가진 계좌가 없음
+          </p>
+        ) : (
+          <ul className="rows">
+            {holdings.map(({ account, h }) => (
+              <li key={account.id} className="row" data-testid="stock-holding-row" data-id={account.id}>
+                <span className="row-main">
+                  <span className="row-title" data-testid="stock-holding-row-account">
+                    {accountLabel(account)}
+                  </span>
+                  <span className="row-sub">
+                    <span>
+                      팔 수 있음 <Amount value={h.availableQuantity} unit="주" testid="stock-holding-row-available" />
+                    </span>
+                    <span>
+                      평균 <Amount value={h.avgPrice} testid="stock-holding-row-avg-price" />
+                    </span>
+                  </span>
+                </span>
+                <span className="row-side row-amount">
+                  <Amount value={h.quantity} unit="주" testid="stock-holding-row-quantity" />
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </>
   );
 }

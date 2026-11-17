@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { deposit } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, ResultPanel, SendErrorBox, SubmitButton, unlockPath } from '../components/Flow';
-import { Amount, LoadError, Loading, NumberField, Row, SelectField, TextField } from '../components/ui';
+import { Amount, LoadError, Loading, NumberField, PageHead, Row, SelectField, TextField } from '../components/ui';
 import { useAccount } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
@@ -35,16 +35,16 @@ export function DepositPage() {
 
   if (flow.step === 'result' && flow.result) {
     return (
-      <>
-        <h1>입금</h1>
+      <div className="narrow">
+        <PageHead title="입금" sub="돈을 넣을 계좌와 금액을 골라 주세요" />
         <ResultPanel p="deposit" message="입금했음" account={flow.result.account} doneTo={`/accounts/${choice.selectedId}`} />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <h1>입금</h1>
+    <div className="narrow">
+      <PageHead title="입금" sub="돈을 넣을 계좌와 금액을 골라 주세요" />
       <section className="panel">
         <SelectField
           label="입금할 계좌"
@@ -73,7 +73,7 @@ export function DepositPage() {
         />
         <TextField label="메모(선택)" testid="deposit-memo-input" value={memo} onChange={setMemo} maxLength={MEMO_MAX} disabled={!editing} />
         {editing && (
-          <button type="button" className="primary" data-testid="deposit-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
+          <button type="button" className="primary block" data-testid="deposit-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             입금 확인으로
           </button>
         )}
@@ -101,6 +101,6 @@ export function DepositPage() {
         </ConfirmPanel>
       )}
       {!editing && <SendErrorBox p="deposit" flow={flow} />}
-    </>
+    </div>
   );
 }

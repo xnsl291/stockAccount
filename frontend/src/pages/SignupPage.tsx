@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { signUp, verifyPhone } from '../api/endpoints';
-import { TextField } from '../components/ui';
+import { Mark } from '../components/Layout';
+import { PageHead, TextField } from '../components/ui';
 import { useSmsCode } from '../hooks/useSmsCode';
 import { ApiError } from '../lib/api';
 import { errorMessage } from '../lib/messages';
@@ -87,7 +88,8 @@ export function SignupPage() {
 
   return (
     <main className="auth">
-      <h1>회원가입</h1>
+      <Mark />
+      <PageHead title="회원가입" sub="문자 인증 뒤 첫 계좌가 함께 만들어져요" />
       <ol className="steps" data-testid="signup-steps">
         <li aria-current={step === 1 ? 'step' : undefined}>1 전화번호</li>
         <li aria-current={step === 2 ? 'step' : undefined}>2 인증번호</li>
@@ -215,17 +217,17 @@ export function SignupPage() {
               {error}
             </p>
           )}
-          <button type="button" className="primary" data-testid="signup-submit" disabled={!canSubmit} onClick={() => void onSubmit()}>
+          <button type="button" className="primary block" data-testid="signup-submit" disabled={!canSubmit} onClick={() => void onSubmit()}>
             가입하기
           </button>
         </section>
       )}
 
-      <p>
+      <nav className="auth-links" aria-label="계정">
         <Link to="/login" data-testid="signup-login-link">
           이미 회원이면 로그인
         </Link>
-      </p>
+      </nav>
     </main>
   );
 }

@@ -41,7 +41,7 @@ export function TxTab({ accountId }: { accountId: number }) {
   const filtered = applied.type !== '' || applied.from !== '' || applied.to !== '';
 
   return (
-    <section>
+    <section className="tab-body">
       <form
         className="filters"
         onSubmit={(e) => {
@@ -61,7 +61,7 @@ export function TxTab({ accountId }: { accountId: number }) {
         />
         <TextField label="시작일" testid="tx-from-input" type="date" value={from} onChange={setFrom} />
         <TextField label="종료일" testid="tx-to-input" type="date" value={to} onChange={setTo} error={rangeError} />
-        <button type="submit" data-testid="tx-search">
+        <button type="submit" className="soft" data-testid="tx-search">
           조회
         </button>
       </form>
@@ -76,49 +76,43 @@ export function TxTab({ accountId }: { accountId: number }) {
         </p>
       ) : (
         <>
-          <table className="ledger">
-            <thead>
-              <tr>
-                <th>일시</th>
-                <th>종류</th>
-                <th>상대·메모</th>
-                <th className="num">금액</th>
-                <th className="num">거래 후 잔액</th>
-                <th>연속</th>
-              </tr>
-            </thead>
-            <tbody>
-              {query.data.content.map((t, i, rows) => {
-                const c = continuity(rows, query.data.last, filtered)[i];
-                return (
-                  <tr key={i} data-testid="tx-row" data-id={page * PAGE_SIZE + i}>
-                    <td data-testid="tx-row-time">{formatShortDateTime(t.transactedAt)}</td>
-                    <td data-testid="tx-row-type">{TX_TYPE[t.type]}</td>
-                    <td>
-                      <span data-testid="tx-row-name">{t.name ?? ''}</span> <span data-testid="tx-row-memo">{t.memo ?? ''}</span>
-                    </td>
-                    <td className="num">
+          <p className="hint">줄 앞 점: 칠한 원은 바로 아래 거래의 잔액에서 이어짐, 빨간 원은 끊김, 빈 원은 다음 쪽에서 확인</p>
+          <ul className="rows">
+            {query.data.content.map((t, i, rows) => {
+              const c = continuity(rows, query.data.last, filtered)[i];
+              return (
+                <li key={i} className="row tx-row" data-testid="tx-row" data-id={page * PAGE_SIZE + i}>
+                  <span className={`continuity continuity-${c}`} data-testid="tx-row-continuity" data-state={c} role="img" aria-label={CONTINUITY_LABEL[c]} title={CONTINUITY_LABEL[c]} />
+                  <span className="row-main">
+                    <span className="row-title" data-testid="tx-row-type">
+                      {TX_TYPE[t.type]}
+                    </span>
+                    <span className="row-sub">
+                      <span className="nowrap" data-testid="tx-row-time">{formatShortDateTime(t.transactedAt)}</span>
+                      {t.name ? <span data-testid="tx-row-name">{t.name}</span> : <span data-testid="tx-row-name" hidden />}
+                      {t.memo ? <span data-testid="tx-row-memo">{t.memo}</span> : <span data-testid="tx-row-memo" hidden />}
+                    </span>
+                  </span>
+                  <span className="row-side">
+                    <span className="row-amount">
                       <Amount value={t.amount} signed tone testid="tx-row-amount" />
-                    </td>
-                    <td className="num">
-                      <Amount value={t.balanceAfter} testid="tx-row-balance-after" />
-                    </td>
-                    <td>
-                      <span className={`continuity continuity-${c}`} data-testid="tx-row-continuity" data-state={c} aria-label={CONTINUITY_LABEL[c]} title={CONTINUITY_LABEL[c]} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div className="pager">
-            <button type="button" data-testid="tx-prev" disabled={query.data.first} onClick={() => setPage((p) => p - 1)}>
+                    </span>
+                    <span className="hint">
+                      잔액 <Amount value={t.balanceAfter} testid="tx-row-balance-after" />
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="actions pager">
+            <button type="button" className="small" data-testid="tx-prev" disabled={query.data.first} onClick={() => setPage((p) => p - 1)}>
               이전 쪽
             </button>
-            <span data-testid="tx-page">
+            <span data-testid="tx-page" className="hint">
               {query.data.number + 1} / {Math.max(query.data.totalPages, 1)}쪽
             </span>
-            <button type="button" data-testid="tx-next" disabled={query.data.last} onClick={() => setPage((p) => p + 1)}>
+            <button type="button" className="small" data-testid="tx-next" disabled={query.data.last} onClick={() => setPage((p) => p + 1)}>
               다음 쪽
             </button>
           </div>

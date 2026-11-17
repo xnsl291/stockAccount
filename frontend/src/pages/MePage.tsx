@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { leave, logout, updateMember, verifyPhone } from '../api/endpoints';
-import { LoadError, Loading, TextField } from '../components/ui';
+import { LoadError, Loading, PageHead, TextField } from '../components/ui';
 import { useMember } from '../hooks/queries';
 import { useSmsCode } from '../hooks/useSmsCode';
 import { formatDate, formatPhone } from '../lib/format';
@@ -103,8 +103,8 @@ export function MePage() {
   const newPwError = newPw2 && newPw !== newPw2 ? '새 비밀번호가 서로 달라요' : null;
 
   return (
-    <>
-      <h1>내 정보</h1>
+    <div className="narrow">
+      <PageHead title="내 정보" />
       <dl className="summary panel">
         <div className="kv">
           <dt>이름</dt>
@@ -228,7 +228,7 @@ export function MePage() {
       </section>
 
       <section className="panel danger-zone">
-        <button type="button" data-testid="me-withdraw" onClick={() => setLeaveOpen(true)}>
+        <button type="button" className="danger" data-testid="me-withdraw" onClick={() => setLeaveOpen(true)}>
           회원 탈퇴
         </button>
         {leaveOpen && (
@@ -243,12 +243,12 @@ export function MePage() {
                 {leaveError}
               </p>
             )}
-            <button type="button" data-testid="me-withdraw-submit" disabled={!agree} onClick={() => void onLeave()}>
+            <button type="button" className="danger" data-testid="me-withdraw-submit" disabled={!agree} onClick={() => void onLeave()}>
               탈퇴하기
             </button>
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 }

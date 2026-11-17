@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { transfer } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, PasswordPanel, ResultPanel, unlockPath } from '../components/Flow';
-import { Amount, LoadError, Loading, NumberField, Row, SelectField, TextField } from '../components/ui';
+import { Amount, LoadError, Loading, NumberField, PageHead, Row, SelectField, TextField } from '../components/ui';
 import { useAccount } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
@@ -35,10 +35,10 @@ export function TransferPage() {
   const here = `/transfer?accountId=${choice.selectedId}`;
   if (flow.step === 'result' && flow.result && to) {
     return (
-      <>
-        <h1>송금</h1>
+      <div className="narrow">
+        <PageHead title="송금" sub="받는 사람 이름을 확인한 뒤 보내요" />
         <ResultPanel p="transfer" message={`${to.ownerName}님에게 보냈어요`} account={flow.result.account} doneTo={`/accounts/${choice.selectedId}`} />
-      </>
+      </div>
     );
   }
 
@@ -58,8 +58,8 @@ export function TransferPage() {
   const editing = flow.step === 'input';
 
   return (
-    <>
-      <h1>송금</h1>
+    <div className="narrow">
+      <PageHead title="송금" sub="받는 사람 이름을 확인한 뒤 보내요" />
       <section className="panel">
         <SelectField
           label="보내는 계좌"
@@ -113,7 +113,7 @@ export function TransferPage() {
           disabled={!editing}
         />
         {editing && (
-          <button type="button" className="primary" data-testid="transfer-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
+          <button type="button" className="primary block" data-testid="transfer-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             송금 확인으로
           </button>
         )}
@@ -136,6 +136,6 @@ export function TransferPage() {
         </ConfirmPanel>
       )}
       {flow.step === 'password' && <PasswordPanel p="transfer" flow={flow} submitLabel="송금하기" unlockTo={unlockPath(choice.selectedId!, here)} />}
-    </>
+    </div>
   );
 }

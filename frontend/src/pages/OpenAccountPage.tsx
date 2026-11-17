@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { openAccount, type Account } from '../api/endpoints';
-import { TextField } from '../components/ui';
+import { PageHead, TextField } from '../components/ui';
 import { ApiError } from '../lib/api';
 import { errorMessage } from '../lib/messages';
 import { NICKNAME_MAX, isBlank } from '../lib/validation';
@@ -43,12 +43,15 @@ export function OpenAccountPage() {
 
   if (created) {
     return (
-      <section className="panel" data-testid="open-result-panel">
-        <h1>새 계좌가 만들어졌음</h1>
-        <p>
-          계좌번호 <span data-testid="open-result-number">{created.accountNumber}</span>
-        </p>
-        <Link to={`/accounts/${created.id}`} data-testid="open-result-detail-link">
+      <section className="panel narrow" data-testid="open-result-panel">
+        <PageHead title="새 계좌가 만들어졌음" />
+        <dl className="summary">
+          <div className="kv">
+            <dt>계좌번호</dt>
+            <dd data-testid="open-result-number">{created.accountNumber}</dd>
+          </div>
+        </dl>
+        <Link to={`/accounts/${created.id}`} className="button primary block" data-testid="open-result-detail-link">
           계좌 보기
         </Link>
       </section>
@@ -56,8 +59,8 @@ export function OpenAccountPage() {
   }
 
   return (
-    <>
-      <h1>계좌 개설</h1>
+    <div className="narrow">
+      <PageHead title="계좌 개설" sub="새 계좌는 바로 만들어지고 잔액 0원에서 시작해요" />
       <section className="panel">
         <TextField
           label="별칭(선택)"
@@ -90,10 +93,10 @@ export function OpenAccountPage() {
             {error}
           </p>
         )}
-        <button type="button" className="primary" data-testid="open-submit" disabled={!canSubmit} onClick={() => void onSubmit()}>
+        <button type="button" className="primary block" data-testid="open-submit" disabled={!canSubmit} onClick={() => void onSubmit()}>
           계좌 개설하기
         </button>
       </section>
-    </>
+    </div>
   );
 }

@@ -14,17 +14,20 @@ export function HoldingsTab({ accountId }: { accountId: number }) {
   const rows = query.data;
   if (rows.length === 0)
     return (
-      <p className="empty" data-testid="holdings-empty">
-        가진 주식이 없어요 <Link to="/stocks">종목 검색</Link>
-      </p>
+      <div className="empty" data-testid="holdings-empty">
+        <p>가진 주식이 없어요</p>
+        <Link to="/stocks" className="button soft">
+          종목 검색
+        </Link>
+      </div>
     );
 
   const totalValue = rows.reduce((s, h) => s + (prices.get(h.stockId) ?? 0) * h.quantity, 0);
   const totalPnl = rows.reduce((s, h) => s + h.profitNLoss, 0);
 
   return (
-    <section>
-      <dl className="summary">
+    <section className="tab-body">
+      <dl className="summary calc">
         <div className="kv">
           <dt>평가금액 합계(화면 계산)</dt>
           <dd>
@@ -38,77 +41,81 @@ export function HoldingsTab({ accountId }: { accountId: number }) {
           </dd>
         </div>
       </dl>
-      <table className="ledger">
-        <thead>
-          <tr>
-            <th>종목</th>
-            <th className="num">보유</th>
-            <th className="num">팔 수 있음</th>
-            <th className="num">평균단가</th>
-            <th className="num">현재가</th>
-            <th className="num">평가금액</th>
-            <th className="num">평가손익</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((h) => {
-            const price = prices.get(h.stockId);
-            const cost = h.avgPrice * h.quantity;
-            const rate = cost > 0 ? ((h.profitNLoss / cost) * 100).toFixed(2) : '0.00';
-            const name = stockName(h.stockId);
-            const canMove = h.availableQuantity > 0;
-            return (
-              <tr key={h.stockId} data-testid="holdings-row" data-id={h.stockId}>
-                <td>
-                  <span data-testid="holdings-row-name">{name}</span> <span data-testid="holdings-row-code">{stockLabel(h.stockId)?.code ?? ''}</span>
-                </td>
-                <td className="num">
-                  <Amount value={h.quantity} unit="주" testid="holdings-row-quantity" />
-                </td>
-                <td className="num">
-                  <Amount value={h.availableQuantity} unit="주" testid="holdings-row-available" />
+      <ul className="rows">
+        {rows.map((h) => {
+          const price = prices.get(h.stockId);
+          const cost = h.avgPrice * h.quantity;
+          const rate = cost > 0 ? ((h.profitNLoss / cost) * 100).toFixed(2) : '0.00';
+          const name = stockName(h.stockId);
+          const canMove = h.availableQuantity > 0;
+          return (
+            <li key={h.stockId} className="row wrap-sm" data-testid="holdings-row" data-id={h.stockId}>
+              <span className="row-main">
+                <span className="row-title">
+                  <span data-testid="holdings-row-name">{name}</span>
+                  <span className="hint" data-testid="holdings-row-code">
+                    {stockLabel(h.stockId)?.code ?? ''}
+                  </span>
+                </span>
+                <span className="row-sub">
+                  <span>
+                    보유 <Amount value={h.quantity} unit="주" testid="holdings-row-quantity" />
+                  </span>
+                  <span>
+                    팔 수 있음 <Amount value={h.availableQuantity} unit="주" testid="holdings-row-available" />
+                  </span>
                   {h.availableQuantity !== h.quantity && (
-                    <span className="hint" data-testid="holdings-row-held-note">
-                      {h.quantity - h.availableQuantity}주 매도 주문에 묶임
-                    </span>
+                    <span data-testid="holdings-row-held-note">{h.quantity - h.availableQuantity}주 매도 주문에 묶임</span>
                   )}
-                </td>
-                <td className="num">
-                  <Amount value={h.avgPrice} testid="holdings-row-avg-price" />
-                </td>
-                <td className="num">{price === undefined ? '…' : <Amount value={price} testid="holdings-row-price" />}</td>
-                <td className="num">{price === undefined ? '…' : <Amount value={price * h.quantity} testid="holdings-row-value" />}</td>
-                <td className="num">
-                  <Amount value={h.profitNLoss} signed tone testid="holdings-row-pnl" />{' '}
-                  <span data-testid="holdings-row-pnl-rate">{rate}%</span>
-                </td>
-                <td>
+                </span>
+                <span className="row-sub">
+                  <span>
+                    평균 <Amount value={h.avgPrice} testid="holdings-row-avg-price" />
+                  </span>
+                  <span>현재 {price === undefined ? '…' : <Amount value={price} testid="holdings-row-price" />}</span>
+                </span>
+              </span>
+              <span className="row-side">
+                <span className="row-amount">{price === undefined ? '…' : <Amount value={price * h.quantity} testid="holdings-row-value" />}</span>
+                <span>
+                  <Amount value={h.profitNLoss} signed tone testid="holdings-row-pnl" /> (<span data-testid="holdings-row-pnl-rate">{rate}%</span>)
+                </span>
+                <span className="row-actions">
                   {canMove ? (
                     <>
-                      <Link to={`/order?stockId=${h.stockId}&side=sell&accountId=${accountId}`} data-testid="holdings-row-sell" aria-label={`${name} 매도`}>
+                      <Link
+                        to={`/order?stockId=${h.stockId}&side=sell&accountId=${accountId}`}
+                        className="button small"
+                        data-testid="holdings-row-sell"
+                        aria-label={`${name} 매도`}
+                      >
                         매도
-                      </Link>{' '}
-                      <Link to={`/stock-transfer?accountId=${accountId}&stockId=${h.stockId}`} data-testid="holdings-row-transfer" aria-label={`${name} 이체`}>
+                      </Link>
+                      <Link
+                        to={`/stock-transfer?accountId=${accountId}&stockId=${h.stockId}`}
+                        className="button small"
+                        data-testid="holdings-row-transfer"
+                        aria-label={`${name} 이체`}
+                      >
                         이체
                       </Link>
                     </>
                   ) : (
                     <>
-                      <span className="link-disabled" data-testid="holdings-row-sell" aria-disabled="true">
+                      <span className="link-disabled small" data-testid="holdings-row-sell" aria-disabled="true">
                         매도
-                      </span>{' '}
-                      <span className="link-disabled" data-testid="holdings-row-transfer" aria-disabled="true">
+                      </span>
+                      <span className="link-disabled small" data-testid="holdings-row-transfer" aria-disabled="true">
                         이체
                       </span>
                     </>
                   )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
       <p className="hint" data-testid="holdings-calc-note">
         평가손익 = (현재가 − 평균단가) × 보유 수량. 실현손익은 보여 주지 않음
       </p>

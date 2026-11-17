@@ -6,7 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { closeAccount, updateAccount } from '../api/endpoints';
 import { unlockPath } from '../components/Flow';
-import { LoadError, Loading, TextField } from '../components/ui';
+import { LoadError, Loading, PageHead, TextField } from '../components/ui';
 import { useAccount } from '../hooks/queries';
 import { ApiError } from '../lib/api';
 import { errorMessage, MESSAGES } from '../lib/messages';
@@ -90,8 +90,8 @@ export function AccountSettingsPage() {
   }
 
   return (
-    <>
-      <h1>계좌 설정 · {a.accountNumber}</h1>
+    <div className="narrow">
+      <PageHead title={`계좌 설정 · ${a.accountNumber}`} />
       <section className="panel">
         <TextField label="별칭" testid="acctset-nickname-input" value={nickname} onChange={setNickname} maxLength={NICKNAME_MAX} />
         <TextField label="새 계좌 비밀번호(선택)" testid="acctset-new-pw-input" type="password" value={newPw} onChange={setNewPw} />
@@ -128,7 +128,7 @@ export function AccountSettingsPage() {
       </section>
 
       <section className="panel danger-zone">
-        <button type="button" data-testid="acctset-close" onClick={() => setCloseOpen(true)}>
+        <button type="button" className="danger" data-testid="acctset-close" onClick={() => setCloseOpen(true)}>
           계좌 해지
         </button>
         {closeOpen && (
@@ -144,13 +144,13 @@ export function AccountSettingsPage() {
               <button type="button" data-testid="acctset-close-back" onClick={() => setCloseOpen(false)}>
                 돌아가기
               </button>
-              <button type="button" className="primary" data-testid="acctset-close-submit" disabled={closing} onClick={() => void onClose()}>
+              <button type="button" className="danger" data-testid="acctset-close-submit" disabled={closing} onClick={() => void onClose()}>
                 해지하기
               </button>
             </div>
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 }
