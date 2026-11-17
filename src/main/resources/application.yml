@@ -22,7 +22,8 @@ spring:
     # 잔액을 바꿀 때 잠금을 걸고 다시 읽어도 예전 잔액을 보게 됨
     open-in-view: false
     hibernate:
-      ddl-auto:  update  #create
+      # 스키마는 Flyway(db/migration)가 만들고, Hibernate는 엔티티와 스키마가 맞는지만 확인함
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true

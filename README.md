@@ -41,7 +41,9 @@ openssl rand -base64 48   # 출력값을 application-secret.yml의 jwt.secret에
 | `SMS_PROVIDER` | `log` | `log`는 문자를 보내지 않고 로그만 남김, `coolsms`는 실제 발송 |
 | `COOLSMS_API_KEY`, `COOLSMS_SECRET_KEY`, `SMS_SENDER_PHONE_NUMBER` | 없음 | `coolsms`일 때만 필요 |
 
-이전 버전으로 만든 로컬 DB가 있으면 지우고 새로 만들어야 함. 금액이 실수에서 정수(long)로, 종목코드가 숫자에서 문자열로, 매매 유형·주문 상태가 문자열 enum으로 바뀌었고 주식 보유 내역에 유니크 제약이 생겼는데, `ddl-auto: update`는 이미 있는 컬럼의 타입을 바꾸지 않음
+스키마는 Flyway가 `src/main/resources/db/migration`의 SQL 파일로 만들고, Hibernate는 엔티티와 스키마가 맞는지만 확인함(`ddl-auto: validate`). 스키마를 바꿀 때는 기존 파일을 고치지 않고 다음 번호의 파일(`V2__...sql`)을 추가함
+
+Flyway 도입 전(`ddl-auto: update`)에 만든 로컬 DB가 있으면 지우고 새로 만들어야 함. 지킬 운영 데이터가 없어 기존 DB를 첫 버전으로 표시(baseline)하지 않고 빈 DB에서 첫 파일부터 적용하는 방식으로 정했음. 기존 DB에는 `flyway_schema_history`가 없어 Flyway가 테이블이 이미 있다며 기동을 멈춤
 
 ```bash
 docker compose down -v && docker compose up -d
