@@ -91,15 +91,20 @@ public class StockController {
     /**
      * 주식 잔고 이체
      * @param loginMemberId - 로그인한 사용자 ID
-     * @param transferStockDto - 주식 잔고 이체 dto (발신자 계좌 ID, 수신자 계좌 ID, 주식 ID, 가격, 수량, 발신자 계좌 PW)
-     * @return 이체 결과
+     * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
+     * @param transferStockDto - 주식 잔고 이체 dto (발신자 계좌 ID, 수신자 계좌 ID, 주식 ID, 수량, 발신자 계좌 PW)
+     * @return "이체완료"
      */
     @PostMapping("/transfer")
-    public ResponseEntity<Boolean> transferStock(
+    public ResponseEntity<String> transferStock(
             @AuthenticationPrincipal Long loginMemberId,
+            @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody TransferStockDto transferStockDto){
         validationService.validAccountPassword(loginMemberId, transferStockDto.getSenderAccountId(), transferStockDto.getAccountPassword());
-        return ResponseEntity.ok().body(stockService.transferStock(transferStockDto));
+        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
+                "STOCK_TRANSFER " + transferStockDto.getSenderAccountId() + " " + transferStockDto.getReceiverAccountId() + " "
+                        + transferStockDto.getStockId() + " " + transferStockDto.getQuantity(),
+                () -> stockService.transferStock(transferStockDto)));
     }
 
     /**

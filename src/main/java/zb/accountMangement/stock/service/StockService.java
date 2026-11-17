@@ -18,15 +18,10 @@ import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.stock.repository.TradingRepository;
-import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import static zb.accountMangement.common.type.FeeRate.TRANSFER_FEE_RATE;
 
@@ -49,17 +44,6 @@ public class StockService {
     public Stock getStockById(Long stockId){
         return stockRepository.findById(stockId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_EXIST));
-    }
-
-    /**
-     * 계좌 ID와 주식 ID를 이용한 잔고조회
-     * @param accountId - 계좌 ID
-     * @param stockId - 주식 ID
-     * @return StockBalance
-     */
-    public StockBalance getStockBalanceByAccountIdAndStockId(Long accountId, Long stockId){
-        return stockBalanceRepository.findByAccountIdAndStockId(accountId, stockId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NO_STOCK_BALANCE));
     }
 
     /**
@@ -113,110 +97,65 @@ public class StockService {
     }
 
     /**
-     * 주식 수량이 0이면 StockBalance에서 해당 주식 종목 삭제
-     * @param stockBalance - 잔고
-     */
-    private void quantityCheck(StockBalance stockBalance){
-        if (stockBalance.getQuantity() == 0) {
-            stockBalanceRepository.delete(stockBalance);
-        }
-    }
-
-    /**
-     * 주식 잔고 이체
-     * @param transferStockDto - 주식 잔고 이체 dto(발신자 계좌 ID,수신자 계좌 ID 주식 ID, 매수희망가, 매수수량, 거래일시)
-     * @return 이체 결과
+     * 주식 잔고 이체 - 받는 쪽은 보내는 쪽의 평균단가를 그대로 이어받음
+     * @param transferStockDto - 주식 잔고 이체 dto (발신자 계좌 ID, 수신자 계좌 ID, 주식 ID, 수량)
+     * @return "이체완료"
      */
     @Transactional
-    public Boolean transferStock(TransferStockDto transferStockDto){
-        Account senderAccount = accountService.getAccountForUpdate(transferStockDto.getSenderAccountId());
-        StockBalance senderStockBalance = getStockBalanceByAccountIdAndStockId(transferStockDto.getSenderAccountId(), transferStockDto.getStockId());
+    public String transferStock(TransferStockDto transferStockDto){
+        Long senderAccountId = transferStockDto.getSenderAccountId();
+        Long receiverAccountId = transferStockDto.getReceiverAccountId();
+        int quantity = transferStockDto.getQuantity();
+        if (senderAccountId.equals(receiverAccountId))
+            throw new CustomException(ErrorCode.SAME_ACCOUNT_TRANSFER);
 
-        Long senderId = senderAccount.getId();
-        Long receiverId = accountService.getAccountById(transferStockDto.getReceiverAccountId()).getMemberId();
+        // 송금과 같은 순서(ID 오름차순)로 잠가야 동시에 실행돼도 교착 상태에 빠지지 않음.
+        // 보유 주식은 계좌를 잠근 뒤에 읽어야 앞선 거래가 바꾼 수량이 보임
+        Account first = accountService.getAccountForUpdate(Math.min(senderAccountId, receiverAccountId));
+        Account second = accountService.getAccountForUpdate(Math.max(senderAccountId, receiverAccountId));
+        Account sender = first.getId().equals(senderAccountId) ? first : second;
+        Account receiver = first.getId().equals(senderAccountId) ? second : first;
+        if (!sender.isExistsAccount() || !receiver.isExistsAccount())
+            throw new CustomException(ErrorCode.INVALID_ACCOUNT);
 
-        // 본인 계좌에 이체할 경우 수수료 X
-        long transferFee = senderId.equals(receiverId) ?
-                calculateTransferFee(transferStockDto.getStockId() , transferStockDto.getQuantity()) : 0 ;
-
-        if (senderAccount.getBalance() < transferFee)
-            throw new CustomException(ErrorCode.EXCEED_BALANCE);
-
-        if (senderStockBalance.getQuantity() < transferStockDto.getQuantity()) {
+        Stock stock = getStockById(transferStockDto.getStockId());
+        StockBalance senderStockBalance = stockBalanceRepository.findByAccountIdAndStockId(senderAccountId, stock.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.NO_STOCK_BALANCE));
+        if (senderStockBalance.getAvailableQuantity() < quantity)
             throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
+
+        // 수수료는 다른 회원에게 보낼 때만 받음. 같은 회원의 계좌끼리 옮기는 것은 무료
+        if (!sender.getMemberId().equals(receiver.getMemberId())) {
+            long transferFee = TRANSFER_FEE_RATE.of(Math.multiplyExact(stock.getCurrentPrice(), quantity));
+            if (transferFee > 0)
+                transactionService.changeBalance(senderAccountId, TransactionType.FEE, transferFee, "주식 이체 수수료", stock.getName());
         }
 
-        senderStockBalance.setQuantity(senderStockBalance.getQuantity() - transferStockDto.getQuantity());
+        long avgPrice = senderStockBalance.getAvgPrice();
+        senderStockBalance.setQuantity(senderStockBalance.getQuantity() - quantity);
+        if (senderStockBalance.getQuantity() == 0)
+            stockBalanceRepository.delete(senderStockBalance);
 
-        // 수수료 차감
-        if (transferFee > 0)
-            transactionService.changeBalance(senderAccount.getId(), TransactionType.FEE, transferFee, "주식 이체 수수료", null);
+        StockBalance receiverStockBalance = stockBalanceRepository.findByAccountIdAndStockId(receiverAccountId, stock.getId())
+                .orElseGet(() -> StockBalance.builder().accountId(receiverAccountId).stockId(stock.getId()).build());
+        receiverStockBalance.add(quantity, avgPrice);
+        stockBalanceRepository.save(receiverStockBalance);
 
-        quantityCheck(senderStockBalance);
-
-        // 수신계좌
-        Optional<StockBalance> optionalReceiverStockBalance =
-                stockBalanceRepository.findByAccountIdAndStockId(transferStockDto.getReceiverAccountId(), transferStockDto.getStockId());
-        StockBalance receiverStockBalance;
-
-        if (optionalReceiverStockBalance.isPresent()) {
-            receiverStockBalance = optionalReceiverStockBalance.get();
-
-            long totalCost = transferStockDto.getPrice() * transferStockDto.getQuantity();
-
-            // 평단가 변경
-            receiverStockBalance.setAvgPrice((receiverStockBalance.getAvgPrice() * receiverStockBalance.getQuantity() + totalCost) /
-                    (receiverStockBalance.getQuantity() + transferStockDto.getQuantity()));
-            receiverStockBalance.setQuantity(receiverStockBalance.getQuantity() + transferStockDto.getQuantity());
-
-        } else {
-            receiverStockBalance = StockBalance.builder()
-                    .stockId(transferStockDto.getStockId())
-                    .avgPrice(transferStockDto.getPrice())
-                    .quantity(transferStockDto.getQuantity())
-                    .build();
-            stockBalanceRepository.save(receiverStockBalance);
-        }
-
-        Trading senderTradeHistory = Trading.builder()
-                .stockId(transferStockDto.getStockId())
-                .accountId(transferStockDto.getSenderAccountId())
-                .price(transferStockDto.getPrice())
-                .quantity(-transferStockDto.getQuantity())
-                .type(TradeType.TRANSFER)
-                .tradeAt(LocalDateTime.now())
-                .status(OrderStatus.FILLED)
-                .build();
-
-        Trading receiverTradeHistory = Trading.builder()
-                .stockId(transferStockDto.getStockId())
-                .accountId(transferStockDto.getReceiverAccountId())
-                .price(transferStockDto.getPrice())
-                .quantity(transferStockDto.getQuantity())
-                .type(TradeType.TRANSFER)
-                .tradeAt(LocalDateTime.now())
-                .status(OrderStatus.FILLED)
-                .build();
-
-        tradeHistoryRepository.save(senderTradeHistory);
-        tradeHistoryRepository.save(receiverTradeHistory);
-        return true;
+        tradeHistoryRepository.save(transferRecord(senderAccountId, stock.getId(), avgPrice, -quantity));
+        tradeHistoryRepository.save(transferRecord(receiverAccountId, stock.getId(), avgPrice, quantity));
+        return "이체완료";
     }
 
-    /**
-     * 이체 수수료 계산 - 원 미만은 버림
-     * @param stockId - 주식 ID
-     * @param quantity - 수량
-     * @return 수수료
-     */
-    private long calculateTransferFee(Long stockId , int quantity){
-        Stock stock = getStockById(stockId);
-
-        return BigDecimal.valueOf(stock.getCurrentPrice())
-                .multiply(BigDecimal.valueOf(quantity))
-                .multiply(TRANSFER_FEE_RATE.getRate())
-                .setScale(0, RoundingMode.DOWN)
-                .longValueExact();
+    private Trading transferRecord(Long accountId, Long stockId, long avgPrice, int signedQuantity) {
+        Trading record = Trading.builder()
+                .accountId(accountId)
+                .stockId(stockId)
+                .price(avgPrice)
+                .quantity(signedQuantity)
+                .type(TradeType.TRANSFER)
+                .build();
+        record.fill(avgPrice);
+        return record;
     }
 
     /**
