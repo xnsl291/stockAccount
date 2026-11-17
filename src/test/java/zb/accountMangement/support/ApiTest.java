@@ -2,6 +2,7 @@ package zb.accountMangement.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -67,7 +68,12 @@ public abstract class ApiTest extends IntegrationTest {
 	}
 
 	protected ResultActions postJson(String url, Member loginMember, Map<String, Object> body) throws Exception {
+		return postJson(url, loginMember, UUID.randomUUID().toString(), body);
+	}
+
+	protected ResultActions postJson(String url, Member loginMember, String idempotencyKey, Map<String, Object> body) throws Exception {
 		return mockMvc.perform(as(loginMember, post(url))
+				.header("Idempotency-Key", idempotencyKey)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(body)));
 	}

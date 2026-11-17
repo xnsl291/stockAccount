@@ -11,19 +11,26 @@ import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransactionDto;
 import zb.accountMangement.account.dto.TransferDto;
 import zb.accountMangement.account.dto.WithdrawalDto;
+import zb.accountMangement.account.model.entity.IdempotencyRecord;
+import zb.accountMangement.account.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.service.ValidationService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @RestController
 @RequiredArgsConstructor
 @Validated
 @RequestMapping("/api/transactions")
 public class TransactionController {
+    private static final String IDEMPOTENCY_KEY = "Idempotency-Key";
+
     private final TransactionService transactionService;
     private final ValidationService validationService;
+    private final IdempotencyService idempotencyService;
 
     /**
     * 계좌 소유주 확인
@@ -39,34 +46,43 @@ public class TransactionController {
     /**
     * 입금
     * @param loginMemberId - 로그인한 사용자 ID
+    * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
     * @param depositDto - 입금 dto (계좌ID, 금액, 메모)
     * @return "입금완료"
     */
     @PostMapping("/deposit")
     public ResponseEntity<String> deposit(
             @AuthenticationPrincipal Long loginMemberId,
+            @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody DepositDto depositDto) {
         validationService.validAccountOwner(loginMemberId, depositDto.getAccountId());
-        return ResponseEntity.ok().body(transactionService.deposit(depositDto));
+        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
+                "DEPOSIT " + depositDto.getAccountId() + " " + depositDto.getAmount(),
+                () -> transactionService.deposit(depositDto)));
     }
 
     /**
     * 출금
     * @param loginMemberId - 로그인한 사용자 ID
+    * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
     * @param withdrawalDto - 출금 dto (계좌ID, 금액, 메모, 계좌 PW)
     * @return "출금완료"
     */
     @PostMapping("/withdrawal")
     public ResponseEntity<String> withdrawal(
             @AuthenticationPrincipal Long loginMemberId,
+            @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody WithdrawalDto withdrawalDto) {
         validationService.validAccountPassword(loginMemberId, withdrawalDto.getAccountId(), withdrawalDto.getAccountPassword());
-        return ResponseEntity.ok().body(transactionService.withdrawal(withdrawalDto));
+        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
+                "WITHDRAW " + withdrawalDto.getAccountId() + " " + withdrawalDto.getAmount(),
+                () -> transactionService.withdrawal(withdrawalDto)));
     }
 
     /**
     * 송금
     * @param loginMemberId - 로그인한 사용자 ID
+    * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
     * @param senderAccountId - 발신인 계좌 ID
     * @param receiverAccountId - 수신인 계좌 ID
     * @param transferDto - 송금 dto (금액, 메모, 발신인 계좌 PW)
@@ -75,11 +91,14 @@ public class TransactionController {
     @PostMapping("{sender_account_id}/transfer/{receiver_account_id}")
     public ResponseEntity<String> transfer(
             @AuthenticationPrincipal Long loginMemberId,
+            @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @PathVariable("sender_account_id") @Min(1) Long senderAccountId ,
             @PathVariable("receiver_account_id") @Min(1) Long receiverAccountId,
             @Valid @RequestBody TransferDto transferDto) {
         validationService.validAccountPassword(loginMemberId, senderAccountId, transferDto.getAccountPassword());
-        return ResponseEntity.ok().body(transactionService.transfer(senderAccountId, receiverAccountId, transferDto));
+        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
+                "TRANSFER " + senderAccountId + " " + receiverAccountId + " " + transferDto.getAmount(),
+                () -> transactionService.transfer(senderAccountId, receiverAccountId, transferDto)));
     }
     /**
      * 거래내역 조회
