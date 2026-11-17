@@ -1,65 +1,108 @@
-/* 디자인 토큰. 시안 design/ui-draft/tokens.css의 변수를 그대로 옮김(외부 CDN 글꼴 불러오기와 명세 무늬는 뺌)
-   새 디자인이 오면 이 파일과 app.css를 갈아 끼움. 화면 코드는 클래스 이름과 data-testid만 씀 */
+/* 디자인 토큰. 화면 코드는 클래스 이름과 data-testid만 쓰고, 색·글자 크기·간격은 여기서만 정함
+   글자 크기 원칙(사용자 요청): 화면에 보이는 글자는 기본 모드에서도 24px 아래로 내려가지 않음.
+   위계는 크기를 줄여서가 아니라 24px 위로 단계를 두고(26·30·36·56), 굵기와 색을 같이 바꿔서 만듦.
+   큰 글씨 모드(html.text-large)는 같은 단계를 한 칸씩 키움 */
 
 :root {
-  /* 바탕과 글자 */
-  --paper: #f3f5f7;          /* 페이지 바탕 */
-  --sheet: #ffffff;          /* 명세·표 바탕 */
-  --sheet-2: #f8fafb;        /* 표 머리, 보조 면 */
-  --ink: #142033;            /* 본문, 큰 숫자 */
-  --ink-2: #3f4b62;          /* 보조 글자 */
-  --ink-3: #5f6a80;          /* 설명, 단위 (흰 바탕 5.4:1) */
-  --rule: #dce1e8;           /* 가는 선 */
-  --rule-strong: #a8b2c1;    /* 합계 위 선, 이중선 */
+  /* 바탕과 글자. 흰 면을 연한 회색 바탕 위에 올려 면 구분은 선이 아니라 바탕색 차이로 함 */
+  --bg: #f2f4f6;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;      /* 눌린 행, 보조 면 */
+  --surface-3: #eef1f4;      /* 입력 칸 바탕, 비활성 */
+  --ink: #191f28;            /* 본문, 금액 */
+  --ink-2: #4e5968;          /* 보조 글자 (흰 바탕 7.4:1) */
+  --ink-3: #6b7684;          /* 설명, 단위 (흰 바탕 4.6:1, 회색 바탕 4.2:1 → 회색 바탕 위에는 ink-2를 씀) */
+  --line: #e5e8eb;
+  --line-strong: #c9d0d8;
 
-  /* 증명 문서 (명세 머리띠, 도장) */
-  --sec: #2c6a59;
-  --sec-line: rgba(44, 106, 89, .28);
-  --sec-tint: #eaf2ee;
+  /* 주 행동 색. 매도·하락 파랑과 겹치지 않게 보랏빛이 도는 파랑으로 둠 */
+  --primary: #3a5cf0;
+  --primary-press: #2c49cc;
+  --primary-tint: #edf1ff;
+  --primary-ink: #2b45c0;
 
-  /* 돈의 상태 세 가지. 색마다 무늬가 따로 있어 색 없이도 구분됨 */
-  --avail: #24614f;          /* 출금 가능 - 칠함 */
-  --avail-tint: #e6f0eb;
-  --pending: #5a4fa8;        /* 결제 대기(D+2) - 점 무늬 */
+  /* 돈의 상태. 빨강·파랑을 쓰지 않고 색마다 무늬가 따로 있어 색 없이도 구분됨(설계 3.14의 4번)
+     출금 가능 = 칠함, 주문에 묶임 = 점무늬, 결제 대기(2차) = 가로 줄무늬 */
+  --avail: #1e7b64;
+  --avail-tint: #e3f3ee;
+  --held: #a35f00;
+  --held-fill: #f3c27a;
+  --held-dot: #7a4700;
+  --held-tint: #fdf2e0;
+  --pending: #6b5bb8;
   --pending-tint: #efedf9;
-  --held: #8a5007;           /* 주문에 묶임 - 빗금 */
-  --held-tint: #fbf1e1;
 
-  /* 등락. 국내 관례: 오름 빨강, 내림 파랑 */
-  --up: #cf2b23;
+  /* 등락·매수매도. 국내 관례(오름·매수 빨강, 내림·매도 파랑)는 미확정이라 부호와 글자를 항상 같이 씀 */
+  --up: #e0302a;
   --up-tint: #fdeceb;
-  --down: #1d58c9;
-  --down-tint: #e9f0fd;
+  --down: #2a63d4;
+  --down-tint: #eaf0fd;
 
   /* 상태 */
-  --danger: #b4231b;
+  --danger: #c4261d;
   --danger-tint: #fdeceb;
-  --mark: #fff4c7;           /* 형광펜 강조: "이 줄이 해당됨". 등락·상태 색과 겹치지 않음 */
   --ok: var(--avail);
-  --focus: #1d58c9;
+  --focus: #3a5cf0;
 
-  /* 글자 */
-  --font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --fs-xs: .75rem;    /* 12 표 주석, 일련번호 */
-  --fs-sm: .8125rem;  /* 13 보조, 표 머리 */
-  --fs-base: .9375rem;/* 15 본문, 표 */
-  --fs-md: 1.1875rem; /* 19 명세 제목, 금액 강조 */
-  --fs-lg: 1.5rem;    /* 24 화면 제목 */
-  --fs-xl: 1.625rem;  /* 26 계좌 금액 */
-  --fs-2xl: 2.125rem; /* 34 총 예수금 */
-  --lh: 1.55;
-  --lh-tight: 1.2;
+  /* 글꼴. Pretendard를 화면과 같이 배포함(외부 CDN 없음). 숫자는 고정폭 */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+
+  /* 글자 크기 단계(기본 모드). 가장 작은 단계가 24px */
+  --fs-cap: 24px;     /* 설명, 단위, 표 머리, 배지 */
+  --fs-body: 26px;    /* 본문, 입력, 행 제목 */
+  --fs-strong: 28px;  /* 행 금액, 버튼 안 강조 */
+  --fs-h2: 30px;      /* 영역 제목 */
+  --fs-h1: 36px;      /* 화면 제목 */
+  --fs-amount: 34px;  /* 계좌 카드 금액, 결과 금액 */
+  --fs-hero: 56px;    /* 총 예수금 */
+  --fs-input-money: 40px; /* 금액 입력 칸 */
+  --lh: 1.5;
+  --lh-tight: 1.25;
 
   /* 간격 (4px 단위) */
-  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s7: 28px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
 
-  /* 반경과 선 */
-  --r-sm: 2px;
-  --r-md: 4px;
-  --line: 1px solid var(--rule);
-  --line-strong: 1px solid var(--rule-strong);
+  /* 반경, 누르는 영역 */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+  --tap: 56px;        /* 버튼·행 최소 높이 */
 
+  --shell-w: 288px;
+  --content-max: 1120px;
+  --narrow-max: 720px;
 
-  --shell-w: 232px;
-  --content-max: 1180px;
+  --shadow-pop: 0 12px 40px rgb(25 31 40 / 14%);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* 큰 글씨 모드: 같은 위계를 한 단계씩 키움. 화면 배치는 같고 행·버튼 높이만 늘어남 */
+:root.text-large {
+  --fs-cap: 28px;
+  --fs-body: 30px;
+  --fs-strong: 32px;
+  --fs-h2: 36px;
+  --fs-h1: 42px;
+  --fs-amount: 40px;
+  --fs-hero: 68px;
+  --fs-input-money: 48px;
+  --tap: 64px;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --fs-h1: 32px;
+    --fs-h2: 28px;
+    --fs-amount: 30px;
+    --fs-hero: 44px;
+    --fs-input-money: 34px;
+  }
+  :root.text-large {
+    --fs-h1: 36px;
+    --fs-h2: 32px;
+    --fs-amount: 34px;
+    --fs-hero: 52px;
+    --fs-input-money: 40px;
+  }
 }

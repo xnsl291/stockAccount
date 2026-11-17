@@ -1,0 +1,170 @@
+/* 화면 조각: 금액 머리 카드, 행 목록, 예수금 막대, 탭, 주문 계산, 운영 화면 골격
+   목록은 표 대신 "행"으로 그림. 왼쪽에 무엇(이름·종류), 오른쪽에 얼마(금액), 둘째 줄에 보조 정보.
+   좁은 화면에서도 칸을 가로로 넘기지 않고 같은 행 구조가 줄바꿈만 함 */
+
+/* 금액 머리 카드(홈 총 예수금, 계좌 상세 잔액) */
+.hero { gap: var(--s6); }
+.hero-label { font-size: var(--fs-body); color: var(--ink-2); font-weight: 600; display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.hero-amount { font-size: var(--fs-hero); font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; }
+.hero-amount .unit { font-size: .5em; color: var(--ink); font-weight: 700; margin-left: 6px; }
+.hero-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
+.hero-actions > a, .hero-actions > span { min-height: 64px; }
+.hero-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--s10); align-items: start; }
+.hero-split > div { display: flex; flex-direction: column; gap: var(--s5); min-width: 0; }
+
+/* 잔액 숨기기: 금액만 가림. 화면 낭독기에는 그대로 읽힘(사용자 본인 기기 기준 기능) */
+.privacy .sensitive { filter: blur(14px); user-select: none; }
+
+/* 돈의 상태 줄: 앞에 막대와 같은 무늬 점을 붙임 */
+.kv .swatch, .bar-legend .swatch {
+  display: inline-block; width: 18px; height: 18px; border-radius: 5px; margin-right: var(--s2); vertical-align: -2px;
+}
+.swatch-avail { background: var(--avail); }
+.swatch-held { background-color: var(--held-fill); background-image: radial-gradient(var(--held-dot) 1.4px, transparent 1.6px); background-size: 6px 6px; }
+
+/* 예수금 구성 막대: 묶인 금액은 점무늬, 출금 가능은 칠함(빗금 쓰지 않음) */
+.bar { margin: 0; display: flex; flex-direction: column; gap: var(--s3); }
+.bar-track { display: flex; height: 20px; border-radius: var(--r-pill); overflow: hidden; background: var(--surface-3); gap: 3px; }
+.bar-held { background-color: var(--held-fill); background-image: radial-gradient(var(--held-dot) 1.6px, transparent 1.8px); background-size: 7px 7px; }
+.bar-avail { background: var(--avail); }
+.bar-held[style*='width: 0%'], .bar-avail[style*='width: 0%'] { display: none; }
+.bar-legend { display: flex; gap: var(--s2) var(--s6); flex-wrap: wrap; font-size: var(--fs-cap); color: var(--ink-2); }
+
+/* 영역 머리: 제목 + 오른쪽 링크 */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.section-head .button { min-height: 48px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6); align-items: start; }
+
+/* 행 목록 */
+.rows { list-style: none; margin: 0 calc(-1 * var(--s4)); padding: 0; display: flex; flex-direction: column; }
+.row {
+  display: flex; align-items: center; gap: var(--s4);
+  min-height: 84px; padding: var(--s4); border-radius: var(--r-md);
+  color: inherit;
+}
+.rows > li + li > .row, .rows > .row + .row, .rows > li + li.row { box-shadow: inset 0 1px 0 var(--line); }
+a.row, .row.clickable { cursor: pointer; transition: background-color .15s var(--ease), transform .12s var(--ease); }
+a.row:hover, .row.clickable:hover { background: var(--surface-2); text-decoration: none; }
+a.row:active { transform: scale(.99); }
+.row-icon {
+  width: 52px; height: 52px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: var(--surface-3); color: var(--ink-2); font-weight: 800; font-size: var(--fs-cap);
+}
+.row-icon svg { width: 28px; height: 28px; }
+.row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.row-title { font-size: var(--fs-body); font-weight: 700; display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.row-sub { font-size: var(--fs-cap); color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 0 var(--s2); }
+.row-main, .row-sub > * { overflow-wrap: normal; }
+.nowrap { white-space: nowrap; }
+.row-sub > * + *::before { content: '·'; margin-right: var(--s2); color: var(--line-strong); }
+.row-sub.no-dot > * + *::before { content: none; }
+.row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; flex: none; max-width: 60%; }
+.row-amount { font-size: var(--fs-strong); font-weight: 750; }
+.row-amount .unit { font-size: max(var(--fs-cap), .8em); }
+.row-chevron { width: 24px; height: 24px; color: var(--line-strong); flex: none; }
+.row-actions { display: flex; gap: var(--s2); flex-wrap: wrap; justify-content: flex-end; }
+.row.cancelled .row-title, .row.cancelled .row-amount { text-decoration: line-through; color: var(--ink-3); }
+.row-extra { padding: 0 var(--s4) var(--s4); }
+.row-extra .panel { background: var(--surface-2); padding: var(--s6); }
+
+/* 계좌 카드(홈) */
+.account-card { flex-wrap: wrap; }
+.account-card .row-side .amount { font-size: var(--fs-amount); }
+.account-card .row-meta { width: 100%; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s6); padding-left: 68px; font-size: var(--fs-cap); color: var(--ink-2); }
+.account-card .row-meta .amount { font-weight: 650; }
+
+/* 거래 연속성 점: 이어짐 = 칠한 원, 끊김 = 빨간 테두리 + 느낌표, 다음 쪽 = 빈 원 */
+.continuity { display: inline-block; width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.continuity-linked { background: var(--avail); }
+.continuity-broken { background: var(--danger-tint); box-shadow: 0 0 0 3px var(--danger); }
+.continuity-unknown { box-shadow: inset 0 0 0 2px var(--line-strong); }
+.tx-row { align-items: flex-start; }
+.tx-row .continuity { margin-top: 14px; }
+
+/* 탭(계좌 상세)과 매수·매도 고르기 */
+.tabs { display: flex; gap: var(--s1); padding: var(--s1); background: var(--surface-3); border-radius: var(--r-md); overflow-x: auto; }
+.tabs [role='tab'] { flex: 1; background: transparent; color: var(--ink-2); min-height: 56px; }
+.tabs [role='tab']:hover { background: rgb(255 255 255 / 60%); }
+.tabs [aria-selected='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px rgb(25 31 40 / 10%); font-weight: 750; }
+.tabs .buy[aria-selected='true'] { background: var(--up); color: #fff; }
+.tabs .sell[aria-selected='true'] { background: var(--down); color: #fff; }
+.tabs [role='tab']:disabled { color: #9aa3ad; background: transparent; }
+.tabs .buy[aria-selected='true']:disabled { background: var(--up); color: #fff; opacity: .7; }
+.tabs .sell[aria-selected='true']:disabled { background: var(--down); color: #fff; opacity: .7; }
+button.buy { background: var(--up-tint); color: var(--up); }
+button.buy:hover { background: #fbd9d7; }
+button.sell { background: var(--down-tint); color: var(--down); }
+button.sell:hover { background: #d9e4fb; }
+
+/* 주문 계산 줄 */
+.calc { background: var(--surface-2); border-radius: var(--r-md); padding: var(--s2) var(--s5); }
+.calc .kv + .kv { box-shadow: inset 0 1px 0 var(--line); }
+.stock-line { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.stock-line .row-title { font-size: var(--fs-h2); }
+
+/* 결과 */
+.result-mark { width: 64px; height: 64px; border-radius: 50%; background: var(--avail-tint); color: var(--avail); display: grid; place-items: center; }
+.result-mark svg { width: 36px; height: 36px; }
+.result-message { font-size: var(--fs-h2); font-weight: 750; }
+
+/* 주문 과정 */
+.timeline { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--s3); font-size: var(--fs-cap); }
+.timeline li { position: relative; padding-left: var(--s8); }
+.timeline li::before { content: ''; position: absolute; left: 6px; top: 10px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink-2); }
+.timeline li.hint::before { background: transparent; box-shadow: inset 0 0 0 2px var(--line-strong); }
+
+/* 표(운영 화면 골격의 빈 표에만 씀) */
+.ledger-wrap { overflow-x: auto; border-radius: var(--r-md); }
+.ledger { width: 100%; border-collapse: collapse; font-size: var(--fs-cap); }
+.ledger th, .ledger td { padding: var(--s3) var(--s4); text-align: left; white-space: nowrap; }
+.ledger th { color: var(--ink-2); font-weight: 600; background: var(--surface-2); }
+.ledger td { color: var(--ink-3); box-shadow: inset 0 1px 0 var(--line); }
+
+/* 1차 범위 밖 화면 */
+.planned-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--s4); }
+.tile {
+  display: flex; flex-direction: column; gap: var(--s2); padding: var(--s6); border-radius: var(--r-lg);
+  background: var(--surface); color: inherit; min-height: 150px;
+  transition: background-color .15s var(--ease), transform .12s var(--ease);
+}
+.tile:hover { background: var(--surface-2); text-decoration: none; }
+.tile:active { transform: scale(.99); }
+.tile strong { font-size: var(--fs-body); }
+.tile span { font-size: var(--fs-cap); color: var(--ink-3); }
+.needs { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: var(--s2); font-size: var(--fs-cap); color: var(--ink-2); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s4); }
+.stat { background: var(--surface-2); border-radius: var(--r-md); padding: var(--s5); display: flex; flex-direction: column; gap: var(--s1); }
+.stat b { font-size: var(--fs-amount); color: var(--ink-3); }
+.stat span { font-size: var(--fs-cap); color: var(--ink-2); }
+
+@media (max-width: 1180px) {
+  .hero-split { grid-template-columns: 1fr; gap: var(--s6); }
+}
+@media (max-width: 900px) {
+  .grid-2 { grid-template-columns: 1fr; gap: var(--s4); }
+}
+@media (max-width: 760px) {
+  .rows { margin: 0 calc(-1 * var(--s2)); }
+  .row { padding: var(--s3) var(--s2); gap: var(--s3); min-height: 76px; }
+  .row-icon { display: none; }
+  /* 왼쪽 내용이 들어갈 자리가 없으면 금액 칸이 겹치지 않고 다음 줄 오른쪽으로 내려감 */
+  .row { flex-wrap: wrap; }
+  .row-main { flex: 1 1 140px; min-width: auto; }
+  .row-side { margin-left: auto; }
+  .account-card .row-meta { padding-left: 0; }
+  .hero-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row-side { max-width: 55%; }
+  .row.wrap-sm { flex-wrap: wrap; }
+  .row.wrap-sm .row-side { max-width: none; width: 100%; flex-direction: row; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+  .row.wrap-sm .row-actions { width: 100%; justify-content: flex-start; }
+  .tabs [role='tab'] { padding: var(--s2) var(--s1); min-width: 0; white-space: normal; }
+  .account-card .row-side { order: 3; width: 100%; max-width: none; align-items: flex-start; }
+  .account-card .row-meta { order: 4; }
+  .calc { padding: var(--s1) var(--s4); }
+}
+
+/* 탭 안 내용과 쪽 넘기기 */
+.tab-body { display: flex; flex-direction: column; gap: var(--s5); padding-top: var(--s5); }
+.pager { justify-content: center; }
+
+.stack { display: flex; flex-direction: column; gap: var(--s6); }
