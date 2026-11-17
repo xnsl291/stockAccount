@@ -1,5 +1,7 @@
 package zb.accountMangement.common.exception;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +14,7 @@ import javax.validation.ConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler  {
 
@@ -23,6 +26,13 @@ public class GlobalExceptionHandler  {
     @ExceptionHandler({MissingRequestHeaderException.class, ConstraintViolationException.class})
     protected ResponseEntity<ErrorResponse> handleInvalidRequest(Exception e) {
         return ErrorResponse.toResponseEntity(ErrorCode.INVALID_ARGUMENT);
+    }
+
+    // 교착 상태나 잠금 대기 시간 초과. 요청 자체는 정상이라 다시 보내면 처리되므로 409로 알림
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    protected ResponseEntity<ErrorResponse> handleLockFailure(PessimisticLockingFailureException e) {
+        log.warn("잠금 충돌로 처리하지 못한 요청", e);
+        return ErrorResponse.toResponseEntity(ErrorCode.CONCURRENT_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

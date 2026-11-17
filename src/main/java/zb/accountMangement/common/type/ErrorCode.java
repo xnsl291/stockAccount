@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     INVALID_ARGUMENT(HttpStatus.BAD_REQUEST,"입력값이 올바르지 않습니다"),
+    CONCURRENT_REQUEST(HttpStatus.CONFLICT,"동시에 처리 중인 요청이 있습니다. 잠시 후 다시 시도해 주세요."),
     //jwt
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED,"토큰이 유효하지 않습니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED,"만료된 토큰입니다."),
