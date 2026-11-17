@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.service.AccountService;
@@ -42,6 +43,7 @@ public class OrderService {
 	private final StockRepository stockRepository;
 	private final StockBalanceRepository stockBalanceRepository;
 	private final TradingRepository tradingRepository;
+	private final TransactionTemplate transactionTemplate;
 
 	/**
 	 * 주문 접수 - 시세가 이미 주문가를 만족하면 바로 체결하고, 아니면 미체결로 남김
@@ -106,6 +108,31 @@ public class OrderService {
 		}
 		order.setStatus(OrderStatus.CANCELLED);
 		return order;
+	}
+
+	/**
+	 * 종목의 미체결 주문 중 지금 시세로 체결되는 주문을 먼저 들어온 순서대로 체결
+	 * @param stockId - 주식 ID
+	 */
+	public void matchPendingOrders(Long stockId) {
+		for (Trading pending : tradingRepository.findByStockIdAndStatusOrderByIdAsc(stockId, OrderStatus.PENDING)) {
+			// 주문마다 트랜잭션을 따로 열어, 한 주문의 체결이 실패해도 나머지 주문은 체결되게 함
+			try {
+				transactionTemplate.executeWithoutResult(status -> fillIfFillable(pending.getAccountId(), pending.getId()));
+			} catch (RuntimeException e) {
+				log.error("주문 체결 실패 - 주문 ID: {}", pending.getId(), e);
+			}
+		}
+	}
+
+	private void fillIfFillable(Long accountId, Long orderId) {
+		Account account = accountService.getAccountForUpdate(accountId);
+		// 목록을 읽은 뒤 취소되었거나 다른 시세 갱신이 먼저 체결했을 수 있어, 계좌를 잠근 뒤 주문과 시세를 다시 읽음
+		Trading order = tradingRepository.findById(orderId).orElseThrow();
+		Stock stock = stockRepository.findById(order.getStockId()).orElseThrow();
+		if (order.getStatus() == OrderStatus.PENDING && account.isExistsAccount()
+				&& order.isFillableAt(stock.getCurrentPrice()))
+			fill(order, account, stock);
 	}
 
 	/**

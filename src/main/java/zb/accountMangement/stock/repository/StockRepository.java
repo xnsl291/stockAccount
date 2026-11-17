@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface StockRepository extends JpaRepository<Stock, Long> {
+    boolean existsByCode(String code);
     List<Stock> findByCodeContainingOrNameContaining(String code, String name);
 }

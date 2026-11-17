@@ -47,6 +47,7 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST,"보유량이 부족합니다"),
     NO_STOCK_BALANCE(HttpStatus.BAD_REQUEST,"보유량이 없습니다"),
     INVALID_REQUEST_DATE(HttpStatus.BAD_REQUEST,"날짜가 유효하지 않습니다."),
+    DUPLICATED_STOCK_CODE(HttpStatus.CONFLICT,"이미 등록된 종목코드입니다."),
     ORDER_NOT_EXIST(HttpStatus.NOT_FOUND,"주문 정보가 존재하지 않습니다."),
     ORDER_NOT_PENDING(HttpStatus.BAD_REQUEST,"체결되지 않은 주문만 취소할 수 있습니다."),
     ;

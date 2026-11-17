@@ -2,6 +2,7 @@ package zb.accountMangement.stock.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.TransactionType;
@@ -12,6 +13,7 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.model.entity.Trading;
+import zb.accountMangement.stock.dto.RegisterStockDto;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
@@ -37,6 +39,7 @@ public class StockService {
     private final StockRepository stockRepository;
     private final StockBalanceRepository stockBalanceRepository;
     private final TradingRepository tradeHistoryRepository;
+    private final OrderService orderService;
 
     /**
      * 주식 ID를 이용한 종목 조회
@@ -75,6 +78,38 @@ public class StockService {
      */
     public List<Stock> searchStocks(String keyword) {
         return stockRepository.findByCodeContainingOrNameContaining(keyword, keyword);
+    }
+
+    /**
+     * 종목 등록
+     * @param registerStockDto - 종목 dto (종목코드, 종목명, 현재가)
+     * @return 등록된 종목
+     */
+    @Transactional
+    public Stock registerStock(RegisterStockDto registerStockDto) {
+        if (stockRepository.existsByCode(registerStockDto.getCode()))
+            throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
+        return stockRepository.save(Stock.builder()
+                .code(registerStockDto.getCode())
+                .name(registerStockDto.getName())
+                .currentPrice(registerStockDto.getCurrentPrice())
+                .build());
+    }
+
+    /**
+     * 시세 갱신 - 새 시세로 체결되는 미체결 주문을 함께 체결함
+     * @param stockId - 주식 ID
+     * @param price - 새 시세
+     * @return 시세가 바뀐 종목
+     */
+    // 시세를 먼저 커밋해야 주문마다 따로 여는 체결 트랜잭션이 새 시세를 읽으므로, 전체를 한 트랜잭션으로 묶지 않음
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Stock updatePrice(Long stockId, long price) {
+        Stock stock = getStockById(stockId);
+        stock.setCurrentPrice(price);
+        stockRepository.save(stock);
+        orderService.matchPendingOrders(stockId);
+        return stock;
     }
 
     /**
