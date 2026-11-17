@@ -15,6 +15,11 @@ import { UnlockPage } from './pages/UnlockPage';
 import { DepositPage } from './pages/DepositPage';
 import { WithdrawPage } from './pages/WithdrawPage';
 import { TransferPage } from './pages/TransferPage';
+import { StockSearchPage } from './pages/StockSearchPage';
+import { StockDetailPage } from './pages/StockDetailPage';
+import { OrderPage } from './pages/OrderPage';
+import { OrdersPage, HoldingsPage } from './pages/StandaloneTabs';
+import { StockTransferPage } from './pages/StockTransferPage';
 import { MePage } from './pages/MePage';
 import { AdminWaitPage } from './pages/AdminWaitPage';
 
@@ -55,6 +60,12 @@ export function App() {
           <Route path="/deposit" element={<DepositPage />} />
           <Route path="/withdraw" element={<WithdrawPage />} />
           <Route path="/transfer" element={<TransferPage />} />
+          <Route path="/stocks" element={<StockSearchPage />} />
+          <Route path="/stocks/:id" element={<StockDetailPage />} />
+          <Route path="/order" element={<OrderPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/holdings" element={<HoldingsPage />} />
+          <Route path="/stock-transfer" element={<StockTransferPage />} />
           <Route path="/me" element={<MePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
