@@ -6,6 +6,16 @@ import { NotFound } from './components/ui';
 import { useSession, type LoginState } from './session/SessionProvider';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { HomePage } from './pages/HomePage';
+import { AccountsPage } from './pages/AccountsPage';
+import { OpenAccountPage } from './pages/OpenAccountPage';
+import { AccountDetailPage } from './pages/AccountDetailPage';
+import { AccountSettingsPage } from './pages/AccountSettingsPage';
+import { UnlockPage } from './pages/UnlockPage';
+import { DepositPage } from './pages/DepositPage';
+import { WithdrawPage } from './pages/WithdrawPage';
+import { TransferPage } from './pages/TransferPage';
+import { MePage } from './pages/MePage';
 import { AdminWaitPage } from './pages/AdminWaitPage';
 
 const ADMIN = 'ADMIN';
@@ -36,6 +46,16 @@ export function App() {
       </Route>
       <Route element={<RequireUser />}>
         <Route element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="/accounts" element={<AccountsPage />} />
+          <Route path="/accounts/new" element={<OpenAccountPage />} />
+          <Route path="/accounts/:id" element={<AccountDetailPage />} />
+          <Route path="/accounts/:id/settings" element={<AccountSettingsPage />} />
+          <Route path="/accounts/:id/unlock" element={<UnlockPage />} />
+          <Route path="/deposit" element={<DepositPage />} />
+          <Route path="/withdraw" element={<WithdrawPage />} />
+          <Route path="/transfer" element={<TransferPage />} />
+          <Route path="/me" element={<MePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
