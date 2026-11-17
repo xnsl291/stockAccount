@@ -12,6 +12,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED,"토큰이 유효하지 않습니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED,"만료된 토큰입니다."),
     FAILED_VALIDATION(HttpStatus.UNAUTHORIZED,"인증에 실패하였습니다"),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN,"접근 권한이 없습니다."),
 
     // user
     INVALID_NAME_FORMAT(HttpStatus.BAD_REQUEST,"입력값의 형식이 올바르지 않습니다."),

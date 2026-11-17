@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.account.dto.TransactionDto;
@@ -69,15 +70,15 @@ public class TransactionController {
     }
     /**
      * 거래내역 조회
-     * @param token - 토큰
+     * @param loginMemberId - 로그인한 사용자 ID
      * @param accountId - 계좌 ID
      * @return 거래내역 리스트
      */
     @GetMapping("/{accountId}/history")
     public ResponseEntity<List<TransactionDto>> getTransactionsByAccountId(
-            @RequestHeader(value = "Authorization") String token,
+            @AuthenticationPrincipal Long loginMemberId,
             @PathVariable @Min(1) Long accountId) {
-      validationService.validTokenNAccountOwner(token,accountId);
+      validationService.validAccountOwner(loginMemberId,accountId);
       return ResponseEntity.ok(transactionService.getTransactionsByAccountId(accountId));
     }
 }

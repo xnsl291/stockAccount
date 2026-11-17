@@ -65,8 +65,8 @@ public class AuthenticationService {
 	 * 회원탈퇴
 	 */
 	@Transactional
-	public Boolean deleteMember(String token) {
-		Member member = memberService.checkMemberPermission(token, jwtTokenProvider.getId(token));
+	public Boolean deleteMember(Long loginMemberId) {
+		Member member = memberService.checkMemberPermission(loginMemberId, loginMemberId);
 		member.delete();
 		return true;
 	}
@@ -84,23 +84,30 @@ public class AuthenticationService {
 		if (!passwordEncoder.matches(signInDto.getPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 
-		return jwtTokenProvider.generateToken(member.getId(), member.getPhoneNumber(), member.getRole());
+		return jwtTokenProvider.generateToken(member.getId(), member.getRole());
 	}
 
 	/**
 	 * 로그아웃
 	 *
-	 * @param token - 토큰
+	 * @param loginMemberId - 로그인한 사용자 ID
+	 * @param accessToken - 액세스 토큰
 	 * @return true
 	 */
-	public Boolean signOut(String token) {
-		boolean result = false;
-		if (jwtTokenProvider.validateToken(token)) {
-			String phoneNumber = jwtTokenProvider.getPhoneNumber(token);
-			jwtTokenProvider.deleteToken(phoneNumber);
-			result = true;
-		}
-		return result;
+	public Boolean signOut(Long loginMemberId, String accessToken) {
+		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
+		return true;
+	}
+
+	/**
+	 * 토큰 재발급 - 사용한 리프레시 토큰은 새 토큰으로 교체되어 다시 쓸 수 없음
+	 *
+	 * @param refreshToken - 리프레시 토큰
+	 * @return token - 새 토큰
+	 */
+	public JwtToken reissue(String refreshToken) {
+		Member member = memberService.getMemberById(jwtTokenProvider.consumeRefreshToken(refreshToken));
+		return jwtTokenProvider.generateToken(member.getId(), member.getRole());
 	}
 
 	/**

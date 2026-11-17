@@ -34,6 +34,8 @@ spring:
     port: ${REDIS_PORT:6379}
 
 jwt:
+  # 기본값을 두지 않음. JWT_SECRET 환경변수나 application-secret.yml로 넣어야 하고, 없으면 앱이 뜨지 않음
+  secret: ${JWT_SECRET:}
   expiration:
     access-token-seconds: ${JWT_ACCESS_TOKEN_SECONDS:1800}
     refresh-token-seconds: ${JWT_REFRESH_TOKEN_SECONDS:1209600}

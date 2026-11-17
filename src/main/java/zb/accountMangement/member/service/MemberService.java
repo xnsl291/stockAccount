@@ -3,7 +3,6 @@ package zb.accountMangement.member.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.common.type.ErrorCode;
@@ -19,7 +18,6 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final SendMessageService sendMessageService;
 	private final RedisService redisService;
-	private final JwtTokenProvider jwtTokenProvider;
 
 	/**
 	 * id를 이용한 회원 정보 열람
@@ -41,8 +39,8 @@ public class MemberService {
 	 * @return Member
 	 */
 	@Transactional
-	public Member updateMemberInfo(String token, long memberId, UpdateMemberDto updateMemberDto) {
-		Member member = checkMemberPermission(token, memberId);
+	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
+		Member member = checkMemberPermission(loginMemberId, memberId);
 		member.update(updateMemberDto);
 		return member;
 	}
@@ -50,13 +48,13 @@ public class MemberService {
 	/**
 	 * 비밀번호 재설정 요청
 	 *
-	 * @param token           - 토큰
+	 * @param loginMemberId     - 로그인한 사용자 ID
 	 * @param findMemberInfoDto - 회원정보 조회 dto (이름, 핸드폰번호)
 	 * @return "인증 메세지 발송 완료"
 	 */
-	public String requestResetPw(String token, Long memberId, FindMemberInfoDto findMemberInfoDto) {
-		checkMemberPermission(token, memberId);
-		return sendMessageService.sendVerificationMessage(token, findMemberInfoDto.getPhoneNumber());
+	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto) {
+		checkMemberPermission(loginMemberId, memberId);
+		return sendMessageService.sendVerificationMessage(findMemberInfoDto.getPhoneNumber());
 	}
 
 	/**
@@ -66,9 +64,9 @@ public class MemberService {
 	 * @return "비밀번호 재설정 완료"
 	 */
 	@Transactional
-	public String verifyResetPw(String token, Long memberId, ResetPwDto resetPwDto) {
-		Member member = getMemberById(memberId);
-		SmsVerificationDto info = redisService.getMsgVerificationInfo(token);
+	public String verifyResetPw(Long loginMemberId, Long memberId, ResetPwDto resetPwDto) {
+		Member member = checkMemberPermission(loginMemberId, memberId);
+		SmsVerificationDto info = redisService.getMsgVerificationInfo(member.getPhoneNumber());
 
 		if (info == null)
 			throw new CustomException(ErrorCode.MEMBER_NOT_EXIST);
@@ -81,7 +79,7 @@ public class MemberService {
 			member.setPassword(resetPwDto.getNewPassword());
 
 			// 인증 정보 삭제
-			redisService.deleteMsgVerificationInfo(token);
+			redisService.deleteMsgVerificationInfo(member.getPhoneNumber());
 		} else
 			throw new CustomException(ErrorCode.UNMATCHED_VERIFICATION_CODE);
 
@@ -89,14 +87,10 @@ public class MemberService {
 	}
 
 
-	private boolean isMemberTokenMatch(String token, Member member){
-		return jwtTokenProvider.getId(token).equals(member.getId());
-	}
-
-	public Member checkMemberPermission(String token, long memberId){
+	public Member checkMemberPermission(Long loginMemberId, long memberId){
 		Member member = getMemberById(memberId);
 
-		if(!isMemberTokenMatch(token, member))
+		if(!member.getId().equals(loginMemberId))
 			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
 
 		if (member.getRole().equals(RoleType.WITHDRAWN))

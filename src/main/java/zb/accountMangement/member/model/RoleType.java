@@ -8,6 +8,6 @@ public enum RoleType {
   USER , WITHDRAWN, PENDING, ADMIN  ;
 
   public Collection<SimpleGrantedAuthority> getAuthorities() {
-    return Collections.singletonList(new SimpleGrantedAuthority(this.name()));
+    return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + this.name()));
   }
 }

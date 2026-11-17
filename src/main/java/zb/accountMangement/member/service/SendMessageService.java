@@ -2,6 +2,7 @@ package zb.accountMangement.member.service;
 
 import static zb.accountMangement.common.type.RedisTime.PHONE_VALID;
 
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -36,11 +37,10 @@ public class SendMessageService {
 
     /**
      * 핸드폰 인증 문자 발송
-     * @param token - 토큰
      * @param phoneNumber - 핸드폰번호
      * @return "인증 메세지 발송 완료"
      */
-    public String sendVerificationMessage(String token, String phoneNumber) {
+    public String sendVerificationMessage(String phoneNumber) {
         String verificationCode = RandomStringUtils.random(VERIFY_CODE_LEN, false, true);
         Message message = new Message();
         message.setFrom(senderPhoneNumber);
@@ -50,7 +50,7 @@ public class SendMessageService {
         try {
             NurigoApp.INSTANCE.initialize(apiKey, secretKey, "https://api.coolsms.co.kr")
                     .sendOne(new SingleMessageSendingRequest(message));
-            redisService.setData(phoneNumber,verificationCode, PHONE_VALID.getTime());
+            redisService.setData(phoneNumber,verificationCode, Duration.ofMinutes(PHONE_VALID.getTime()));
         } catch (Exception e) {
             log.info(e.getMessage());
             throw new RuntimeException(e);
@@ -60,11 +60,10 @@ public class SendMessageService {
 
     /**
      * 토큰정보 + 인증번호가 일치하는지 확인
-     * @param token - 토큰
      * @param smsVerificationDto - 문자인증 dto (인증번호, 핸드폰번호)
      * @return 일치여부
      */
-    public boolean verifyCode(String token, SmsVerificationDto smsVerificationDto) {
+    public boolean verifyCode(SmsVerificationDto smsVerificationDto) {
         //TODO : getMsgVerificationInfo 사용해서 토큰 정보 맞는지 확인. (인증번호 + 토큰 일치해야함)
         SmsVerificationDto info = redisService.getMsgVerificationInfo(senderPhoneNumber);
         if (info==null)

@@ -30,5 +30,6 @@ public abstract class IntegrationTest {
 		registry.add("spring.datasource.password", MYSQL::getPassword);
 		registry.add("spring.redis.host", REDIS::getHost);
 		registry.add("spring.redis.port", () -> REDIS.getMappedPort(6379));
+		registry.add("jwt.secret", () -> "dGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLWludGVncmF0aW9uLXRlc3Rz");
 	}
 }
