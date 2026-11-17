@@ -1,0 +1,65 @@
+/* 디자인 토큰. 시안 design/ui-draft/tokens.css의 변수를 그대로 옮김(외부 CDN 글꼴 불러오기와 명세 무늬는 뺌)
+   새 디자인이 오면 이 파일과 app.css를 갈아 끼움. 화면 코드는 클래스 이름과 data-testid만 씀 */
+
+:root {
+  /* 바탕과 글자 */
+  --paper: #f3f5f7;          /* 페이지 바탕 */
+  --sheet: #ffffff;          /* 명세·표 바탕 */
+  --sheet-2: #f8fafb;        /* 표 머리, 보조 면 */
+  --ink: #142033;            /* 본문, 큰 숫자 */
+  --ink-2: #3f4b62;          /* 보조 글자 */
+  --ink-3: #5f6a80;          /* 설명, 단위 (흰 바탕 5.4:1) */
+  --rule: #dce1e8;           /* 가는 선 */
+  --rule-strong: #a8b2c1;    /* 합계 위 선, 이중선 */
+
+  /* 증명 문서 (명세 머리띠, 도장) */
+  --sec: #2c6a59;
+  --sec-line: rgba(44, 106, 89, .28);
+  --sec-tint: #eaf2ee;
+
+  /* 돈의 상태 세 가지. 색마다 무늬가 따로 있어 색 없이도 구분됨 */
+  --avail: #24614f;          /* 출금 가능 - 칠함 */
+  --avail-tint: #e6f0eb;
+  --pending: #5a4fa8;        /* 결제 대기(D+2) - 점 무늬 */
+  --pending-tint: #efedf9;
+  --held: #8a5007;           /* 주문에 묶임 - 빗금 */
+  --held-tint: #fbf1e1;
+
+  /* 등락. 국내 관례: 오름 빨강, 내림 파랑 */
+  --up: #cf2b23;
+  --up-tint: #fdeceb;
+  --down: #1d58c9;
+  --down-tint: #e9f0fd;
+
+  /* 상태 */
+  --danger: #b4231b;
+  --danger-tint: #fdeceb;
+  --mark: #fff4c7;           /* 형광펜 강조: "이 줄이 해당됨". 등락·상태 색과 겹치지 않음 */
+  --ok: var(--avail);
+  --focus: #1d58c9;
+
+  /* 글자 */
+  --font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --fs-xs: .75rem;    /* 12 표 주석, 일련번호 */
+  --fs-sm: .8125rem;  /* 13 보조, 표 머리 */
+  --fs-base: .9375rem;/* 15 본문, 표 */
+  --fs-md: 1.1875rem; /* 19 명세 제목, 금액 강조 */
+  --fs-lg: 1.5rem;    /* 24 화면 제목 */
+  --fs-xl: 1.625rem;  /* 26 계좌 금액 */
+  --fs-2xl: 2.125rem; /* 34 총 예수금 */
+  --lh: 1.55;
+  --lh-tight: 1.2;
+
+  /* 간격 (4px 단위) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px;
+
+  /* 반경과 선 */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --line: 1px solid var(--rule);
+  --line-strong: 1px solid var(--rule-strong);
+
+
+  --shell-w: 232px;
+  --content-max: 1180px;
+}
