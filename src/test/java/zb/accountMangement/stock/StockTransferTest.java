@@ -4,13 +4,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.entity.Account;
+import zb.accountMangement.member.model.RoleType;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
@@ -33,6 +41,8 @@ class StockTransferTest extends ApiTest {
 	TradingRepository tradingRepository;
 	@Autowired
 	JdbcTemplate jdbcTemplate;
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@Test
 	void 다른_회원에게_보내면_보내는_쪽이_시세의_1퍼센트를_수수료로_내고_받는_쪽은_평균단가를_이어받는다() throws Exception {
@@ -224,6 +234,47 @@ class StockTransferTest extends ApiTest {
 		assertThat(holding(otherAccount, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(25);
 		assertThat(tradesOf(account)).containsExactly(
 				"BUY FILLED 30", "BUY CANCELLED 10", "SELL FILLED 10", "TRANSFER FILLED -5");
+	}
+
+	@Test
+	void 주식이_들어오는_중에_탈퇴하면_들어온_주식을_보고_탈퇴를_거절한다() throws Exception {
+		Stock stock = saveStock(1_000);
+		Member receiver = saveMember();
+		Account receiverAccount = saveAccount(receiver);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Integer> signOut;
+
+		// 주식 이체가 받는 계좌를 잠그고 보유 내역을 넣은 채 아직 커밋하지 않은 상태를 만들고, 그동안 탈퇴를 시작함
+		TransactionStatus incomingTransfer = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			accountRepository.findByIdForUpdate(receiverAccount.getId()).orElseThrow();
+			stockBalanceRepository.saveAndFlush(StockBalance.builder()
+					.accountId(receiverAccount.getId()).stockId(stock.getId()).quantity(3).avgPrice(1_000).build());
+			signOut = executor.submit(() ->
+					mockMvc.perform(as(receiver, delete("/api/auth/sign-out"))).andReturn().getResponse().getStatus());
+			awaitLockWait();
+		} finally {
+			transactionManager.commit(incomingTransfer);
+		}
+
+		assertThat(signOut.get(30, TimeUnit.SECONDS)).isEqualTo(400);
+		executor.shutdown();
+		assertThat(accountRepository.findById(receiverAccount.getId()).orElseThrow().isExistsAccount()).isTrue();
+		assertThat(memberRepository.findById(receiver.getId()).orElseThrow().getRole()).isEqualTo(RoleType.USER);
+	}
+
+	/**
+	 * 다른 트랜잭션이 잠금을 기다리기 시작할 때까지 기다림. 정해진 시간만 쉬면 탈퇴 요청이 잠금에 닿기 전에 커밋해 버릴 수 있음
+	 */
+	private void awaitLockWait() throws InterruptedException {
+		for (int i = 0; i < 300; i++) {
+			Integer waiting = jdbcTemplate.queryForObject(
+					"select count(*) from information_schema.innodb_trx where trx_state = 'LOCK WAIT'", Integer.class);
+			if (waiting != null && waiting > 0)
+				return;
+			Thread.sleep(100);
+		}
+		throw new AssertionError("30초 안에 잠금을 기다리는 트랜잭션이 생기지 않음");
 	}
 
 	private void buy(Member member, Account account, Stock stock, long price, int quantity) throws Exception {

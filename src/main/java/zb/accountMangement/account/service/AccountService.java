@@ -170,7 +170,7 @@ public class AccountService {
     }
 
     private void checkNoAssets(Account account) {
-        if (account.getBalance() != 0 || stockBalanceRepository.existsByAccountId(account.getId()))
+        if (account.getBalance() != 0 || !stockBalanceRepository.findByAccountIdForUpdate(account.getId()).isEmpty())
             throw new CustomException(ErrorCode.REMAINING_ASSET);
     }
 

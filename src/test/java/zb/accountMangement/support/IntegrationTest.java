@@ -25,6 +25,7 @@ public abstract class IntegrationTest {
 	static {
 		MYSQL.start();
 		REDIS.start();
+		grantLockInspection();
 	}
 
 	// 모든 테스트가 같은 스프링 컨텍스트를 재사용하도록 부모 클래스에 한 번만 둔다
@@ -39,6 +40,16 @@ public abstract class IntegrationTest {
 		registry.add("spring.redis.host", REDIS::getHost);
 		registry.add("spring.redis.port", () -> REDIS.getMappedPort(6379));
 		registry.add("jwt.secret", () -> "dGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLWludGVncmF0aW9uLXRlc3Rz");
+	}
+
+	// 동시성 테스트가 다른 트랜잭션이 잠금을 기다리는지 information_schema.innodb_trx로 확인하려면 PROCESS 권한이 필요함
+	private static void grantLockInspection() {
+		try {
+			MYSQL.execInContainer("mysql", "-uroot", "-p" + MYSQL.getPassword(),
+					"-e", "GRANT PROCESS ON *.* TO '" + MYSQL.getUsername() + "'@'%'");
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**
