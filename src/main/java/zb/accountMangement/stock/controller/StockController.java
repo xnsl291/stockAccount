@@ -10,9 +10,6 @@ import zb.accountMangement.account.service.IdempotencyService;
 import zb.accountMangement.common.service.ValidationService;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
-import zb.accountMangement.stock.model.entity.Stock;
-import zb.accountMangement.stock.model.entity.StockBalance;
-import zb.accountMangement.stock.model.entity.Trading;
 import zb.accountMangement.stock.dto.*;
 import zb.accountMangement.stock.service.OrderService;
 import zb.accountMangement.stock.service.StockService;
@@ -20,6 +17,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,7 +39,7 @@ public class StockController {
     * @return 접수된 주문 (바로 체결되면 FILLED, 아니면 PENDING)
     */
     @PostMapping("/buy")
-    public ResponseEntity<Trading> buyStock(
+    public ResponseEntity<TradingResponse> buyStock(
             @AuthenticationPrincipal Long loginMemberId,
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody TradeStockDto buyStockDto){
@@ -56,20 +54,20 @@ public class StockController {
      * @return 접수된 주문 (바로 체결되면 FILLED, 아니면 PENDING)
      */
     @PostMapping("/sell")
-    public ResponseEntity<Trading> sellStock(
+    public ResponseEntity<TradingResponse> sellStock(
             @AuthenticationPrincipal Long loginMemberId,
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody TradeStockDto sellStockDto){
         return ResponseEntity.ok().body(placeOrder(loginMemberId, idempotencyKey, TradeType.SELL, sellStockDto));
     }
 
-    private Trading placeOrder(Long loginMemberId, String idempotencyKey, TradeType type, TradeStockDto tradeStockDto) {
+    private TradingResponse placeOrder(Long loginMemberId, String idempotencyKey, TradeType type, TradeStockDto tradeStockDto) {
         validationService.validAccountPassword(loginMemberId, tradeStockDto.getAccountId(), tradeStockDto.getAccountPassword());
         String orderId = idempotencyService.execute(loginMemberId, idempotencyKey,
                 type + " " + tradeStockDto.getAccountId() + " " + tradeStockDto.getStockId() + " "
                         + tradeStockDto.getPrice() + " " + tradeStockDto.getQuantity(),
                 () -> String.valueOf(orderService.placeOrder(type, tradeStockDto)));
-        return orderService.getOrder(Long.valueOf(orderId));
+        return TradingResponse.from(orderService.getOrder(Long.valueOf(orderId)));
     }
 
     /**
@@ -80,12 +78,12 @@ public class StockController {
      * @return 취소된 주문
      */
     @DeleteMapping("/{account_id}/orders/{order_id}")
-    public ResponseEntity<Trading> cancelOrder(
+    public ResponseEntity<TradingResponse> cancelOrder(
             @AuthenticationPrincipal Long loginMemberId,
             @PathVariable("account_id") Long accountId,
             @PathVariable("order_id") Long orderId){
         validationService.validAccountOwner(loginMemberId, accountId);
-        return ResponseEntity.ok().body(orderService.cancelOrder(accountId, orderId));
+        return ResponseEntity.ok().body(TradingResponse.from(orderService.cancelOrder(accountId, orderId)));
     }
 
     /**
@@ -114,11 +112,13 @@ public class StockController {
      * @return 현재 보유 중인 주식 종목 리스트
      */
     @GetMapping("/{account_id}/balance")
-    public ResponseEntity<List<StockBalance>> getStockBalance(
+    public ResponseEntity<List<StockBalanceResponse>> getStockBalance(
             @AuthenticationPrincipal Long loginMemberId,
             @Validated @PathVariable("account_id") Long accountId){
         validationService.validAccountOwner(loginMemberId, accountId);
-        return ResponseEntity.ok().body(stockService.getStockBalance(accountId));
+        return ResponseEntity.ok().body(stockService.getStockBalance(accountId).stream()
+                .map(StockBalanceResponse::from)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -130,13 +130,15 @@ public class StockController {
      * @return 거래내역
      */
     @GetMapping("/{account_id}/history")
-    public ResponseEntity<List<Trading>> getTradeHistory(
+    public ResponseEntity<List<TradingResponse>> getTradeHistory(
             @AuthenticationPrincipal Long loginMemberId,
             @Validated @PathVariable("account_id") Long accountId,
             @RequestParam(required = false) OrderStatus status,
             @ModelAttribute @Valid DateDto dateDto) {
         validationService.validAccountOwner(loginMemberId, accountId);
-        return ResponseEntity.ok().body(orderService.getTradeHistory(accountId, status, dateDto));
+        return ResponseEntity.ok().body(orderService.getTradeHistory(accountId, status, dateDto).stream()
+                .map(TradingResponse::from)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -145,8 +147,10 @@ public class StockController {
      * @return 종목 리스트 (종목코드, 종목명, 현재가)
      */
     @GetMapping
-    public ResponseEntity<List<Stock>> searchStocks(@RequestParam @NotBlank String keyword){
-        return ResponseEntity.ok().body(stockService.searchStocks(keyword));
+    public ResponseEntity<List<StockResponse>> searchStocks(@RequestParam @NotBlank String keyword){
+        return ResponseEntity.ok().body(stockService.searchStocks(keyword).stream()
+                .map(StockResponse::from)
+                .collect(Collectors.toList()));
     }
 
     /**

@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.stock.dto.RegisterStockDto;
+import zb.accountMangement.stock.dto.StockResponse;
 import zb.accountMangement.stock.dto.UpdateStockPriceDto;
-import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.service.StockService;
 
 import javax.validation.Valid;
@@ -25,8 +25,8 @@ public class AdminStockController {
 	 * @return 등록된 종목
 	 */
 	@PostMapping
-	public ResponseEntity<Stock> registerStock(@Valid @RequestBody RegisterStockDto registerStockDto) {
-		return ResponseEntity.ok().body(stockService.registerStock(registerStockDto));
+	public ResponseEntity<StockResponse> registerStock(@Valid @RequestBody RegisterStockDto registerStockDto) {
+		return ResponseEntity.ok().body(StockResponse.from(stockService.registerStock(registerStockDto)));
 	}
 
 	/**
@@ -36,9 +36,9 @@ public class AdminStockController {
 	 * @return 시세가 바뀐 종목
 	 */
 	@PutMapping("/{stock_id}/price")
-	public ResponseEntity<Stock> updatePrice(
+	public ResponseEntity<StockResponse> updatePrice(
 			@PathVariable("stock_id") Long stockId,
 			@Valid @RequestBody UpdateStockPriceDto updateStockPriceDto) {
-		return ResponseEntity.ok().body(stockService.updatePrice(stockId, updateStockPriceDto.getPrice()));
+		return ResponseEntity.ok().body(StockResponse.from(stockService.updatePrice(stockId, updateStockPriceDto.getPrice())));
 	}
 }

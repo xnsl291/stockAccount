@@ -7,7 +7,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.common.service.ValidationService;
 import zb.accountMangement.member.dto.*;
-import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.service.MemberService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,29 +24,29 @@ public class MemberController {
   /**
    * 회원 정보 열람 기능
    * @param loginMemberId - 로그인한 사용자 ID
-   * @return Member
+   * @return 회원 정보
    */
   @GetMapping("/{member_id}")
-  public ResponseEntity<Member> getMemberInfo(
+  public ResponseEntity<MemberResponse> getMemberInfo(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("member_id") @Min(1) Long memberId  ){
     validationService.validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(memberService.getMemberById(memberId));
+    return ResponseEntity.ok().body(MemberResponse.from(memberService.getMemberById(memberId)));
   }
 
   /**
    * 회원 정보 수정
    * @param loginMemberId - 로그인한 사용자 ID
    * @param updateMemberDto - 사용자 정보수정 dto (이름, 핸드폰번호, 로그인 PW)
-   * @return true
+   * @return 수정된 회원 정보
    */
   @PatchMapping("/{member_id}")
-  public ResponseEntity<Member> updateMemberInfo(
+  public ResponseEntity<MemberResponse> updateMemberInfo(
       @AuthenticationPrincipal Long loginMemberId,
       @PathVariable("member_id") @Min(1) long memberId,
       @RequestBody @Valid UpdateMemberDto updateMemberDto){
     validationService.validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(memberService.updateMemberInfo(loginMemberId, memberId, updateMemberDto));
+    return ResponseEntity.ok().body(MemberResponse.from(memberService.updateMemberInfo(loginMemberId, memberId, updateMemberDto)));
   }
 
 
