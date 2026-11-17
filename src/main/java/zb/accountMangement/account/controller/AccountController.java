@@ -10,6 +10,7 @@ import zb.accountMangement.account.dto.SearchAccountDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.common.service.ValidationService;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ public class AccountController {
   @PostMapping("/open")
   public ResponseEntity<AccountResponse> openAccount(
           @AuthenticationPrincipal Long loginMemberId,
-          @RequestBody AccountManagementDto accountManagementDto){
+          @Valid @RequestBody AccountManagementDto accountManagementDto){
     return ResponseEntity.ok().body(AccountResponse.from(accountService.openAccount(loginMemberId, accountManagementDto)));
   }
 
