@@ -2,7 +2,6 @@ package zb.accountMangement.account.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -17,6 +16,8 @@ import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.repository.MemberRepository;
+import zb.accountMangement.member.service.MemberService;
+import zb.accountMangement.stock.repository.StockBalanceRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,8 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
+    private final StockBalanceRepository stockBalanceRepository;
+    private final MemberService memberService;
     /**
      * 계좌번호 생성
      * @return 계좌번호
@@ -46,6 +49,16 @@ public class AccountService {
     }
 
     /**
+     * 다른 요청이 같은 계좌를 동시에 바꾸지 못하게 잠그고 계좌정보 열람 - 트랜잭션 안에서 호출해야 함
+     * @param accountId - 계좌 ID
+     * @return Account
+     */
+    public Account getAccountForUpdate(Long accountId){
+        return accountRepository.findByIdForUpdate(accountId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
+    }
+
+    /**
      * 계좌번호를 이용한 계좌정보 열람
      * @param accountNumber - 계좌번호
      * @return Account
@@ -56,13 +69,15 @@ public class AccountService {
     }
 
     /**
-     * 계좌 개설
+     * 계좌 개설 - 탈퇴·정지 회원은 개설할 수 없음
      * @param memberId - 사용자 ID
      * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
      * @return Account
      */
     @Transactional
     public Account openAccount(Long memberId, AccountManagementDto accountManagementDto) {
+        memberService.checkActive(memberService.getMemberById(memberId));
+
         // 계좌번호 랜덤생성 - 중복 생성 x
         String accountNumber = createAccountNumber();
 
@@ -130,12 +145,26 @@ public class AccountService {
 
         // 사용자가 2개 이상의 계좌를 가지고 있어야 삭제 가능
         if( account.isExistsAccount() && memberAccounts.size() >= 2 ) {
-            account.setStatus(AccountStatus.DELETED);
-            account.setDeletedAt(LocalDateTime.now());
+            account.close();
             result = true;
         }
 
         return result;
+    }
+
+    /**
+     * 회원의 모든 계좌 해지 - 잔액이나 보유 주식이 남은 계좌가 하나라도 있으면 해지하지 않음
+     * @param memberId - 사용자 ID
+     */
+    @Transactional
+    public void closeAllAccounts(Long memberId) {
+        for (Account account : getAllAccounts(memberId)) {
+            if (account.isDeletedAccount())
+                continue;
+            if (account.getBalance() > 0 || stockBalanceRepository.existsByAccountId(account.getId()))
+                throw new CustomException(ErrorCode.REMAINING_ASSET);
+            account.close();
+        }
     }
 
     // 전체 계좌 조회

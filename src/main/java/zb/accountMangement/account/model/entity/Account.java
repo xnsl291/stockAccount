@@ -1,5 +1,6 @@
 package zb.accountMangement.account.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,6 +18,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Account {
 
+    // 연속으로 이 횟수만큼 비밀번호를 틀리면 거래정지
+    private static final int MAX_PASSWORD_FAILURES = 5;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,7 +29,10 @@ public class Account {
 
     private String nickname;
 
+    @JsonIgnore
     private String password;
+
+    private int passwordFailCount;
 
     @Column(unique = true)
     private String accountNumber;
@@ -47,5 +54,20 @@ public class Account {
     }
     public boolean isDeletedAccount() {
         return status.equals(AccountStatus.DELETED);
+    }
+
+    public void recordPasswordFailure() {
+        passwordFailCount++;
+        if (passwordFailCount >= MAX_PASSWORD_FAILURES)
+            status = AccountStatus.PENDING;
+    }
+
+    public void resetPasswordFailure() {
+        passwordFailCount = 0;
+    }
+
+    public void close() {
+        status = AccountStatus.DELETED;
+        deletedAt = LocalDateTime.now();
     }
 }

@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface StockBalanceRepository extends JpaRepository<StockBalance, Long> {
     Optional<StockBalance> findByAccountIdAndStockId(Long accountId, Long stockId);
     List<StockBalance> findByAccountId(Long accountId);
+    boolean existsByAccountId(Long accountId);
 }

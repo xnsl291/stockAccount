@@ -7,7 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransactionDto;
+import zb.accountMangement.account.dto.TransferDto;
+import zb.accountMangement.account.dto.WithdrawalDto;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.service.ValidationService;
 
@@ -35,38 +38,48 @@ public class TransactionController {
 
     /**
     * 입금
-    * @param depositDto - 계좌거래 dto (계좌ID, 이름, 금액, 메모, 거래일시)
+    * @param loginMemberId - 로그인한 사용자 ID
+    * @param depositDto - 입금 dto (계좌ID, 금액, 메모)
     * @return "입금완료"
     */
     @PostMapping("/deposit")
     public ResponseEntity<String> deposit(
-          @Valid @RequestBody TransactionDto depositDto) {
-    return ResponseEntity.ok().body(transactionService.deposit(depositDto));
+            @AuthenticationPrincipal Long loginMemberId,
+            @Valid @RequestBody DepositDto depositDto) {
+        validationService.validAccountOwner(loginMemberId, depositDto.getAccountId());
+        return ResponseEntity.ok().body(transactionService.deposit(depositDto));
     }
 
     /**
     * 출금
-    * @param withdrawalDto - 계좌거래 dto (계좌ID, 이름, 금액, 메모, 거래일시)
+    * @param loginMemberId - 로그인한 사용자 ID
+    * @param withdrawalDto - 출금 dto (계좌ID, 금액, 메모, 계좌 PW)
     * @return "출금완료"
     */
     @PostMapping("/withdrawal")
-    public ResponseEntity<String> withdrawal(@Valid @RequestBody TransactionDto withdrawalDto) {
+    public ResponseEntity<String> withdrawal(
+            @AuthenticationPrincipal Long loginMemberId,
+            @Valid @RequestBody WithdrawalDto withdrawalDto) {
+        validationService.validAccountPassword(loginMemberId, withdrawalDto.getAccountId(), withdrawalDto.getAccountPassword());
         return ResponseEntity.ok().body(transactionService.withdrawal(withdrawalDto));
     }
 
     /**
     * 송금
+    * @param loginMemberId - 로그인한 사용자 ID
     * @param senderAccountId - 발신인 계좌 ID
     * @param receiverAccountId - 수신인 계좌 ID
-    * @param transferDto - 계좌거래 dto (계좌ID, 이름, 금액, 메모, 거래일시)
+    * @param transferDto - 송금 dto (금액, 메모, 발신인 계좌 PW)
     * @return "송금완료"
     */
     @PostMapping("{sender_account_id}/transfer/{receiver_account_id}")
     public ResponseEntity<String> transfer(
+            @AuthenticationPrincipal Long loginMemberId,
             @PathVariable("sender_account_id") @Min(1) Long senderAccountId ,
             @PathVariable("receiver_account_id") @Min(1) Long receiverAccountId,
-            @Valid @RequestBody TransactionDto transferDto) {
-	    return ResponseEntity.ok().body(transactionService.transfer(senderAccountId, receiverAccountId, transferDto));
+            @Valid @RequestBody TransferDto transferDto) {
+        validationService.validAccountPassword(loginMemberId, senderAccountId, transferDto.getAccountPassword());
+        return ResponseEntity.ok().body(transactionService.transfer(senderAccountId, receiverAccountId, transferDto));
     }
     /**
      * 거래내역 조회

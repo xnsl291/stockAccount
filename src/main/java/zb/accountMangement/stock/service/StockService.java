@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
-import zb.accountMangement.account.dto.TransactionDto;
+import zb.accountMangement.account.dto.WithdrawalDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.exception.CustomException;
@@ -205,12 +205,10 @@ public class StockService {
         senderStockBalance.setQuantity(senderStockBalance.getQuantity() - transferStockDto.getQuantity());
 
         // 수수료 차감
-        TransactionDto withdrawalDto = TransactionDto.builder()
+        WithdrawalDto withdrawalDto = WithdrawalDto.builder()
                 .accountId(transferStockDto.getSenderAccountId())
                 .amount(transferFee)
-                .name("System")
                 .memo("주식 이체 수수료 출금")
-                .transactedAt(LocalDateTime.now())
                 .build();
         transactionService.withdrawal(withdrawalDto);
 

@@ -4,20 +4,26 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Getter
 @Setter
 public class TradeStockDto {
 
-    @NotBlank
+    @NotNull
     private Long accountId;
 
-    @NotBlank
+    @NotNull
     private Long stockId;
 
-    @NotBlank
+    @NotNull
+    @Positive
     private Double price;
 
-    @NotBlank
+    @Positive
     private int quantity;
+
+    @NotBlank
+    private String accountPassword;
 }

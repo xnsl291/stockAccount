@@ -77,17 +77,14 @@ public class AccountController {
   }
 
   /**
-   * 사용자가 소유한 전체계좌조회
+   * 로그인한 사용자가 소유한 전체계좌조회
    * @param loginMemberId - 로그인한 사용자 ID
-   * @param memberId - 사용자 ID
    * @return 사용자가 소유한 계좌 리스트
    */
-  @GetMapping("/{member_id}")
+  @GetMapping
   public ResponseEntity<List<Account>> getAllAccounts(
-          @AuthenticationPrincipal Long loginMemberId,
-          @PathVariable("member_id")Long memberId){
-    validationService.validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(accountService.getAllAccounts(memberId));
+          @AuthenticationPrincipal Long loginMemberId){
+    return ResponseEntity.ok().body(accountService.getAllAccounts(loginMemberId));
   }
 
   /**

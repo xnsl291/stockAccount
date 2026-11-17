@@ -24,6 +24,9 @@ public class UpdateMemberDto {
   private String phoneNumber;
 
   @NotBlank
-  private String password; //로그인 패스워드
+  private String password; // 새 로그인 비밀번호. 바꾸지 않으려면 현재 비밀번호를 그대로 넣음
+
+  @NotBlank
+  private String currentPassword;
 
 }

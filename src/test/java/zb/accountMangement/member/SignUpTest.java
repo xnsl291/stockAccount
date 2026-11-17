@@ -1,5 +1,6 @@
 package zb.accountMangement.member;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
@@ -122,25 +123,28 @@ class SignUpTest extends IntegrationTest {
 	}
 
 	@Test
-	void 회원정보를_수정하면_새_비밀번호가_암호화되어_저장된다() throws Exception {
+	void 회원정보로_비밀번호를_바꾸면_암호화되어_저장되고_이전_리프레시_토큰은_쓸_수_없다() throws Exception {
 		String phone = signedUpMember();
-		String accessToken = login(phone, PASSWORD);
+		JsonNode tokens = loginTokens(phone, PASSWORD);
 		Member member = memberRepository.findByPhoneNumber(phone).orElseThrow();
 
 		mockMvc.perform(patch("/api/member/" + member.getId())
-						.header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+						.header(HttpHeaders.AUTHORIZATION, bearer(tokens.get("accessToken").asText()))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of("name", "newname", "phoneNumber", phone, "password", "newpassword"))))
+						.content(objectMapper.writeValueAsString(Map.of("name", "newname", "phoneNumber", phone,
+								"password", "newpassword", "currentPassword", PASSWORD))))
 				.andExpect(status().isOk());
 
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getPassword()).isNotEqualTo("newpassword");
+		reissue(tokens.get("refreshToken").asText()).andExpect(status().isUnauthorized());
 		login(phone, "newpassword");
 	}
 
 	@Test
-	void 문자_인증으로_비밀번호를_재설정하면_새_비밀번호로_로그인된다() throws Exception {
+	void 문자_인증으로_비밀번호를_재설정하면_새_비밀번호로_로그인되고_이전_리프레시_토큰은_쓸_수_없다() throws Exception {
 		String phone = signedUpMember();
-		String accessToken = login(phone, PASSWORD);
+		JsonNode tokens = loginTokens(phone, PASSWORD);
+		String accessToken = tokens.get("accessToken").asText();
 		Member member = memberRepository.findByPhoneNumber(phone).orElseThrow();
 
 		mockMvc.perform(post("/api/member/find-pw/" + member.getId())
@@ -156,6 +160,7 @@ class SignUpTest extends IntegrationTest {
 						.content(objectMapper.writeValueAsString(Map.of("inputCode", lastCodeSentTo(phone), "newPassword", "resetpassword"))))
 				.andExpect(status().isOk());
 
+		reissue(tokens.get("refreshToken").asText()).andExpect(status().isUnauthorized());
 		login(phone, "resetpassword");
 	}
 
@@ -189,10 +194,18 @@ class SignUpTest extends IntegrationTest {
 	}
 
 	private String login(String phone, String password) throws Exception {
+		return loginTokens(phone, password).get("accessToken").asText();
+	}
+
+	private JsonNode loginTokens(String phone, String password) throws Exception {
 		String response = postJson("/api/auth/login", Map.of("phoneNumber", phone, "password", password))
 				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
-		return objectMapper.readTree(response).get("accessToken").asText();
+		return objectMapper.readTree(response);
+	}
+
+	private ResultActions reissue(String refreshToken) throws Exception {
+		return postJson("/api/auth/reissue", Map.of("refreshToken", refreshToken));
 	}
 
 	private ResultActions postJson(String url, Map<String, String> body) throws Exception {

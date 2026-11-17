@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
@@ -20,6 +21,7 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final SendMessageService sendMessageService;
 	private final BCryptPasswordEncoder passwordEncoder;
+	private final JwtTokenProvider jwtTokenProvider;
 
 	/**
 	 * id를 이용한 회원 정보 열람
@@ -35,14 +37,17 @@ public class MemberService {
 
 
 	/**
-	 * 회원 정보 수정 - 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 함
+	 * 회원 정보 수정 - 현재 로그인 비밀번호가 맞아야 함. 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 하고,
+	 * 비밀번호를 바꾸면 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
 	 *
-	 * @param updateMemberDto - 사용자 정보수정 dto (이름, 핸드폰번호, 로그인 비밀번호)
+	 * @param updateMemberDto - 사용자 정보수정 dto (이름, 핸드폰번호, 새 로그인 비밀번호, 현재 로그인 비밀번호)
 	 * @return Member
 	 */
 	@Transactional
 	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
 		Member member = checkMemberPermission(loginMemberId, memberId);
+		if (!passwordEncoder.matches(updateMemberDto.getCurrentPassword(), member.getPassword()))
+			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
 
 		if (!phoneNumber.equals(member.getPhoneNumber())) {
@@ -51,7 +56,10 @@ public class MemberService {
 			sendMessageService.consumeVerifiedPhone(phoneNumber, VerificationPurpose.PHONE_CHANGE);
 		}
 
+		boolean passwordChanged = !updateMemberDto.getPassword().equals(updateMemberDto.getCurrentPassword());
 		member.update(updateMemberDto.getName(), phoneNumber, passwordEncoder.encode(updateMemberDto.getPassword()));
+		if (passwordChanged)
+			jwtTokenProvider.deleteRefreshToken(member.getId());
 		return member;
 	}
 
@@ -74,7 +82,7 @@ public class MemberService {
 	}
 
 	/**
-	 * 비밀번호 재설정
+	 * 비밀번호 재설정 - 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
 	 *
 	 * @param resetPwDto - 비밀번호 재설정 dto (인증번호, 새로운 PW)
 	 * @return "비밀번호 재설정 완료"
@@ -84,6 +92,7 @@ public class MemberService {
 		Member member = checkMemberPermission(loginMemberId, memberId);
 		sendMessageService.confirmCode(member.getPhoneNumber(), resetPwDto.getInputCode());
 		member.setPassword(passwordEncoder.encode(resetPwDto.getNewPassword()));
+		jwtTokenProvider.deleteRefreshToken(member.getId());
 		return "비밀번호 재설정 완료";
 	}
 

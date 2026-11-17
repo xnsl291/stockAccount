@@ -36,7 +36,8 @@ public enum ErrorCode {
     EXCEED_BALANCE(HttpStatus.BAD_REQUEST,"잔액을 초과할 수 없습니다"),
     INVALID_ACCOUNT(HttpStatus.BAD_REQUEST,"거래할 수 없는 계좌 입니다."),
 
-    MISMATCH_ACCOUNT_OWNER(HttpStatus.BAD_REQUEST,"계좌 소유자와 유저 정보가 일치하지 않습니다."),
+    MISMATCH_ACCOUNT_OWNER(HttpStatus.FORBIDDEN,"계좌 소유자와 유저 정보가 일치하지 않습니다."),
+    REMAINING_ASSET(HttpStatus.BAD_REQUEST,"잔액이나 보유 주식이 남아 있는 계좌는 해지할 수 없습니다."),
 
     //stock
     STOCK_NOT_EXIST(HttpStatus.NOT_FOUND,"일치하는 종목이 없습니다."),

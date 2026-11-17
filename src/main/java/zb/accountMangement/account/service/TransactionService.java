@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.entity.Transaction;
+import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransactionDto;
+import zb.accountMangement.account.dto.TransferDto;
+import zb.accountMangement.account.dto.WithdrawalDto;
 import zb.accountMangement.account.repository.TransactionRepository;
 import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.common.exception.CustomException;
@@ -39,11 +42,11 @@ public class TransactionService {
 
 	/**
 	 * 입금
-	 * @param depositDto - 계좌거래 dto (계좌 ID, 이름, 금액, 메모, 거래일시)
+	 * @param depositDto - 입금 dto (계좌 ID, 금액, 메모)
 	 * @return "입금완료"
 	 */
 	@Transactional
-	public String deposit(TransactionDto depositDto) {
+	public String deposit(DepositDto depositDto) {
 		Account account = accountService.getAccountById(depositDto.getAccountId());
 		double recentBalance = account.getBalance() + depositDto.getAmount();
 
@@ -66,11 +69,11 @@ public class TransactionService {
 
 	/**
 	 * 출금
-	 * @param withdrawalDto - 계좌거래 dto (계좌 ID, 이름, 금액, 메모, 거래일시)
+	 * @param withdrawalDto - 출금 dto (계좌 ID, 금액, 메모, 계좌 PW)
 	 * @return "출금완료"
 	 */
 	@Transactional
-	public String withdrawal(TransactionDto withdrawalDto) {
+	public String withdrawal(WithdrawalDto withdrawalDto) {
 		Account account = accountService.getAccountById(withdrawalDto.getAccountId());
 		double recentBalance = account.getBalance() - withdrawalDto.getAmount();
 
@@ -92,11 +95,11 @@ public class TransactionService {
 
 	/**
 	 * 송금
-	 * @param transferDto - 계좌거래 dto (계좌 ID, 이름, 금액, 메모, 거래일시)
+	 * @param transferDto - 송금 dto (금액, 메모, 발신인 계좌 PW)
 	 * @return "송금완료"
 	 */
 	@Transactional
-	public String transfer(Long senderAccountId, Long receiverAccountId, TransactionDto transferDto) {
+	public String transfer(Long senderAccountId, Long receiverAccountId, TransferDto transferDto) {
 		Account senderAccount = accountService.getAccountById(senderAccountId);
 		Account recipientAccount = accountService.getAccountById(receiverAccountId);
 

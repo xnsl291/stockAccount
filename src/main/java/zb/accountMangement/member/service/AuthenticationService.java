@@ -65,11 +65,12 @@ public class AuthenticationService {
 	}
 
 	/**
-	 * 회원탈퇴 - 탈퇴 처리 후 현재 토큰을 무효화함
+	 * 회원탈퇴 - 계좌를 모두 해지하고 탈퇴 처리 후 현재 토큰을 무효화함. 잔액이나 보유 주식이 남아 있으면 탈퇴할 수 없음
 	 */
 	@Transactional
 	public Boolean deleteMember(Long loginMemberId, String accessToken) {
 		Member member = memberService.checkMemberPermission(loginMemberId, loginMemberId);
+		accountService.closeAllAccounts(loginMemberId);
 		member.delete();
 		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
 		return true;
