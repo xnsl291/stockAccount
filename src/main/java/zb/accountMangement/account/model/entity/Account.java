@@ -69,6 +69,11 @@ public class Account {
         passwordFailCount = 0;
     }
 
+    public void unlock() {
+        passwordFailCount = 0;
+        status = AccountStatus.EXISTS;
+    }
+
     public void close() {
         status = AccountStatus.DELETED;
         deletedAt = LocalDateTime.now();

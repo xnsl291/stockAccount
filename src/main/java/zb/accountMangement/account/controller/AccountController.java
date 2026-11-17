@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.AccountResponse;
 import zb.accountMangement.account.dto.SearchAccountDto;
+import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.common.service.ValidationService;
 
@@ -49,20 +50,34 @@ public class AccountController {
   }
 
   /**
-   * 계좌 수정
+   * 계좌 수정 - 현재 계좌 비밀번호가 맞아야 하고, 틀리면 틀린 횟수에 더해짐
    * @param loginMemberId - 로그인한 사용자 ID
    * @param accountId - 계좌 ID
-   * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
+   * @param updateAccountDto - 계좌 수정 dto (계좌별명, 현재 계좌 PW, 새 계좌 PW)
    * @return 수정된 계좌
    */
-    @PatchMapping("/{account_id}")
-    public ResponseEntity<AccountResponse> updateAccountInfo(
-              @AuthenticationPrincipal Long loginMemberId,
-              @PathVariable("account_id") Long accountId,
-              @RequestBody AccountManagementDto accountManagementDto){
-      validationService.validAccountOwner(loginMemberId,accountId);
-      return ResponseEntity.ok().body(AccountResponse.from(accountService.updateAccount(accountId,accountManagementDto)));
-    }
+  @PatchMapping("/{account_id}")
+  public ResponseEntity<AccountResponse> updateAccountInfo(
+          @AuthenticationPrincipal Long loginMemberId,
+          @PathVariable("account_id") Long accountId,
+          @Valid @RequestBody UpdateAccountDto updateAccountDto){
+    validationService.validAccountPassword(loginMemberId, accountId, updateAccountDto.getCurrentPassword());
+    return ResponseEntity.ok().body(AccountResponse.from(accountService.updateAccount(accountId, updateAccountDto)));
+  }
+
+  /**
+   * 거래정지 계좌 잠금 해제 - 등록된 핸드폰번호로 문자 인증을 먼저 마쳐야 함
+   * @param loginMemberId - 로그인한 사용자 ID
+   * @param accountId - 계좌 ID
+   * @return 잠금이 풀린 계좌
+   */
+  @PostMapping("/{account_id}/unlock")
+  public ResponseEntity<AccountResponse> unlockAccount(
+          @AuthenticationPrincipal Long loginMemberId,
+          @PathVariable("account_id") Long accountId){
+    validationService.validAccountOwner(loginMemberId, accountId);
+    return ResponseEntity.ok().body(AccountResponse.from(accountService.unlockAccount(accountId)));
+  }
 
   /**
    * 계좌 해지

@@ -11,12 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.SearchAccountDto;
+import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
+import zb.accountMangement.member.model.VerificationPurpose;
+import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.repository.MemberRepository;
 import zb.accountMangement.member.service.MemberService;
+import zb.accountMangement.member.service.SendMessageService;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 
 @Service
@@ -29,6 +33,7 @@ public class AccountService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final StockBalanceRepository stockBalanceRepository;
+    private final SendMessageService sendMessageService;
     private final MemberService memberService;
     /**
      * 계좌번호 생성
@@ -110,24 +115,45 @@ public class AccountService {
     }
 
     /**
-     * 계좌 정보 수정
+     * 계좌 정보 수정 - 현재 비밀번호 확인은 호출하는 쪽에서 먼저 해야 함
      * @param accountId - 계좌 ID
-     * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
+     * @param updateAccountDto - 계좌 수정 dto (계좌별명, 새 계좌 PW). 비어 있는 항목은 그대로 둠
      * @return Account
      */
     @Transactional
-    public Account updateAccount(Long accountId, AccountManagementDto accountManagementDto) {
+    public Account updateAccount(Long accountId, UpdateAccountDto updateAccountDto) {
         Account account = getAccountById(accountId);
 
         if (account.isExistsAccount()) {
-            account.setNickname(accountManagementDto.getNickname());
-            account.setPassword(passwordEncoder.encode(accountManagementDto.getPassword()));
+            if (updateAccountDto.getNickname() != null)
+                account.setNickname(updateAccountDto.getNickname());
+            if (updateAccountDto.getNewPassword() != null)
+                account.setPassword(passwordEncoder.encode(updateAccountDto.getNewPassword()));
         }
         else if (account.isDeletedAccount())
             throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         else
             throw new CustomException(ErrorCode.PENDING_ACCOUNT);
 
+        return account;
+    }
+
+    /**
+     * 비밀번호를 연속으로 틀려 거래정지된 계좌의 잠금 해제.
+     * 회원에 등록된 핸드폰번호로 문자 인증(/api/auth/send-code, /api/auth/verify-phone)을 마친 뒤에만 풀 수 있음
+     * @param accountId - 계좌 ID
+     * @return Account
+     */
+    @Transactional
+    public Account unlockAccount(Long accountId) {
+        Account account = getAccountForUpdate(accountId);
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
+
+        Member owner = memberRepository.findById(account.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+        sendMessageService.consumeVerifiedPhone(owner.getPhoneNumber(), VerificationPurpose.ACCOUNT_UNLOCK);
+        account.unlock();
         return account;
     }
 

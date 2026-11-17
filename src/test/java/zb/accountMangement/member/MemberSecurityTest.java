@@ -1,17 +1,13 @@
 package zb.accountMangement.member;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.member.model.RoleType;
-import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
@@ -20,20 +16,16 @@ import zb.accountMangement.support.ApiTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static zb.accountMangement.member.model.VerificationPurpose.PHONE_CHANGE;
 import static zb.accountMangement.member.model.VerificationPurpose.SIGN_UP;
 
 class MemberSecurityTest extends ApiTest {
-
-	private static final Pattern CODE = Pattern.compile("\\[(\\d+)]");
 
 	@Autowired
 	StockBalanceRepository stockBalanceRepository;
@@ -194,28 +186,6 @@ class MemberSecurityTest extends ApiTest {
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
 		assertThat(statusOf(first)).isEqualTo(AccountStatus.DELETED);
 		assertThat(statusOf(second)).isEqualTo(AccountStatus.DELETED);
-	}
-
-	private String sendCode(String phone) throws Exception {
-		sendCodeRequest(phone, randomIp()).andExpect(status().isOk());
-		ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
-		verify(smsSender, atLeastOnce()).send(eq(phone), text.capture());
-		Matcher matcher = CODE.matcher(text.getValue());
-		assertThat(matcher.find()).isTrue();
-		return matcher.group(1);
-	}
-
-	private ResultActions sendCodeRequest(String phone, String ip) throws Exception {
-		return mockMvc.perform(post("/api/auth/send-code")
-				.with(fromIp(ip))
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(Map.of("phoneNumber", phone))));
-	}
-
-	private ResultActions verifyPhone(String phone, String code, VerificationPurpose purpose) throws Exception {
-		return mockMvc.perform(post("/api/auth/verify-phone")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(Map.of("phoneNumber", phone, "verificationCode", code, "purpose", purpose))));
 	}
 
 	private ResultActions updatePhone(Member member, String phone) throws Exception {
