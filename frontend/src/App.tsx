@@ -21,7 +21,8 @@ import { OrderPage } from './pages/OrderPage';
 import { OrdersPage, HoldingsPage } from './pages/StandaloneTabs';
 import { StockTransferPage } from './pages/StockTransferPage';
 import { MePage } from './pages/MePage';
-import { AdminWaitPage } from './pages/AdminWaitPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { OpsHome, OpsLayout, PlannedPage } from './pages/ops/OpsPages';
 
 const ADMIN = 'ADMIN';
 
@@ -46,8 +47,13 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<RequireAdmin />}>
-        <Route path="/ops/*" element={<AdminWaitPage />} />
+        <Route path="/ops" element={<OpsLayout />}>
+          <Route index element={<OpsHome />} />
+          <Route path=":screen" element={<PlannedPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Route>
       <Route element={<RequireUser />}>
         <Route element={<Layout />}>
