@@ -3,6 +3,7 @@ package zb.accountMangement.stock.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -22,6 +23,7 @@ public class TradeStockDto {
     private Long price;
 
     @Positive
+    @Max(1_000_000)
     private int quantity;
 
     @NotBlank

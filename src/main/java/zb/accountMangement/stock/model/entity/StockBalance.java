@@ -34,12 +34,14 @@ public class StockBalance {
   }
 
   /**
-   * 수량을 더하고 평균단가를 다시 계산
+   * 수량을 더하고 평균단가를 다시 계산. 수량이나 매수 총액이 넘치면 ArithmeticException
    * @param addedQuantity - 늘어난 수량
    * @param unitPrice - 늘어난 수량의 단가
    */
   public void add(int addedQuantity, long unitPrice) {
-    avgPrice = (avgPrice * quantity + unitPrice * addedQuantity) / (quantity + addedQuantity);
-    quantity += addedQuantity;
+    int newQuantity = Math.addExact(quantity, addedQuantity);
+    long totalCost = Math.addExact(Math.multiplyExact(avgPrice, (long) quantity), Math.multiplyExact(unitPrice, (long) addedQuantity));
+    avgPrice = totalCost / newQuantity;
+    quantity = newQuantity;
   }
 }

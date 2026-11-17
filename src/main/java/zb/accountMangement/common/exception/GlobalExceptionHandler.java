@@ -28,6 +28,12 @@ public class GlobalExceptionHandler  {
         return ErrorResponse.toResponseEntity(ErrorCode.INVALID_ARGUMENT);
     }
 
+    // 금액·수량이 너무 커서 Math.*Exact 계산이 넘친 경우
+    @ExceptionHandler(ArithmeticException.class)
+    protected ResponseEntity<ErrorResponse> handleArithmetic(ArithmeticException e) {
+        return ErrorResponse.toResponseEntity(ErrorCode.AMOUNT_OUT_OF_RANGE);
+    }
+
     // 교착 상태나 잠금 대기 시간 초과. 요청 자체는 정상이라 다시 보내면 처리되므로 409로 알림
     @ExceptionHandler(PessimisticLockingFailureException.class)
     protected ResponseEntity<ErrorResponse> handleLockFailure(PessimisticLockingFailureException e) {

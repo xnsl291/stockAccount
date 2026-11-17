@@ -279,7 +279,7 @@ class StockOrderTest extends ApiTest {
 	}
 
 	@Test
-	void 수량이나_가격이_0_이하이거나_없는_종목이면_주문을_거절한다() throws Exception {
+	void 수량이_한도를_넘거나_가격이_0_이하이거나_없는_종목이면_주문을_거절한다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);
 		Stock stock = saveStock(1_000);
@@ -287,6 +287,7 @@ class StockOrderTest extends ApiTest {
 		for (String side : new String[] {"buy", "sell"}) {
 			order(side, member, account, stock, 1_000, 0).andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
 			order(side, member, account, stock, 1_000, -1).andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
+			order(side, member, account, stock, 1, 1_000_001).andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
 			order(side, member, account, stock, 0, 1).andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
 			postJson("/api/stocks/" + side, member, Map.of("accountId", account.getId(), "stockId", Long.MAX_VALUE,
 					"price", 1_000, "quantity", 1, "accountPassword", ACCOUNT_PASSWORD))

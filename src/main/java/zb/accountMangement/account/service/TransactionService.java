@@ -108,7 +108,7 @@ public class TransactionService {
 			throw new CustomException(ErrorCode.INVALID_ACCOUNT);
 
 		long signedAmount = type.signed(amount);
-		long balanceAfter = lockedAccount.getBalance() + signedAmount;
+		long balanceAfter = Math.addExact(lockedAccount.getBalance(), signedAmount);
 		// 미체결 매수 주문에 묶인 금액은 출금·송금에 쓸 수 없음
 		if (balanceAfter < lockedAccount.getHeldAmount())
 			throw new CustomException(ErrorCode.EXCEED_BALANCE);

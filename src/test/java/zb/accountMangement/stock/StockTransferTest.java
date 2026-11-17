@@ -80,6 +80,37 @@ class StockTransferTest extends ApiTest {
 	}
 
 	@Test
+	void 받는_쪽_수량이_int_범위를_넘으면_400이고_아무것도_바뀌지_않는다() throws Exception {
+		Member member = saveMember();
+		Account from = saveAccount(member);
+		Account to = saveAccount(member);
+		Stock stock = saveStock(1_000);
+		stockBalanceRepository.save(StockBalance.builder().accountId(from.getId()).stockId(stock.getId()).quantity(1).avgPrice(1_000).build());
+		stockBalanceRepository.save(StockBalance.builder().accountId(to.getId()).stockId(stock.getId()).quantity(Integer.MAX_VALUE).avgPrice(1_000).build());
+
+		transfer(member, from, to, stock, 1)
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("AMOUNT_OUT_OF_RANGE"));
+
+		assertThat(holding(from, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(1);
+		assertThat(holding(to, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(Integer.MAX_VALUE);
+	}
+
+	@Test
+	void 받는_쪽_매수_총액이_long_범위를_넘으면_400이다() throws Exception {
+		Member member = saveMember();
+		Account from = saveAccount(member);
+		Account to = saveAccount(member);
+		Stock stock = saveStock(1_000);
+		stockBalanceRepository.save(StockBalance.builder().accountId(from.getId()).stockId(stock.getId()).quantity(1).avgPrice(1_000).build());
+		stockBalanceRepository.save(StockBalance.builder().accountId(to.getId()).stockId(stock.getId()).quantity(2).avgPrice(Long.MAX_VALUE / 2 + 1).build());
+
+		transfer(member, from, to, stock, 1)
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("AMOUNT_OUT_OF_RANGE"));
+	}
+
+	@Test
 	void 같은_계좌나_해지된_계좌로는_보낼_수_없다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 100_000);

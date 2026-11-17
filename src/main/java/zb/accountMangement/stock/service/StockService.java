@@ -183,6 +183,6 @@ public class StockService {
      */
     private long calculateProfitLoss(StockBalance stockBalance){
         Stock stock = getStockById(stockBalance.getStockId());
-        return (stock.getCurrentPrice() - stockBalance.getAvgPrice()) * stockBalance.getQuantity();
+        return Math.multiplyExact(Math.subtractExact(stock.getCurrentPrice(), stockBalance.getAvgPrice()), (long) stockBalance.getQuantity());
     }
 }
