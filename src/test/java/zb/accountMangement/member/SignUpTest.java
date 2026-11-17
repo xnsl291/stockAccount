@@ -88,7 +88,7 @@ class SignUpTest extends IntegrationTest {
 		String phone = randomPhone();
 		postJson("/api/auth/send-code", Map.of("phoneNumber", phone)).andExpect(status().isOk());
 
-		postJson("/api/auth/verify-phone", Map.of("phoneNumber", phone, "verificationCode", "wrong"))
+		postJson("/api/auth/verify-phone", Map.of("phoneNumber", phone, "verificationCode", "wrong", "purpose", "SIGN_UP"))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("UNMATCHED_VERIFICATION_CODE"));
 		signUp(phone).andExpect(status().isBadRequest());
@@ -144,6 +144,7 @@ class SignUpTest extends IntegrationTest {
 		Member member = memberRepository.findByPhoneNumber(phone).orElseThrow();
 
 		mockMvc.perform(post("/api/member/find-pw/" + member.getId())
+						.with(fromIp(randomIp()))
 						.header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(Map.of("name", member.getName(), "phoneNumber", phone))))
@@ -167,7 +168,7 @@ class SignUpTest extends IntegrationTest {
 
 	private void verifyPhone(String phone) throws Exception {
 		postJson("/api/auth/send-code", Map.of("phoneNumber", phone)).andExpect(status().isOk());
-		postJson("/api/auth/verify-phone", Map.of("phoneNumber", phone, "verificationCode", lastCodeSentTo(phone)))
+		postJson("/api/auth/verify-phone", Map.of("phoneNumber", phone, "verificationCode", lastCodeSentTo(phone), "purpose", "SIGN_UP"))
 				.andExpect(status().isOk());
 	}
 
@@ -196,6 +197,7 @@ class SignUpTest extends IntegrationTest {
 
 	private ResultActions postJson(String url, Map<String, String> body) throws Exception {
 		return mockMvc.perform(post(url)
+				.with(fromIp(randomIp()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(body)));
 	}

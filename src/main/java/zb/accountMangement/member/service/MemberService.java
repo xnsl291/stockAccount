@@ -8,6 +8,7 @@ import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.model.PhoneNumber;
+import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.repository.MemberRepository;
 import zb.accountMangement.member.model.RoleType;
@@ -34,7 +35,7 @@ public class MemberService {
 
 
 	/**
-	 * 회원 정보 수정
+	 * 회원 정보 수정 - 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 함
 	 *
 	 * @param updateMemberDto - 사용자 정보수정 dto (이름, 핸드폰번호, 로그인 비밀번호)
 	 * @return Member
@@ -44,8 +45,11 @@ public class MemberService {
 		Member member = checkMemberPermission(loginMemberId, memberId);
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
 
-		if (!phoneNumber.equals(member.getPhoneNumber()) && memberRepository.existsByPhoneNumber(phoneNumber))
-			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+		if (!phoneNumber.equals(member.getPhoneNumber())) {
+			if (memberRepository.existsByPhoneNumber(phoneNumber))
+				throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			sendMessageService.consumeVerifiedPhone(phoneNumber, VerificationPurpose.PHONE_CHANGE);
+		}
 
 		member.update(updateMemberDto.getName(), phoneNumber, passwordEncoder.encode(updateMemberDto.getPassword()));
 		return member;
@@ -56,16 +60,17 @@ public class MemberService {
 	 *
 	 * @param loginMemberId     - 로그인한 사용자 ID
 	 * @param findMemberInfoDto - 회원정보 조회 dto (이름, 핸드폰번호)
+	 * @param clientIp          - 요청한 IP
 	 * @return "인증 메세지 발송 완료"
 	 */
-	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto) {
+	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
 		Member member = checkMemberPermission(loginMemberId, memberId);
 
 		if (!member.getName().equals(findMemberInfoDto.getName())
 				|| !member.getPhoneNumber().equals(PhoneNumber.normalize(findMemberInfoDto.getPhoneNumber())))
 			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
 
-		return sendMessageService.sendVerificationMessage(member.getPhoneNumber());
+		return sendMessageService.sendVerificationMessage(member.getPhoneNumber(), clientIp);
 	}
 
 	/**

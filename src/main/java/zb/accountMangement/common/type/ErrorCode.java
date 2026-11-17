@@ -26,6 +26,7 @@ public enum ErrorCode {
     UNMATCHED_VERIFICATION_CODE(HttpStatus.BAD_REQUEST,"인증 코드가 일치하지 않습니다."),
     VERIFICATION_CODE_NOT_EXIST(HttpStatus.BAD_REQUEST,"인증 코드가 만료되었거나 발송되지 않았습니다."),
     UNVERIFIED_PHONE_NUMBER(HttpStatus.BAD_REQUEST,"핸드폰 인증이 필요합니다."),
+    TOO_MANY_SMS_REQUESTS(HttpStatus.TOO_MANY_REQUESTS,"인증 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."),
     MISMATCHED_USER_ID(HttpStatus.BAD_REQUEST,"토큰정보와 사용자의 정보가 일치하지 않습니다"),
 
     //account

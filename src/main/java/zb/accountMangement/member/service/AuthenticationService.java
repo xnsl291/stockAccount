@@ -12,6 +12,7 @@ import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.PhoneNumber;
 import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.repository.MemberRepository;
@@ -45,7 +46,7 @@ public class AuthenticationService {
 		if (memberRepository.existsByPhoneNumber(phoneNumber))
 			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
 
-		sendMessageService.consumeVerifiedPhone(phoneNumber);
+		sendMessageService.consumeVerifiedPhone(phoneNumber, VerificationPurpose.SIGN_UP);
 
 		Member member = memberRepository.save(Member.builder()
 				.name(signUpDto.getName())

@@ -1,10 +1,12 @@
 package zb.accountMangement.support;
 
+import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import zb.accountMangement.member.service.SmsSender;
@@ -37,5 +39,20 @@ public abstract class IntegrationTest {
 		registry.add("spring.redis.host", REDIS::getHost);
 		registry.add("spring.redis.port", () -> REDIS.getMappedPort(6379));
 		registry.add("jwt.secret", () -> "dGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLWludGVncmF0aW9uLXRlc3Rz");
+	}
+
+	/**
+	 * 요청 IP를 바꿈. 모든 테스트가 Redis 하나를 같이 써서, IP를 그대로 두면 IP별 문자 발송 한도를 서로 나눠 쓰게 됨
+	 */
+	protected static RequestPostProcessor fromIp(String ip) {
+		return request -> {
+			request.setRemoteAddr(ip);
+			return request;
+		};
+	}
+
+	protected static String randomIp() {
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+		return "10." + random.nextInt(256) + "." + random.nextInt(256) + "." + random.nextInt(256);
 	}
 }

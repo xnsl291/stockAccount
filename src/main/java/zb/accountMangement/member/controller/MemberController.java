@@ -10,6 +10,7 @@ import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.service.MemberService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
@@ -56,15 +57,17 @@ public class MemberController {
    * @param loginMemberId - 로그인한 사용자 ID
    * @param memberId  사용자 ID
    * @param findMemberInfoDto - 회원정보 조회 dto (이름, 핸드폰번호)
+   * @param request - 발송 횟수를 IP별로 세는 데 씀
    * @return "인증 메세지 발송 완료"
    */
   @PostMapping("/find-pw/{member_id}")
   public ResponseEntity<String> requestResetPw(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("member_id") @Min(1) Long memberId,
-          @Valid @RequestBody FindMemberInfoDto findMemberInfoDto) {
+          @Valid @RequestBody FindMemberInfoDto findMemberInfoDto,
+          HttpServletRequest request) {
     validationService.validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(memberService.requestResetPw(loginMemberId,memberId,findMemberInfoDto));
+    return ResponseEntity.ok().body(memberService.requestResetPw(loginMemberId,memberId,findMemberInfoDto,request.getRemoteAddr()));
   }
 
   /**

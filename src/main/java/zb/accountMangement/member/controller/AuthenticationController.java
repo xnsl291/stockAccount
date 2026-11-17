@@ -9,6 +9,7 @@ import zb.accountMangement.common.auth.JwtToken;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.service.AuthenticationService;
 import zb.accountMangement.member.service.SendMessageService;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RestController
@@ -20,25 +21,26 @@ public class AuthenticationController {
     private final SendMessageService sendMessageService;
 
     /**
-     * 가입 전 핸드폰 인증번호 발송
+     * 핸드폰 인증번호 발송
      * @param sendCodeDto - 인증번호 발송 dto (핸드폰번호)
+     * @param request - 발송 횟수를 IP별로 세는 데 씀. X-Forwarded-For는 클라이언트가 마음대로 바꿀 수 있어 믿지 않음
      * @return "인증 메세지 발송 완료"
      */
     @PostMapping("/send-code")
-    public ResponseEntity<String> sendCode(@Valid @RequestBody SendCodeDto sendCodeDto) {
-        return ResponseEntity.ok().body(sendMessageService.sendVerificationMessage(sendCodeDto.getPhoneNumber()));
+    public ResponseEntity<String> sendCode(@Valid @RequestBody SendCodeDto sendCodeDto, HttpServletRequest request) {
+        return ResponseEntity.ok().body(sendMessageService.sendVerificationMessage(sendCodeDto.getPhoneNumber(), request.getRemoteAddr()));
     }
 
     /**
-    * 가입 전 핸드폰 인증
-    * @param smsVerificationDto - 문자인증 dto (인증번호, 핸드폰번호)
+    * 핸드폰 인증 - 가입, 핸드폰번호 변경, 계좌 잠금 해제 중 어디에 쓸지 정해서 인증함
+    * @param smsVerificationDto - 문자인증 dto (인증번호, 핸드폰번호, 용도)
     * @return true
     */
     @PostMapping("/verify-phone")
     public ResponseEntity<Boolean> verifySMS(
             @Valid @RequestBody SmsVerificationDto smsVerificationDto) {
         return ResponseEntity.ok().body(sendMessageService.verifyPhone(
-                smsVerificationDto.getPhoneNumber(), smsVerificationDto.getVerificationCode()));
+                smsVerificationDto.getPhoneNumber(), smsVerificationDto.getVerificationCode(), smsVerificationDto.getPurpose()));
     }
 
     /**
