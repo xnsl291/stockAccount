@@ -18,7 +18,6 @@ import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
-import zb.accountMangement.member.repository.MemberRepository;
 import zb.accountMangement.member.service.MemberService;
 import zb.accountMangement.member.service.SendMessageService;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
@@ -31,7 +30,6 @@ public class AccountService {
     private final int ACCOUNT_NUMBER_LENGTH = 14;
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final MemberRepository memberRepository;
     private final StockBalanceRepository stockBalanceRepository;
     private final SendMessageService sendMessageService;
     private final MemberService memberService;
@@ -150,8 +148,7 @@ public class AccountService {
         if (account.isDeletedAccount())
             throw new CustomException(ErrorCode.DELETED_ACCOUNT);
 
-        Member owner = memberRepository.findById(account.getMemberId())
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+        Member owner = memberService.getMemberById(account.getMemberId());
         sendMessageService.consumeVerifiedPhone(owner.getPhoneNumber(), VerificationPurpose.ACCOUNT_UNLOCK);
         account.unlock();
         return account;
@@ -215,9 +212,7 @@ public class AccountService {
         Account account = getAccountByNumber(accountNumber);
         if (account.isDeletedAccount())
             throw new CustomException(ErrorCode.ACCOUNT_NOT_EXIST);
-        String username = memberRepository.findById(account.getMemberId())
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST))
-                .getName();
+        String username = memberService.getMemberById(account.getMemberId()).getName();
 
         // 본인 계좌
         if (account.getMemberId().equals(requesterId)) {
