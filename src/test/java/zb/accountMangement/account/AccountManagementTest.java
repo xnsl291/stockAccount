@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -18,7 +19,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
@@ -28,6 +31,7 @@ import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -46,6 +50,8 @@ class AccountManagementTest extends ApiTest {
 	PlatformTransactionManager transactionManager;
 	@Autowired
 	StockBalanceRepository stockBalanceRepository;
+	@Autowired
+	AccountService accountService;
 
 	@Test
 	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
@@ -97,6 +103,30 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(jsonPath("$.errors.password").exists());
 
 		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+	}
+
+	@Test
+	void 별명이_DB_칸보다_길면_계좌번호_중복이_아니라_입력_검증_오류로_응답한다() throws Exception {
+		Member member = saveMember();
+
+		mockMvc.perform(as(member, post("/api/accounts/open"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of("nickname", "가".repeat(256), "password", ACCOUNT_PASSWORD))))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
+				.andExpect(jsonPath("$.errors.nickname").exists());
+
+		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+	}
+
+	@Test
+	void 계좌번호_유니크_위반이_아닌_저장_오류는_계좌번호_중복으로_바꾸지_않는다() {
+		Member member = saveMember();
+		// 입력 검증을 거치지 않는 서비스 호출로, 길이 초과처럼 유니크 위반이 아닌 저장 오류를 일부러 냄
+		AccountManagementDto tooLong = AccountManagementDto.builder().nickname("가".repeat(256)).password(ACCOUNT_PASSWORD).build();
+
+		assertThatThrownBy(() -> accountService.openAccount(member.getId(), tooLong))
+				.isInstanceOf(DataIntegrityViolationException.class);
 	}
 
 	@Test
