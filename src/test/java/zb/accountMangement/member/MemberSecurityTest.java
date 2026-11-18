@@ -18,6 +18,7 @@ import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
+import zb.accountMangement.member.service.MemberService;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
@@ -42,6 +43,9 @@ class MemberSecurityTest extends ApiTest {
 
 	@Autowired
 	StockBalanceRepository stockBalanceRepository;
+
+	@Autowired
+	MemberService memberService;
 
 	@Test
 	void 인증번호를_5회_틀리면_맞는_인증번호로도_인증되지_않는다() throws Exception {
@@ -261,6 +265,29 @@ class MemberSecurityTest extends ApiTest {
 		executor.shutdown();
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
 		assertThat(accountRepository.findByMemberId(member.getId())).noneMatch(Account::isExistsAccount);
+	}
+
+	@Test
+	void 회원정보_수정과_탈퇴가_겹쳐도_탈퇴가_되돌려지지_않는다() throws Exception {
+		Member member = saveMember();
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Integer> update;
+
+		// 탈퇴가 회원 행에 하는 일(잠그고 탈퇴로 바꿈)을 커밋하지 않은 채로 회원정보 수정을 보내,
+		// 수정이 회원을 읽은 뒤에 탈퇴가 커밋되는 순서를 만듦. 토큰 무효화는 Redis 쪽이라 이 겹침과 무관해 넣지 않음
+		TransactionStatus signOut = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			memberService.withdraw(memberService.getMemberForUpdate(member.getId()));
+			memberRepository.flush();
+			update = executor.submit(() -> updatePhone(member, member.getPhoneNumber()).andReturn().getResponse().getStatus());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(signOut);
+		}
+
+		update.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
 	}
 
 	private ResultActions updatePhone(Member member, String phone) throws Exception {
