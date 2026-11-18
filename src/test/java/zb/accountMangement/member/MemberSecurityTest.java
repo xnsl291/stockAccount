@@ -1,10 +1,18 @@
 package zb.accountMangement.member;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
@@ -26,6 +34,9 @@ import static zb.accountMangement.member.model.VerificationPurpose.PHONE_CHANGE;
 import static zb.accountMangement.member.model.VerificationPurpose.SIGN_UP;
 
 class MemberSecurityTest extends ApiTest {
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@Autowired
 	StockBalanceRepository stockBalanceRepository;
@@ -122,6 +133,33 @@ class MemberSecurityTest extends ApiTest {
 		updatePhone(member, newPhone).andExpect(status().isOk());
 
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getPhoneNumber()).isEqualTo(newPhone);
+	}
+
+	@Test
+	void 같은_새_번호로_바꾸는_요청이_겹쳐도_500이_아니라_중복_번호_오류로_응답한다() throws Exception {
+		Member member = saveMember();
+		String oldPhone = member.getPhoneNumber();
+		String newPhone = randomPhone();
+		verifyPhone(newPhone, sendCode(newPhone), PHONE_CHANGE).andExpect(status().isOk());
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> update;
+
+		// 다른 회원이 그 번호를 쓰도록 저장만 하고 커밋하지 않은 상태를 만들어, 번호 변경이 중복 검사는 통과하고 반영에서 기다리게 함
+		TransactionStatus otherMember = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			memberRepository.saveAndFlush(Member.builder().name("other").phoneNumber(newPhone).password("x").build());
+			update = executor.submit(() -> updatePhone(member, newPhone).andReturn());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(otherMember);
+		}
+
+		MvcResult result = update.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(400);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
+				.isEqualTo("DUPLICATED_PHONE_NUMBER");
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getPhoneNumber()).isEqualTo(oldPhone);
 	}
 
 	@Test
