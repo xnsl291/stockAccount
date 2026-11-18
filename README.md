@@ -158,7 +158,7 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 
 ## 테스트
 
-`./gradlew test`로 99개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
+`./gradlew test`로 146개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
 
 - `TransactionConsistencyTest`: 동시 출금·맞송금, Idempotency-Key 재전송·동시 전송, 거래 기록 합계와 잔액 일치, 금액·계좌 상태 검증
 - `TransactionHistoryTest`: 거래내역 페이지 나눔, 정렬, 기간·종류 필터
