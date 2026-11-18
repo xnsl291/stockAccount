@@ -1,6 +1,7 @@
 package zb.accountMangement.stock.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -118,11 +119,17 @@ public class StockService {
     public Stock registerStock(RegisterStockDto registerStockDto) {
         if (stockRepository.existsByCode(registerStockDto.getCode()))
             throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
-        return stockRepository.save(Stock.builder()
-                .code(registerStockDto.getCode())
-                .name(registerStockDto.getName())
-                .currentPrice(registerStockDto.getCurrentPrice())
-                .build());
+        // 위의 검사는 아직 커밋되지 않은 같은 코드의 등록을 보지 못해, 그런 등록이 먼저 커밋되면 저장이 유니크 제약에 걸림.
+        // 종목 테이블의 유니크 제약은 종목코드 하나뿐이라 같은 오류 코드로 바꿈
+        try {
+            return stockRepository.saveAndFlush(Stock.builder()
+                    .code(registerStockDto.getCode())
+                    .name(registerStockDto.getName())
+                    .currentPrice(registerStockDto.getCurrentPrice())
+                    .build());
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
+        }
     }
 
     /**
