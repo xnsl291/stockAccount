@@ -93,11 +93,11 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 | 메서드 | 경로 | 설명 |
 |---|---|---|
 | POST | `/api/accounts/open` | 계좌 개설 |
-| GET | `/api/accounts` | 내 계좌 목록 |
+| GET | `/api/accounts` | 내 계좌 목록. 해지한 계좌는 빠짐 |
 | GET | `/api/accounts/{account_id}` | 계좌 조회(잔액, 주문에 묶인 금액, 쓸 수 있는 금액) |
 | PATCH | `/api/accounts/{account_id}` | 별칭·계좌 비밀번호 변경. 현재 계좌 비밀번호 필요 |
 | POST | `/api/accounts/{account_id}/unlock` | 거래정지 계좌 잠금 해제. 등록된 번호로 문자 인증을 먼저 마쳐야 함 |
-| DELETE | `/api/accounts/{account_id}` | 계좌 해지. 잔액·보유 주식이 없고 계좌가 2개 이상일 때만 |
+| DELETE | `/api/accounts/{account_id}` | 계좌 해지. 잔액·보유 주식이 없고 해지하지 않은 계좌가 2개 이상일 때만. 마지막 남은 계좌면 `LAST_ACCOUNT`, 거래정지 계좌면 `PENDING_ACCOUNT`로 거절 |
 | GET | `/api/accounts/search/{account_number}` | 계좌번호로 검색. 내 계좌면 잔액까지, 남의 계좌면 계좌 ID와 소유주 이름만. 해지 계좌는 찾지 않음 |
 
 ### 계좌 거래
