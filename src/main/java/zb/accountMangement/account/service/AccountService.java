@@ -156,25 +156,24 @@ public class AccountService {
     }
 
     /**
-     * 계좌 해지 - 잔액이나 보유 주식이 남아 있으면 해지할 수 없음
+     * 계좌 해지 - 거래정지된 계좌, 마지막 남은 계좌, 잔액이나 보유 주식이 남은 계좌는 해지할 수 없음
      * @param accountId - 계좌 ID
-     * @return 성공여부
+     * @return true
      */
     @Transactional
     public Boolean deleteAccount(Long accountId) {
-        boolean result = false;
         Account account = getAccountForUpdate(accountId);
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
+        if (!account.isExistsAccount())
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
+        // 해지된 계좌는 빼고 세어야 마지막 남은 계좌를 지킬 수 있음
+        if (getAllAccounts(account.getMemberId()).size() < 2)
+            throw new CustomException(ErrorCode.LAST_ACCOUNT);
 
-        List<Account> memberAccounts = getAllAccounts(account.getMemberId());
-
-        // 사용자가 2개 이상의 계좌를 가지고 있어야 삭제 가능
-        if( account.isExistsAccount() && memberAccounts.size() >= 2 ) {
-            checkNoAssets(account);
-            account.close();
-            result = true;
-        }
-
-        return result;
+        checkNoAssets(account);
+        account.close();
+        return true;
     }
 
     /**
@@ -203,9 +202,13 @@ public class AccountService {
             throw new CustomException(ErrorCode.REMAINING_ASSET);
     }
 
-    // 전체 계좌 조회
+    /**
+     * 회원의 계좌 목록 - 해지된 계좌는 뺌
+     * @param memberId - 사용자 ID
+     * @return 계좌 목록
+     */
     public List<Account> getAllAccounts(Long memberId){
-        return accountRepository.findByMemberId(memberId);
+        return accountRepository.findByMemberIdAndStatusNot(memberId, AccountStatus.DELETED);
     }
 
     /**

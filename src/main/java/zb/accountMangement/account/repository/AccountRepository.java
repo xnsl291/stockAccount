@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 
 import javax.persistence.LockModeType;
@@ -16,6 +17,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByAccountNumber(String accountNumber);
 
     List<Account> findByMemberId(Long userId);
+
+    List<Account> findByMemberIdAndStatusNot(Long memberId, AccountStatus status);
 
     @Query("select a.id from Account a where a.memberId = :memberId order by a.id")
     List<Long> findIdsByMemberId(@Param("memberId") Long memberId);
