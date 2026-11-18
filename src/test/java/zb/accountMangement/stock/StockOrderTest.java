@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.repository.TransactionRepository;
 import zb.accountMangement.member.model.entity.Member;
@@ -154,7 +153,7 @@ class StockOrderTest extends ApiTest {
 		order("buy", suspendedMember, suspended, stock, 900, 10).andExpect(jsonPath("$.status").value("PENDING"));
 		order("buy", member, account, stock, 900, 10).andExpect(jsonPath("$.status").value("PENDING"));
 		Account toSuspend = accountRepository.findById(suspended.getId()).orElseThrow();
-		toSuspend.setStatus(AccountStatus.PENDING);
+		suspend(toSuspend);
 		accountRepository.save(toSuspend);
 
 		updatePrice(saveAdmin(), stock, 900).andExpect(status().isOk());
@@ -304,7 +303,7 @@ class StockOrderTest extends ApiTest {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);
 		account = accountRepository.findById(account.getId()).orElseThrow();
-		account.setStatus(AccountStatus.PENDING);
+		suspend(account);
 		accountRepository.save(account);
 
 		order("buy", member, account, saveStock(1_000), 1_000, 1)
@@ -427,6 +426,12 @@ class StockOrderTest extends ApiTest {
 	private ResultActions withdraw(Member member, Account account, long amount) throws Exception {
 		return postJson("/api/transactions/withdrawal", member,
 				Map.of("accountId", account.getId(), "amount", amount, "accountPassword", ACCOUNT_PASSWORD));
+	}
+
+	// 계좌 상태 setter를 열어 두지 않으므로, 비밀번호를 연속으로 틀린 것처럼 만들어 거래정지시킴
+	private void suspend(Account account) {
+		while (account.isExistsAccount())
+			account.recordPasswordFailure();
 	}
 
 	private long heldAmountOf(Account account) {
