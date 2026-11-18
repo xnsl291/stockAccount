@@ -69,6 +69,28 @@ class StockLookupTest extends ApiTest {
 	}
 
 	@Test
+	void 보유_주식은_현재가로_계산한_평가손익이_큰_순서로_나온다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 100_000);
+		Stock loss = saveStock(2_000);
+		Stock gain = saveStock(1_000);
+		buyNow(member, account, loss, 5);
+		buyNow(member, account, gain, 10);
+		loss.setCurrentPrice(1_500);
+		gain.setCurrentPrice(1_300);
+		stockRepository.save(loss);
+		stockRepository.save(gain);
+
+		mockMvc.perform(as(member, get("/api/stocks/" + account.getId() + "/balance")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].stockId").value(gain.getId()))
+				.andExpect(jsonPath("$[0].profitNLoss").value(3_000))
+				.andExpect(jsonPath("$[1].stockId").value(loss.getId()))
+				.andExpect(jsonPath("$[1].profitNLoss").value(-2_500));
+	}
+
+	@Test
 	void 주문_내역에_종목_코드와_이름이_붙는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 100_000);
