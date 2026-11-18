@@ -281,6 +281,28 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("ACCOUNT_NOT_EXIST"));
 	}
 
+	@Test
+	void 해지한_계좌를_빼고_하나만_남으면_해지를_거절하고_계좌_목록에는_해지한_계좌가_없다() throws Exception {
+		Member member = saveMember();
+		Account closed = saveAccount(member);
+		Account last = saveAccount(member);
+		closeAccount(member, closed).andExpect(status().isOk());
+
+		closeAccount(member, last)
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("LAST_ACCOUNT"));
+
+		assertThat(statusOf(last)).isEqualTo(AccountStatus.EXISTS);
+		mockMvc.perform(as(member, get("/api/accounts")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].id").value(last.getId()));
+	}
+
+	private ResultActions closeAccount(Member member, Account account) throws Exception {
+		return mockMvc.perform(as(member, delete("/api/accounts/" + account.getId())));
+	}
+
 	private void lock(Member member, Account account) throws Exception {
 		for (int i = 0; i < 5; i++)
 			withdraw(member, account, "0000").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
