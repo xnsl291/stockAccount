@@ -265,7 +265,7 @@ class StockTransferTest extends ApiTest {
 					.accountId(receiverAccount.getId()).stockId(stock.getId()).quantity(3).avgPrice(1_000).build());
 			signOut = executor.submit(() ->
 					mockMvc.perform(as(receiver, delete("/api/auth/sign-out"))).andReturn().getResponse().getStatus());
-			awaitLockWait();
+			awaitLockWaits(1);
 		} finally {
 			transactionManager.commit(incomingTransfer);
 		}
@@ -274,20 +274,6 @@ class StockTransferTest extends ApiTest {
 		executor.shutdown();
 		assertThat(accountRepository.findById(receiverAccount.getId()).orElseThrow().isExistsAccount()).isTrue();
 		assertThat(memberRepository.findById(receiver.getId()).orElseThrow().getRole()).isEqualTo(RoleType.USER);
-	}
-
-	/**
-	 * 다른 트랜잭션이 잠금을 기다리기 시작할 때까지 기다림. 정해진 시간만 쉬면 탈퇴 요청이 잠금에 닿기 전에 커밋해 버릴 수 있음
-	 */
-	private void awaitLockWait() throws InterruptedException {
-		for (int i = 0; i < 300; i++) {
-			Integer waiting = jdbcTemplate.queryForObject(
-					"select count(*) from information_schema.innodb_trx where trx_state = 'LOCK WAIT'", Integer.class);
-			if (waiting != null && waiting > 0)
-				return;
-			Thread.sleep(100);
-		}
-		throw new AssertionError("30초 안에 잠금을 기다리는 트랜잭션이 생기지 않음");
 	}
 
 	private void buy(Member member, Account account, Stock stock, long price, int quantity) throws Exception {
