@@ -37,6 +37,47 @@ public class MemberService {
 
 
 	/**
+	 * 가입용 회원 생성 - 가입 용도의 핸드폰 인증을 마친 번호여야 하고, 인증 표시는 이때 지움
+	 *
+	 * @param name          - 이름 (한글·영문·숫자 2~10자)
+	 * @param phoneNumber   - 핸드폰번호 (하이픈 등이 섞여 있어도 됨)
+	 * @param loginPassword - 로그인 비밀번호 (암호화 전)
+	 * @return 저장한 회원
+	 */
+	@Transactional
+	public Member createMember(String name, String phoneNumber, String loginPassword) {
+		String normalized = PhoneNumber.normalize(phoneNumber);
+
+		// 이름 유효성 검사
+		if (!name.matches("[가-힣a-zA-Z0-9]{2,10}")) {
+			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
+		}
+
+		// 핸드폰번호 중복 검사
+		if (memberRepository.existsByPhoneNumber(normalized))
+			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+
+		sendMessageService.consumeVerifiedPhone(normalized, VerificationPurpose.SIGN_UP);
+
+		return memberRepository.save(Member.builder()
+				.name(name)
+				.password(passwordEncoder.encode(loginPassword))
+				.phoneNumber(normalized)
+				.role(RoleType.USER)
+				.build());
+	}
+
+	/**
+	 * 탈퇴 처리 - 회원 행은 지우지 않고 상태만 탈퇴로 바꿈. 계좌 해지는 호출하는 쪽에서 먼저 해야 함
+	 *
+	 * @param member - 탈퇴할 회원
+	 */
+	@Transactional
+	public void withdraw(Member member) {
+		member.delete();
+	}
+
+	/**
 	 * 회원 정보 수정 - 현재 로그인 비밀번호가 맞아야 함. 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 하고,
 	 * 비밀번호를 바꾸면 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
 	 *
