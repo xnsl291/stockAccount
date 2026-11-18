@@ -106,6 +106,13 @@ public class MemberService {
 
 		boolean passwordChanged = !updateMemberDto.getPassword().equals(updateMemberDto.getCurrentPassword());
 		member.update(updateMemberDto.getName(), phoneNumber, passwordEncoder.encode(updateMemberDto.getPassword()));
+		// 변경은 원래 트랜잭션이 끝날 때 DB에 반영돼 유니크 위반이 이 메서드 밖에서 500으로 나감.
+		// 바로 반영해 커밋 전인 같은 번호의 변경·가입과 겹친 경우를 여기서 잡음
+		try {
+			memberRepository.saveAndFlush(member);
+		} catch (DataIntegrityViolationException e) {
+			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+		}
 		if (passwordChanged)
 			jwtTokenProvider.deleteRefreshToken(member.getId());
 		return member;
