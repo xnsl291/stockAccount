@@ -17,7 +17,7 @@ import org.springframework.util.StringUtils;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.common.type.ErrorCode;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;

@@ -24,7 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.common.auth.JwtTokenProvider;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.repository.MemberRepository;
 import zb.accountMangement.support.IntegrationTest;

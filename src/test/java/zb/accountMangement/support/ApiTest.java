@@ -27,7 +27,7 @@ import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.repository.MemberRepository;
