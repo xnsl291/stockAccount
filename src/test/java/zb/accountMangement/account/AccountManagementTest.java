@@ -20,8 +20,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.dto.AccountManagementDto;
+import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
+import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
@@ -52,6 +55,8 @@ class AccountManagementTest extends ApiTest {
 	StockBalanceRepository stockBalanceRepository;
 	@Autowired
 	AccountService accountService;
+	@Autowired
+	TransactionService transactionService;
 
 	@Test
 	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
@@ -365,6 +370,34 @@ class AccountManagementTest extends ApiTest {
 		assertThat(statuses).containsExactlyInAnyOrder(200, 400);
 		assertThat(List.of(statusOf(first), statusOf(second)))
 				.containsExactlyInAnyOrder(AccountStatus.EXISTS, AccountStatus.DELETED);
+	}
+
+	@Test
+	void 별명_수정과_입금이_겹쳐도_입금이_사라지지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 50_000);
+		UpdateAccountDto rename = new UpdateAccountDto();
+		rename.setNickname("생활비");
+		rename.setCurrentPassword(ACCOUNT_PASSWORD);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Account> update;
+
+		// 입금을 반영하고 커밋하지 않은 채로 별명 수정을 돌려, 수정이 계좌를 읽은 뒤에 입금이 커밋되는 순서를 만듦.
+		// 계좌 비밀번호 확인은 수정보다 앞서 끝나는 별도 트랜잭션이라 이 겹침과 무관해 서비스를 바로 부름
+		TransactionStatus deposit = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			transactionService.changeBalance(account.getId(), TransactionType.DEPOSIT, 10_000, "입금", null);
+			update = executor.submit(() -> accountService.updateAccount(account.getId(), rename));
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(deposit);
+		}
+
+		update.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		Account saved = accountRepository.findById(account.getId()).orElseThrow();
+		assertThat(saved.getNickname()).isEqualTo("생활비");
+		assertThat(saved.getBalance()).isEqualTo(60_000);
 	}
 
 	private ResultActions closeAccount(Member member, Account account) throws Exception {
