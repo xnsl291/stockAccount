@@ -1,5 +1,6 @@
-// 관리자 화면(S-31~S-35)과 AI 이상징후 화면(AI-01~AI-05)의 골격. 1차 범위 밖이라 화면 구성만 둠
-// 백엔드 API가 없어 입력·버튼은 모두 막고 "준비 중"으로 보임. 데이터는 지어내지 않고 빈 표·빈 칸으로 둠
+// 관리자 화면 틀과, 아직 서버 기능이 없는 관리자 화면(S-33~S-35)·AI 이상징후 화면(AI-01~AI-05)의 골격
+// 골격 화면은 입력·버튼을 모두 막고 "준비 중"으로 보임. 데이터는 지어내지 않고 빈 표·빈 칸으로 둠
+// 종목 관리(S-31)·시세 입력(S-32)은 실제 API를 쓰는 화면으로 AdminStockPages.tsx에 있음
 // /ops 첫 화면은 1차 관리자 안내(adminwait-panel)를 그대로 유지함(E-11)
 
 import { NavLink, Outlet, useParams } from 'react-router';
@@ -24,27 +25,6 @@ interface Planned {
 
 /** 주소 조각 → 화면 정의. 내용은 설계_3 3.2.4와 설계_2 F-FDS 계열을 옮김 */
 export const PLANNED: Record<string, Planned> = {
-  stocks: {
-    id: 'S-31',
-    title: '종목 관리',
-    badge: '2차',
-    purpose: '거래할 종목을 등록하고 목록을 봐요',
-    fields: ['종목코드(숫자·영문 대문자 6자리)', '종목명', '현재가'],
-    columns: ['코드', '이름', '현재가', '미체결 주문 수'],
-    buttons: ['종목 등록'],
-    needs: ['종목 목록 API(N-03). 등록 API(D1)는 있으나 화면에서 부르는 일은 2차에 붙임'],
-  },
-  price: {
-    id: 'S-32',
-    title: '시세 입력·체결 결과',
-    badge: '2차',
-    purpose: '시세를 넣고 그 시세로 무엇이 체결됐는지 봐요',
-    fields: ['새 시세'],
-    columns: ['주문', '매수/매도', '주문가', '수량', '새 시세에서 체결'],
-    stats: ['체결', '그대로 남음', '실패'],
-    buttons: ['시세 저장하고 체결 확인'],
-    needs: ['미체결 주문 목록과 체결 결과 API(N-09). 시세 입력(D2)만 있음'],
-  },
   recon: {
     id: 'S-33·S-34',
     title: '대사 실행·결과',
@@ -140,7 +120,7 @@ export function OpsLayout() {
             </NavLink>
           ))}
         </nav>
-        <p className="side-note">관리자 화면은 2차예요. 지금은 화면 구성만 볼 수 있어요</p>
+        <p className="side-note">종목 관리와 시세 입력은 쓸 수 있어요. 나머지는 화면 구성만 볼 수 있어요</p>
       </header>
       <div className="main">
         <main className="content">
@@ -158,8 +138,11 @@ export function OpsHome() {
     <>
       <PageHead title="관리자" />
       <section className="panel">
-        <p data-testid="adminwait-panel">관리자 화면은 준비 중임. 종목 등록과 시세 입력은 아직 화면이 없음</p>
+        <p data-testid="adminwait-panel">종목 관리와 시세 입력 화면을 쓸 수 있음. 종목 등록과 대사·결제 배치는 아직 화면이 없음</p>
         <div className="actions">
+          <NavLink to="/ops/stocks" className="button primary" data-testid="adminwait-stocks-link">
+            종목 관리
+          </NavLink>
           <button type="button" data-testid="adminwait-logout" onClick={() => signOut('logout')}>
             로그아웃
           </button>

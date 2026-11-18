@@ -173,3 +173,15 @@ button.sell:hover { background: #d9e4fb; }
 .pager { justify-content: center; }
 
 .stack { display: flex; flex-direction: column; gap: var(--s6); }
+
+/* 관리자 종목 관리·시세 입력 */
+.trade-side { font-weight: 750; }
+.trade-side.buy-text { color: var(--up); }
+.trade-side.sell-text { color: var(--down); }
+.row.will-fill { background: var(--avail-tint); border-radius: var(--r-md); }
+.badge-fill { background: var(--avail); color: #fff; }
+.badge-fill::before { display: none; }
+.stat b span { font-size: inherit; color: var(--ink); }
+.stat-filled b span { color: var(--avail); }
+.stat-failed b span { color: var(--danger); }
+.stack-sm { display: flex; flex-direction: column; gap: var(--s4); }

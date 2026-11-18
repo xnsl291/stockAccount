@@ -23,6 +23,7 @@ import { StockTransferPage } from './pages/StockTransferPage';
 import { MePage } from './pages/MePage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { OpsHome, OpsLayout, PlannedPage } from './pages/ops/OpsPages';
+import { AdminPricePage, AdminStocksPage } from './pages/ops/AdminStockPages';
 
 const ADMIN = 'ADMIN';
 
@@ -51,6 +52,8 @@ export function App() {
       <Route element={<RequireAdmin />}>
         <Route path="/ops" element={<OpsLayout />}>
           <Route index element={<OpsHome />} />
+          <Route path="stocks" element={<AdminStocksPage />} />
+          <Route path="price" element={<AdminPricePage />} />
           <Route path=":screen" element={<PlannedPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

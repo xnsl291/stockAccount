@@ -93,6 +93,20 @@ export interface StockBalance {
   profitNLoss: number;
 }
 
+/** 관리자 종목 한 줄(N-03). 종목과 그 종목에 걸린 미체결 주문 수 */
+export interface AdminStock extends Stock {
+  pendingOrderCount: number;
+}
+
+/** 시세 갱신(D2) 결과. 새 시세로 미체결 주문을 체결해 본 결과가 같이 옴(N-09) */
+export interface PriceUpdateResult extends Stock {
+  filledOrderIds: number[];
+  failedOrderIds: number[];
+  remainingCount: number;
+  filledCount: number;
+  failedCount: number;
+}
+
 export interface AccountSearch {
   accountId: number;
   accountNumber: string;
@@ -177,3 +191,11 @@ export const transferStock = (
 export const getHoldings = (accountId: number) => api.request<StockBalance[]>(`/api/stocks/${accountId}/balance`);
 export const getOrders = (accountId: number, params: { status?: OrderStatus | ''; year?: number; month?: number }) =>
   api.request<Order[]>(`/api/stocks/${accountId}/history${query(params)}`);
+
+// 관리자(D·N)
+export const getAdminStocks = (page: number, size: number) => api.request<Page<AdminStock>>(`/admin/stocks${query({ page, size })}`);
+export const getAdminStock = (stockId: number) => api.request<AdminStock>(`/admin/stocks/${stockId}`);
+export const getStockOrders = (stockId: number, status: OrderStatus) =>
+  api.request<Order[]>(`/admin/stocks/${stockId}/orders${query({ status })}`);
+export const updateStockPrice = (stockId: number, price: number) =>
+  api.request<PriceUpdateResult>(`/admin/stocks/${stockId}/price`, { method: 'PUT', body: { price } });

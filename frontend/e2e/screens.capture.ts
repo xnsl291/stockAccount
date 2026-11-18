@@ -38,11 +38,15 @@ test('주요 화면 캡처', async ({ browser }) => {
   const stock = await registerStock(70000, '한빛전자');
 
   // 준비: 미체결 매수 1건(65,000원 × 10주), 바로 체결되는 매수 1건(70,000원 × 5주), 출금 1건
+  // 관리자 시세 입력 결과를 너비마다 찍으려고 미체결 매수 3건(63,000·62,000·61,000원 × 1주)을 더 넣음
   const setup = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await loginUI(setup, m);
   for (const [price, qty] of [
     ['65000', '10'],
     ['70000', '5'],
+    ['63000', '1'],
+    ['62000', '1'],
+    ['61000', '1'],
   ]) {
     await setup.goto(`/order?stockId=${stock.id}&side=buy&accountId=${m.accountId}`);
     await setup.getByTestId('order-price-input').fill(price);
@@ -65,7 +69,8 @@ test('주요 화면 캡처', async ({ browser }) => {
 
   const admin = JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf-8')) as { phone: string; password: string };
 
-  for (const size of WIDTHS) {
+  const adminPrices = ['63000', '62000', '61000'];
+  for (const [i, size] of WIDTHS.entries()) {
     fs.mkdirSync(path.join(DIR, size.name), { recursive: true });
     const anon = await browser.newPage({ viewport: size });
     await anon.goto('/login');
@@ -143,6 +148,20 @@ test('주요 화면 캡처', async ({ browser }) => {
     const adminPage = await browser.newPage({ viewport: size });
     await loginUI(adminPage, admin, /\/ops$/);
     await snap(adminPage, size.name, 'ops-home');
+    await adminPage.goto('/ops/stocks');
+    const stockRow = adminPage.locator(`[data-testid="opsstocks-row"][data-id="${stock.id}"]`);
+    await expect(stockRow).toBeVisible();
+    await snap(adminPage, size.name, 'ops-stocks');
+    await stockRow.getByTestId('opsstocks-row-orders-toggle').click();
+    await expect(adminPage.getByTestId('opsstocks-order-row').first()).toBeVisible();
+    await snap(adminPage, size.name, 'ops-stocks-orders');
+    await adminPage.goto(`/ops/price?stockId=${stock.id}`);
+    await adminPage.getByTestId('opsprice-price-input').fill(adminPrices[i]);
+    await expect(adminPage.getByTestId('opsprice-order-row-will-fill').first()).toBeVisible();
+    await snap(adminPage, size.name, 'ops-price-input');
+    await adminPage.getByTestId('opsprice-submit').click();
+    await expect(adminPage.getByTestId('opsprice-result-panel')).toBeVisible();
+    await snap(adminPage, size.name, 'ops-price-result');
     await adminPage.goto('/ops/recon');
     await snap(adminPage, size.name, 'ops-recon');
     await adminPage.goto('/ops/ai-decision');
