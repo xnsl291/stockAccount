@@ -26,8 +26,6 @@ public class StockBalance {
 
   private long avgPrice; // 평균 매수가 (원 미만 절사)
 
-  private long profitNLoss; // 평가손익
-
   private int quantity; // 수량
 
   private int heldQuantity; // 미체결 매도 주문에 묶여 팔거나 보낼 수 없는 수량
