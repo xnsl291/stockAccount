@@ -86,6 +86,23 @@ public class OrderService {
 	}
 
 	/**
+	 * 접수가 커밋된 뒤 체결 조건을 한 번 더 확인함. 접수 트랜잭션 밖에서 불러야 함.
+	 * 접수가 옛 시세를 읽은 뒤 커밋하기 전에 시세 갱신이 지나가면, 접수는 새 시세를 못 봤고 시세 갱신은 커밋 전인 주문을 못 봐
+	 * 조건이 맞는데도 미체결로 남음. 커밋 뒤에 새 트랜잭션에서 주문과 시세를 다시 읽으면, 시세 갱신이 먼저 커밋됐을 때는 여기서
+	 * 새 시세를 보고, 접수가 먼저 커밋됐을 때는 시세 갱신이 이 주문을 봄.
+	 * 접수는 이미 끝났으므로 여기서 실패해도 예외를 넘기지 않고 로그만 남김. 남은 주문은 다음 시세 갱신 때 체결됨
+	 * @param accountId - 주문을 낸 계좌 ID
+	 * @param orderId - 주문 ID
+	 */
+	public void recheckFill(Long accountId, Long orderId) {
+		try {
+			transactionTemplate.execute(status -> fillIfFillable(accountId, orderId));
+		} catch (RuntimeException e) {
+			log.error("접수 뒤 재확인 체결 실패 - 주문 ID: {}", orderId, e);
+		}
+	}
+
+	/**
 	 * 주문 취소 - 미체결 주문만 취소할 수 있고, 묶어 둔 돈이나 주식을 풀어 줌
 	 * @param accountId - 주문을 낸 계좌 ID
 	 * @param orderId - 주문 ID
