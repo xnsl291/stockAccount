@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -51,6 +52,8 @@ class StockOrderTest extends ApiTest {
 	TransactionRepository transactionRepository;
 	@Autowired
 	PlatformTransactionManager transactionManager;
+	@Autowired
+	JdbcTemplate jdbcTemplate;
 
 	@Test
 	void 시세가_주문가를_만족하면_주문가가_아닌_시세로_바로_체결된다() throws Exception {
@@ -151,6 +154,37 @@ class StockOrderTest extends ApiTest {
 				"DEPOSIT 20000 20000", "STOCK_BUY -10000 10000", "FEE -1 9999", "STOCK_SELL 12000 21999", "FEE -1 21998");
 		assertThat(stockBalanceRepository.findByAccountIdAndStockId(sellerAccount.getId(), stock.getId())).isEmpty();
 		assertThat(ordersOf(tooLow)).containsExactly("BUY PENDING");
+	}
+
+	@Test
+	void 주문_접수와_시세_갱신이_겹쳐도_새_시세로_체결될_주문이_미체결로_남지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 10_000);
+		Stock stock = saveStock(1_000);
+		Member admin = saveAdmin();
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		Future<MvcResult> buy;
+
+		// 주문 테이블 끝에 새 줄이 들어가지 못하게 잠근 트랜잭션을 열어 두어, 주문 접수가 옛 시세(1,000원)를 읽은 뒤 주문 저장에서
+		// 기다리게 함. 그동안 시세를 900원으로 갱신하면 시세 갱신은 아직 저장되지 않은 이 주문을 보지 못함
+		TransactionStatus blockOrders = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			Long lastId = jdbcTemplate.queryForObject("select coalesce(max(id), 0) from trading", Long.class);
+			jdbcTemplate.queryForList("select id from trading where id > ? for update", lastId);
+			buy = executor.submit(() -> order("buy", member, account, stock, 900, 10).andReturn());
+			awaitLockWaits(1);
+			// 이 스레드는 위 트랜잭션에 묶여 있어, 시세 갱신 요청은 다른 스레드에서 보내고 끝날 때까지 기다림
+			assertThat(executor.submit(() -> updatePrice(admin, stock, 900).andReturn().getResponse().getStatus())
+					.get(30, TimeUnit.SECONDS)).isEqualTo(200);
+		} finally {
+			transactionManager.commit(blockOrders);
+		}
+
+		MvcResult result = buy.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(200);
+		assertThat(ordersOf(account)).containsExactly("BUY FILLED");
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("status").asText()).isEqualTo("FILLED");
 	}
 
 	@Test
