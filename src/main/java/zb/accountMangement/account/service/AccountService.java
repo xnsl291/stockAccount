@@ -192,6 +192,11 @@ public class AccountService {
         }
     }
 
+    // 계좌 모듈이 주식 모듈의 저장소를 직접 부르는 유일한 자리임
+    // StockService·OrderService가 이미 AccountService를 주입받고 있어, 여기서 주식 서비스를 주입받으면 빈이 서로 물림
+    // 해지·탈퇴는 계좌를 잠근 같은 트랜잭션 안에서 보유 주식 행까지 잠가 확인해야 하므로 위 모듈로 올리지도 않음
+    // 저장소 호출 한 줄을 감싸는 조회 전용 서비스는 경계 방향을 바꾸지 못해 두지 않음
+    // 계좌 모듈이 주식 모듈을 부르는 곳이 하나 더 생기면 이 구조를 다시 정해야 함
     private void checkNoAssets(Account account) {
         if (account.getBalance() != 0 || !stockBalanceRepository.findByAccountIdForUpdate(account.getId()).isEmpty())
             throw new CustomException(ErrorCode.REMAINING_ASSET);
