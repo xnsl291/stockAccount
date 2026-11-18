@@ -1,7 +1,7 @@
 // 겉모양과 무관한 작은 화면 조각. 새 디자인을 입힐 때는 클래스 이름과 styles/ 아래 CSS만 바꾸면 됨
 // 금액·수량 요소의 글자는 숫자와 부호만 두고 단위("원"·"주")는 testid 요소 밖에 둠(설계 3.10.0)
 
-import { useId, type ReactNode } from 'react';
+import { useId, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { formatAmount, formatAmountInput, formatSigned, digitsOnly } from '../lib/format';
 import { errorMessage, isNotFound, type ErrorContext } from '../lib/messages';
@@ -21,8 +21,10 @@ export function Amount({
   tone?: boolean;
 }) {
   const cls = tone ? (value > 0 ? 'num plus' : value < 0 ? 'num minus' : 'num') : 'num';
+  // 큰 금액 자리에서 자릿수에 맞춰 글자 크기를 줄일 때 씀(.hero-amount)
+  const digits = { '--digits': String(Math.trunc(Math.abs(value))).length } as CSSProperties;
   return (
-    <span className="amount">
+    <span className="amount" style={digits}>
       <span className={cls} data-testid={testid}>
         {signed ? formatSigned(value) : formatAmount(value)}
       </span>
