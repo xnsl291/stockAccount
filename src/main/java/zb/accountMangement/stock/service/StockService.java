@@ -14,6 +14,7 @@ import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.model.entity.Trading;
 import zb.accountMangement.stock.dto.RegisterStockDto;
+import zb.accountMangement.stock.dto.StockBalanceResponse;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
@@ -22,6 +23,10 @@ import zb.accountMangement.stock.model.TradeType;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static zb.accountMangement.common.type.FeeRate.TRANSFER_FEE_RATE;
 
@@ -161,28 +166,25 @@ public class StockService {
     /**
      * 계좌 잔고 조회 - 평가손익순으로 정렬
      * @param accountId - 계좌  ID
-     * @return 현재 보유중인 주식 종목 리스트
+     * @return 현재 보유중인 주식 종목 리스트 (종목 정보와 현재가 기준 평가금액·평가손익 포함)
      */
-    public List<StockBalance> getStockBalance(Long accountId) {
+    public List<StockBalanceResponse> getStockBalance(Long accountId) {
         List<StockBalance> stockBalances = stockBalanceRepository.findByAccountId(accountId);
-
-        if (!stockBalances.isEmpty())
-            // TODO: 스케줄러에 등록해서 STOCK 정보가 업데이트 될 떄 같이 업데이트 되게 변경
-            for (StockBalance stockBalance : stockBalances)
-                stockBalance.setProfitNLoss(calculateProfitLoss(stockBalance));  // 평가손익 업데이트
-
-        //평가손익순으로 정렬
-        stockBalances.sort(Comparator.comparingLong(StockBalance::getProfitNLoss).reversed());
-        return stockBalances;
+        // 종목을 보유 건마다 따로 읽지 않고 한 번에 읽어, 보유 종목 수와 상관없이 쿼리 수가 같게 함
+        Map<Long, Stock> stocks = getStocksById(stockBalances.stream().map(StockBalance::getStockId).collect(Collectors.toSet()));
+        return stockBalances.stream()
+                .map(stockBalance -> StockBalanceResponse.of(stockBalance, stocks.get(stockBalance.getStockId())))
+                .sorted(Comparator.comparingLong(StockBalanceResponse::getProfitNLoss).reversed())
+                .collect(Collectors.toList());
     }
 
     /**
-     * 평가손익 계산
-     * @param stockBalance - 주식 잔고
-     * @return 평가손익
+     * 여러 종목을 쿼리 한 번으로 읽음
+     * @param stockIds - 주식 ID 목록
+     * @return 주식 ID별 종목
      */
-    private long calculateProfitLoss(StockBalance stockBalance){
-        Stock stock = getStockById(stockBalance.getStockId());
-        return Math.multiplyExact(Math.subtractExact(stock.getCurrentPrice(), stockBalance.getAvgPrice()), (long) stockBalance.getQuantity());
+    public Map<Long, Stock> getStocksById(Set<Long> stockIds) {
+        return stockRepository.findAllById(stockIds).stream()
+                .collect(Collectors.toMap(Stock::getId, Function.identity()));
     }
 }

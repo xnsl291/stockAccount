@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
+import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.Trading;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,10 @@ public class TradingResponse {
 
 	private Long stockId;
 
+	private String stockCode;
+
+	private String stockName;
+
 	private TradeType type;
 
 	private OrderStatus status;
@@ -35,11 +40,13 @@ public class TradingResponse {
 
 	private LocalDateTime tradeAt;
 
-	public static TradingResponse from(Trading trading) {
+	public static TradingResponse of(Trading trading, Stock stock) {
 		return TradingResponse.builder()
 				.id(trading.getId())
 				.accountId(trading.getAccountId())
 				.stockId(trading.getStockId())
+				.stockCode(stock.getCode())
+				.stockName(stock.getName())
 				.type(trading.getType())
 				.status(trading.getStatus())
 				.price(trading.getPrice())
