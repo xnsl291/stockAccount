@@ -1,6 +1,9 @@
 package zb.accountMangement.account;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -12,6 +15,8 @@ import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doAnswer;
 import static zb.accountMangement.member.model.VerificationPurpose.ACCOUNT_UNLOCK;
 import static zb.accountMangement.member.model.VerificationPurpose.SIGN_UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -158,6 +163,31 @@ class AccountManagementTest extends ApiTest {
 		// 틀린 횟수도 0으로 돌아가 한 번 틀렸다고 다시 정지되지 않음
 		withdraw(member, account, "0000").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(status().isOk());
+	}
+
+	@Test
+	void 문자_인증_한_번으로는_거래정지된_계좌_하나만_풀린다() throws Exception {
+		Member member = saveMember();
+		Account first = saveAccount(member, 50_000);
+		Account second = saveAccount(member, 50_000);
+		lock(member, first);
+		lock(member, second);
+		verifyPhone(member.getPhoneNumber(), sendCode(member.getPhoneNumber()), ACCOUNT_UNLOCK).andExpect(status().isOk());
+		// 두 요청이 모두 인증 표시를 읽은 뒤에야 지우러 가게 해, 읽기와 지우기 사이에 다른 요청이 끼어드는 순서를 매번 만듦.
+		// 그냥 동시에 보내면 한 요청이 지운 뒤에 다른 요청이 읽어 우연히 하나만 풀릴 수 있음
+		CyclicBarrier bothRead = new CyclicBarrier(2);
+		doAnswer(invocation -> {
+			Object value = invocation.callRealMethod();
+			bothRead.await(10, TimeUnit.SECONDS);
+			return value;
+		}).when(redisService).getData(argThat(key -> key.startsWith("SMS_VERIFIED:")));
+
+		List<Integer> statuses = runConcurrently(2, i -> () ->
+				unlock(member, i == 0 ? first : second).andReturn().getResponse().getStatus());
+
+		assertThat(statuses).containsExactlyInAnyOrder(200, 400);
+		assertThat(List.of(statusOf(first), statusOf(second)))
+				.containsExactlyInAnyOrder(AccountStatus.EXISTS, AccountStatus.PENDING);
 	}
 
 	@Test

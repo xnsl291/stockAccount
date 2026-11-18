@@ -4,11 +4,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.member.service.SmsSender;
 
 /**
@@ -31,6 +33,10 @@ public abstract class IntegrationTest {
 	// 모든 테스트가 같은 스프링 컨텍스트를 재사용하도록 부모 클래스에 한 번만 둔다
 	@MockBean
 	protected SmsSender smsSender;
+
+	// 평소에는 실제 Redis를 그대로 쓰고, 동시성 테스트만 특정 호출 직후에 멈춰 세우는 데 씀
+	@SpyBean
+	protected RedisService redisService;
 
 	@DynamicPropertySource
 	static void containerProperties(DynamicPropertyRegistry registry) {
