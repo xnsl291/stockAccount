@@ -6,7 +6,7 @@
 .hero { gap: var(--s6); }
 .hero-label { font-size: var(--fs-body); color: var(--ink-2); font-weight: 600; display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
 .hero-amount { font-size: var(--fs-hero); font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; }
-.hero-amount .unit { font-size: .5em; color: var(--ink); font-weight: 700; margin-left: 6px; }
+.hero-amount .unit { font-size: max(var(--fs-cap), .5em); color: var(--ink); font-weight: 700; margin-left: 6px; }
 .hero-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
 .hero-actions > a, .hero-actions > span { min-height: 64px; }
 .hero-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--s10); align-items: start; }
@@ -15,20 +15,25 @@
 /* 잔액 숨기기: 금액만 가림. 화면 낭독기에는 그대로 읽힘(사용자 본인 기기 기준 기능) */
 .privacy .sensitive { filter: blur(14px); user-select: none; }
 
-/* 돈의 상태 줄: 앞에 막대와 같은 무늬 점을 붙임 */
-.kv .swatch, .bar-legend .swatch {
-  display: inline-block; width: 18px; height: 18px; border-radius: 5px; margin-right: var(--s2); vertical-align: -2px;
+/* 돈의 상태 줄: 앞에 원 그래프와 같은 표시를 붙임. 출금 가능 = 꽉 찬 점, 주문에 묶임 = 가는 고리(색 없이 모양으로도 구분) */
+.kv .swatch {
+  display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin-right: var(--s2); vertical-align: -1px;
 }
 .swatch-avail { background: var(--avail); }
-.swatch-held { background-color: var(--held-fill); background-image: radial-gradient(var(--held-dot) 1.4px, transparent 1.6px); background-size: 6px 6px; }
+.swatch-held { box-shadow: inset 0 0 0 4px var(--held-mark); }
 
-/* 예수금 구성 막대: 묶인 금액은 점무늬, 출금 가능은 칠함(빗금 쓰지 않음) */
-.bar { margin: 0; display: flex; flex-direction: column; gap: var(--s3); }
-.bar-track { display: flex; height: 20px; border-radius: var(--r-pill); overflow: hidden; background: var(--surface-3); gap: 3px; }
-.bar-held { background-color: var(--held-fill); background-image: radial-gradient(var(--held-dot) 1.6px, transparent 1.8px); background-size: 7px 7px; }
-.bar-avail { background: var(--avail); }
-.bar-held[style*='width: 0%'], .bar-avail[style*='width: 0%'] { display: none; }
-.bar-legend { display: flex; gap: var(--s2) var(--s6); flex-wrap: wrap; font-size: var(--fs-cap); color: var(--ink-2); }
+/* 예수금 구성: 왼쪽 원 그래프(비율), 오른쪽 이름-값 줄(금액). 자리가 모자라면 그래프가 위로 올라감 */
+.breakdown { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s5) var(--s6); }
+.breakdown .summary { flex: 1 1 280px; min-width: 0; }
+.donut { margin: 0; position: relative; flex: none; width: calc(var(--fs-cap) * 7); aspect-ratio: 1; }
+.donut svg { display: block; width: 100%; height: 100%; }
+.donut circle { fill: none; }
+.donut-track { stroke: var(--surface-3); }
+.donut-avail { stroke: var(--avail); }
+.donut-held { stroke: var(--held-mark); }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: var(--lh-tight); }
+.donut-label { font-size: var(--fs-cap); color: var(--ink-3); }
+.donut-pct { font-size: var(--fs-h2); font-weight: 800; }
 
 /* 영역 머리: 제목 + 오른쪽 링크 */
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }

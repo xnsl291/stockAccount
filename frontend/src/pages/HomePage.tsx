@@ -3,7 +3,7 @@
 import { Link } from 'react-router';
 import { useQueries } from '@tanstack/react-query';
 import { getOrders, getTransactions, type Order, type Transaction } from '../api/endpoints';
-import { BalanceBar } from '../components/BalanceBar';
+import { BalanceDonut } from '../components/BalanceDonut';
 import { IconWallet } from '../components/icons';
 import { Amount, LoadError, Loading, PageHead, StatusBadge } from '../components/ui';
 import { activeAccounts, useAccounts, useMember } from '../hooks/queries';
@@ -76,33 +76,35 @@ export function HomePage() {
             </nav>
           </div>
           <div>
-            <dl className="summary">
-              <div className="kv">
-                <dt>
-                  <span className="swatch swatch-held" />
-                  주문에 묶임
-                </dt>
-                <dd className="sensitive">
-                  <Amount value={total.held} testid="home-total-held" />
-                </dd>
-              </div>
-              <div className="kv">
-                <dt>주문 가능</dt>
-                <dd className="sensitive">
-                  <Amount value={total.orderable} testid="home-total-orderable" />
-                </dd>
-              </div>
-              <div className="kv">
-                <dt>
-                  <span className="swatch swatch-avail" />
-                  출금 가능
-                </dt>
-                <dd className="sensitive">
-                  <Amount value={total.orderable} testid="home-total-withdrawable" />
-                </dd>
-              </div>
-            </dl>
-            <BalanceBar testid="home-bar" balance={total.balance} held={total.held} />
+            <div className="breakdown">
+              <BalanceDonut testid="home-bar" balance={total.balance} held={total.held} />
+              <dl className="summary">
+                <div className="kv">
+                  <dt>
+                    <span className="swatch swatch-held" />
+                    주문에 묶임
+                  </dt>
+                  <dd className="sensitive">
+                    <Amount value={total.held} testid="home-total-held" />
+                  </dd>
+                </div>
+                <div className="kv">
+                  <dt>주문 가능</dt>
+                  <dd className="sensitive">
+                    <Amount value={total.orderable} testid="home-total-orderable" />
+                  </dd>
+                </div>
+                <div className="kv">
+                  <dt>
+                    <span className="swatch swatch-avail" />
+                    출금 가능
+                  </dt>
+                  <dd className="sensitive">
+                    <Amount value={total.orderable} testid="home-total-withdrawable" />
+                  </dd>
+                </div>
+              </dl>
+            </div>
             <p className="hint" data-testid="home-withdrawable-note">
               {MESSAGES.withdrawableNote}
             </p>

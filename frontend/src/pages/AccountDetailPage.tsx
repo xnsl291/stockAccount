@@ -1,7 +1,7 @@
 // S-06 계좌 상세. 아래 탭 세 개(거래내역 S-12, 보유 주식 S-17, 주문 내역 S-16)
 
 import { Link, useParams, useSearchParams } from 'react-router';
-import { BalanceBar } from '../components/BalanceBar';
+import { BalanceDonut } from '../components/BalanceDonut';
 import { LockedBanner, unlockPath } from '../components/Flow';
 import { Amount, LoadError, Loading, NotFound, StatusBadge } from '../components/ui';
 import { useAccount } from '../hooks/queries';
@@ -86,33 +86,35 @@ export function AccountDetailPage() {
             </nav>
           </div>
           <div>
-            <dl className="summary">
-              <div className="kv">
-                <dt>
-                  <span className="swatch swatch-held" />
-                  주문에 묶임
-                </dt>
-                <dd>
-                  <Amount value={a.heldAmount} testid="account-held" />
-                </dd>
-              </div>
-              <div className="kv">
-                <dt>주문 가능</dt>
-                <dd>
-                  <Amount value={a.availableBalance} testid="account-orderable" />
-                </dd>
-              </div>
-              <div className="kv">
-                <dt>
-                  <span className="swatch swatch-avail" />
-                  출금 가능
-                </dt>
-                <dd>
-                  <Amount value={a.availableBalance} testid="account-withdrawable" />
-                </dd>
-              </div>
-            </dl>
-            <BalanceBar testid="account-bar" balance={a.balance} held={a.heldAmount} />
+            <div className="breakdown">
+              <BalanceDonut testid="account-bar" balance={a.balance} held={a.heldAmount} />
+              <dl className="summary">
+                <div className="kv">
+                  <dt>
+                    <span className="swatch swatch-held" />
+                    주문에 묶임
+                  </dt>
+                  <dd>
+                    <Amount value={a.heldAmount} testid="account-held" />
+                  </dd>
+                </div>
+                <div className="kv">
+                  <dt>주문 가능</dt>
+                  <dd>
+                    <Amount value={a.availableBalance} testid="account-orderable" />
+                  </dd>
+                </div>
+                <div className="kv">
+                  <dt>
+                    <span className="swatch swatch-avail" />
+                    출금 가능
+                  </dt>
+                  <dd>
+                    <Amount value={a.availableBalance} testid="account-withdrawable" />
+                  </dd>
+                </div>
+              </dl>
+            </div>
             <p className="proof" data-testid="account-proof">
               잔액 <Amount value={a.balance} /> − 주문에 묶임 <Amount value={a.heldAmount} /> = 주문 가능 <Amount value={a.availableBalance} />
             </p>
