@@ -7,7 +7,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.support.ApiTest;
 

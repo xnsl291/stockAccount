@@ -11,7 +11,7 @@ import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.PhoneNumber;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.dto.*;

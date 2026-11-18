@@ -2,7 +2,7 @@ package zb.accountMangement.member.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
 
 import java.time.LocalDateTime;

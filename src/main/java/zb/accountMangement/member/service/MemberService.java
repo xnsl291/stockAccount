@@ -12,7 +12,7 @@ import zb.accountMangement.member.model.PhoneNumber;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.member.repository.MemberRepository;
-import zb.accountMangement.member.model.RoleType;
+import zb.accountMangement.common.type.RoleType;
 
 @Service
 @RequiredArgsConstructor
