@@ -16,6 +16,7 @@ import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.model.entity.Trading;
 import zb.accountMangement.stock.dto.AdminStockResponse;
+import zb.accountMangement.stock.dto.PriceUpdateResponse;
 import zb.accountMangement.stock.dto.RegisterStockDto;
 import zb.accountMangement.stock.dto.TradingResponse;
 import zb.accountMangement.stock.model.OrderStatus;
@@ -128,16 +129,15 @@ public class StockService {
      * 시세 갱신 - 새 시세로 체결되는 미체결 주문을 함께 체결함
      * @param stockId - 주식 ID
      * @param price - 새 시세
-     * @return 시세가 바뀐 종목
+     * @return 시세가 바뀐 종목과 체결 결과
      */
     // 시세를 먼저 커밋해야 주문마다 따로 여는 체결 트랜잭션이 새 시세를 읽으므로, 전체를 한 트랜잭션으로 묶지 않음
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Stock updatePrice(Long stockId, long price) {
+    public PriceUpdateResponse updatePrice(Long stockId, long price) {
         Stock stock = getStockById(stockId);
         stock.setCurrentPrice(price);
         stockRepository.save(stock);
-        orderService.matchPendingOrders(stockId);
-        return stock;
+        return orderService.matchPendingOrders(stock);
     }
 
     /**

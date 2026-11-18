@@ -2,14 +2,18 @@ package zb.accountMangement.stock;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.stock.model.entity.Stock;
+import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 관리자가 종목과 미체결 주문을 보는 조회
  */
 class AdminStockLookupTest extends ApiTest {
+
+	@Autowired
+	StockBalanceRepository stockBalanceRepository;
 
 	@Test
 	void 관리자는_종목_목록을_미체결_주문_수와_함께_최근_등록_순으로_본다() throws Exception {
@@ -82,6 +89,40 @@ class AdminStockLookupTest extends ApiTest {
 	}
 
 	@Test
+	void 시세를_넣으면_체결된_주문과_실패한_주문과_남은_주문_수를_돌려준다() throws Exception {
+		Member admin = saveAdmin();
+		Member member = saveMember();
+		Account fillSeller = saveAccount(member, 100_000);
+		Account failSeller = saveAccount(member, 100_000);
+		Account buyer = saveAccount(member, 100_000);
+		Stock stock = saveStock(1_000);
+		order(member, fillSeller, stock, 1_000, 10);
+		order(member, failSeller, stock, 1_000, 10);
+		long fills = order("sell", member, fillSeller, stock, 1_050, 5);
+		long fails = order("sell", member, failSeller, stock, 1_100, 5);
+		long remains = order(member, buyer, stock, 900, 1);
+		// 보유 내역이 사라진 계좌의 매도 주문은 체결 도중 오류가 남
+		stockBalanceRepository.delete(stockBalanceRepository.findByAccountIdAndStockId(failSeller.getId(), stock.getId()).orElseThrow());
+
+		mockMvc.perform(as(admin, put("/admin/stocks/" + stock.getId() + "/price"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of("price", 1_100))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(stock.getId()))
+				.andExpect(jsonPath("$.currentPrice").value(1_100))
+				.andExpect(jsonPath("$.filledCount").value(1))
+				.andExpect(jsonPath("$.filledOrderIds[0]").value(fills))
+				.andExpect(jsonPath("$.failedCount").value(1))
+				.andExpect(jsonPath("$.failedOrderIds[0]").value(fails))
+				.andExpect(jsonPath("$.remainingCount").value(1));
+
+		mockMvc.perform(as(admin, get("/admin/stocks/" + stock.getId() + "/orders")))
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].id").value(fails))
+				.andExpect(jsonPath("$[1].id").value(remains));
+	}
+
+	@Test
 	void 회원은_관리자_조회를_할_수_없다() throws Exception {
 		Member member = saveMember();
 		Stock stock = saveStock(1_000);
@@ -93,7 +134,11 @@ class AdminStockLookupTest extends ApiTest {
 	}
 
 	private long order(Member member, Account account, Stock stock, long price, int quantity) throws Exception {
-		String body = postJson("/api/stocks/buy", member, Map.of("accountId", account.getId(), "stockId", stock.getId(),
+		return order("buy", member, account, stock, price, quantity);
+	}
+
+	private long order(String side, Member member, Account account, Stock stock, long price, int quantity) throws Exception {
+		String body = postJson("/api/stocks/" + side, member, Map.of("accountId", account.getId(), "stockId", stock.getId(),
 				"price", price, "quantity", quantity, "accountPassword", ACCOUNT_PASSWORD))
 				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.stock.dto.AdminStockResponse;
+import zb.accountMangement.stock.dto.PriceUpdateResponse;
 import zb.accountMangement.stock.dto.RegisterStockDto;
 import zb.accountMangement.stock.dto.StockResponse;
 import zb.accountMangement.stock.dto.TradingResponse;
@@ -78,12 +79,12 @@ public class AdminStockController {
 	 * 시세 갱신 - 새 시세로 체결되는 미체결 주문을 함께 체결함
 	 * @param stockId - 주식 ID
 	 * @param updateStockPriceDto - 새 시세
-	 * @return 시세가 바뀐 종목
+	 * @return 시세가 바뀐 종목과 체결 결과 (체결·실패한 주문 ID, 체결하지 않고 남긴 주문 수)
 	 */
 	@PutMapping("/{stock_id}/price")
-	public ResponseEntity<StockResponse> updatePrice(
+	public ResponseEntity<PriceUpdateResponse> updatePrice(
 			@PathVariable("stock_id") Long stockId,
 			@Valid @RequestBody UpdateStockPriceDto updateStockPriceDto) {
-		return ResponseEntity.ok().body(StockResponse.from(stockService.updatePrice(stockId, updateStockPriceDto.getPrice())));
+		return ResponseEntity.ok().body(stockService.updatePrice(stockId, updateStockPriceDto.getPrice()));
 	}
 }
