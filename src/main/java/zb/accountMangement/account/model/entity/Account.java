@@ -4,6 +4,8 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.type.ErrorCode;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -11,7 +13,6 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,8 +27,10 @@ public class Account {
 
     private Long memberId;
 
+    @Setter
     private String nickname;
 
+    @Setter
     private String password;
 
     private int passwordFailCount;
@@ -35,6 +38,8 @@ public class Account {
     @Column(unique = true)
     private String accountNumber;
 
+    // 잔액은 거래 기록과 함께 바꿔야 하므로 TransactionService만 이 setter를 부름
+    @Setter
     private long balance; // 원 단위
 
     private long heldAmount; // 미체결 매수 주문에 묶여 쓸 수 없는 금액
@@ -50,6 +55,34 @@ public class Account {
 
     public long getAvailableBalance() {
         return balance - heldAmount;
+    }
+
+    /**
+     * 미체결 매수 주문에 돈을 묶음 - 묶인 금액이 잔액을 넘으면 거절함
+     * @param amount - 묶을 금액
+     */
+    public void hold(long amount) {
+        // 더하기 전에 쓸 수 있는 잔액과 비교해, 아주 큰 금액도 long 넘침 없이 같은 오류로 거절함
+        if (amount > getAvailableBalance())
+            throw new CustomException(ErrorCode.EXCEED_BALANCE);
+        changeHeldAmount(heldAmount + amount);
+    }
+
+    /**
+     * 체결되거나 취소된 매수 주문이 묶어 둔 돈을 풂
+     * @param amount - 풀 금액
+     */
+    public void releaseHold(long amount) {
+        changeHeldAmount(Math.subtractExact(heldAmount, amount));
+    }
+
+    // 묶인 금액은 0 이상, 잔액 이하여야 함. 0 아래로 내려가면 묶고 푼 금액의 계산이 어긋난 것이라 요청 오류가 아니라 서버 오류로 봄
+    private void changeHeldAmount(long heldAmountAfter) {
+        if (heldAmountAfter < 0)
+            throw new IllegalStateException("묶인 금액은 0보다 작아질 수 없음: " + heldAmountAfter);
+        if (heldAmountAfter > balance)
+            throw new CustomException(ErrorCode.EXCEED_BALANCE);
+        heldAmount = heldAmountAfter;
     }
 
     public boolean isExistsAccount() {
