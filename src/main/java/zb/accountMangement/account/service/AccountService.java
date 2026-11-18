@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +89,14 @@ public class AccountService {
               .status(AccountStatus.EXISTS)
               .build();
 
-        accountRepository.save(account);
+        // 위의 조회는 아직 커밋되지 않은 같은 번호의 계좌를 보지 못함. 그런 계좌가 먼저 커밋되면 저장이 유니크 제약에 걸리므로
+        // 여기서 잡아 다시 시도하면 되는 오류로 알림. 같은 트랜잭션 안에서 새 번호로 다시 저장하지 않는 것은,
+        // 유니크 위반이 난 트랜잭션은 롤백만 할 수 있어 이어서 저장할 수 없기 때문임
+        try {
+            accountRepository.saveAndFlush(account);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT_NUMBER);
+        }
         return account;
     }
 
