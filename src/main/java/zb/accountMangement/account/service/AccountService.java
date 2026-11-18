@@ -124,7 +124,8 @@ public class AccountService {
      */
     @Transactional
     public Account updateAccount(Long accountId, UpdateAccountDto updateAccountDto) {
-        Account account = getAccountById(accountId);
+        // 저장할 때 잔액·상태까지 모든 칸을 다시 쓰므로, 잠그지 않고 읽으면 그사이 커밋된 입금·해지를 읽은 시점 값으로 되돌림
+        Account account = getAccountForUpdate(accountId);
 
         if (account.isExistsAccount()) {
             if (updateAccountDto.getNickname() != null)
