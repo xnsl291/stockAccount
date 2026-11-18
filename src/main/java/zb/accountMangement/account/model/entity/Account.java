@@ -62,6 +62,7 @@ public class Account {
      * @param amount - 묶을 금액
      */
     public void hold(long amount) {
+        requirePositive(amount);
         // 더하기 전에 쓸 수 있는 잔액과 비교해, 아주 큰 금액도 long 넘침 없이 같은 오류로 거절함
         if (amount > getAvailableBalance())
             throw new CustomException(ErrorCode.EXCEED_BALANCE);
@@ -73,7 +74,14 @@ public class Account {
      * @param amount - 풀 금액
      */
     public void releaseHold(long amount) {
+        requirePositive(amount);
         changeHeldAmount(Math.subtractExact(heldAmount, amount));
+    }
+
+    // 음수를 받으면 묶기가 풀기로, 풀기가 묶기로 뒤집힘. 호출하는 쪽이 이미 검증한 양수만 넘기므로 들어오면 코드 오류임
+    private static void requirePositive(long amount) {
+        if (amount <= 0)
+            throw new IllegalArgumentException("묶거나 풀 금액은 0보다 커야 함: " + amount);
     }
 
     // 묶인 금액은 0 이상, 잔액 이하여야 함. 0 아래로 내려가면 묶고 푼 금액의 계산이 어긋난 것이라 요청 오류가 아니라 서버 오류로 봄
