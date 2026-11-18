@@ -48,6 +48,6 @@ WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 20)
 SELECT i, CONCAT('9000', LPAD(i, 2, '0')), CONCAT('부하종목', i), 10000 + i * 1000 FROM n;
 
 -- 보유 내역: 일반 계좌마다 1~5번 종목을 100주씩. 매도 주문을 낼 수 있게 함
-INSERT INTO stock_balance (account_id, stock_id, avg_price, profitnloss, quantity, held_quantity)
+INSERT INTO stock_balance (account_id, stock_id, avg_price, quantity, held_quantity)
 WITH RECURSIVE n(i) AS (SELECT 0 UNION ALL SELECT i + 1 FROM n WHERE i < 4999)
-SELECT FLOOR(i / 5) + 1, MOD(i, 5) + 1, 10000 + (MOD(i, 5) + 1) * 1000, 0, 100, 0 FROM n;
+SELECT FLOOR(i / 5) + 1, MOD(i, 5) + 1, 10000 + (MOD(i, 5) + 1) * 1000, 100, 0 FROM n;
