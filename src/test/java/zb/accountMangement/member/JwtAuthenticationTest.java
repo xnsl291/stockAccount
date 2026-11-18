@@ -127,6 +127,19 @@ class JwtAuthenticationTest extends IntegrationTest {
 	}
 
 	@Test
+	void 관리자도_로그아웃할_수_있고_로그아웃한_토큰으로는_관리자_API를_쓸_수_없다() throws Exception {
+		Member admin = saveMember(RoleType.ADMIN);
+		String accessToken = login(admin).get("accessToken").asText();
+
+		mockMvc.perform(post("/api/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(get("/admin/stocks").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.code").value("INVALID_TOKEN"));
+	}
+
+	@Test
 	void 리프레시_토큰으로_재발급받고_이전_리프레시_토큰은_다시_쓸_수_없다() throws Exception {
 		Member member = saveMember(RoleType.USER);
 		String oldRefreshToken = login(member).get("refreshToken").asText();
