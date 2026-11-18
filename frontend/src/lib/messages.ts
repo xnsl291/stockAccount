@@ -26,7 +26,6 @@ export const MESSAGES = {
   moneyUnknown: '처리됐는지 확인하지 못했어요. 다시 시도해도 두 번 처리되지 않아요',
   accountLocked: '비밀번호를 5번 연속 틀려 거래정지됐어요',
   lockedBanner: '비밀번호를 5번 연속 틀려 거래정지된 계좌예요. 문자 인증으로 잠금을 풀 수 있어요',
-  closeFalse: '마지막 남은 계좌이거나 거래정지된 계좌는 해지할 수 없어요',
   withdrawableNote: '지금은 주문 가능 금액과 같음. D+2 결제가 들어가면 달라짐',
   pwWarning: '5번 연속 틀리면 계좌가 거래정지됨',
 } as const;
@@ -83,6 +82,10 @@ export function errorMessage(error: unknown, context: ErrorContext): string {
       return '해지된 계좌예요';
     case 'PENDING_ACCOUNT':
       return '거래정지된 계좌예요. 문자 인증으로 잠금을 풀어 주세요';
+    case 'LAST_ACCOUNT':
+      return '마지막 남은 계좌는 해지할 수 없어요';
+    case 'DUPLICATED_ACCOUNT_NUMBER':
+      return '계좌번호가 겹쳐 만들지 못했어요. 다시 시도해 주세요';
     case 'EXCEED_BALANCE':
       if (context === 'order') return '주문 가능 금액보다 커요';
       if (context === 'stocktransfer') return '이체 수수료를 낼 돈이 부족해요';

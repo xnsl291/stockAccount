@@ -75,13 +75,10 @@ export function AccountSettingsPage() {
     setClosing(true);
     setCloseError(null);
     try {
-      const ok = await closeAccount(id);
-      if (ok) {
-        await queryClient.invalidateQueries();
-        navigate('/accounts', { replace: true });
-        return;
-      }
-      setCloseError(MESSAGES.closeFalse);
+      // 해지하지 못하면 서버가 이유(마지막 계좌, 거래정지, 자산 남음)를 오류 코드로 돌려줌
+      await closeAccount(id);
+      await queryClient.invalidateQueries();
+      navigate('/accounts', { replace: true });
     } catch (e) {
       setCloseError(errorMessage(e, 'close'));
     } finally {
