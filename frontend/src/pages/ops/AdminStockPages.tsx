@@ -109,7 +109,7 @@ export function AdminStocksPage() {
 
   return (
     <div className="stack">
-      <PageHead title="종목 관리" sub="S-31 · 종목마다 현재가와 미체결 주문 수를 봐요. 최근 등록한 종목이 위에 와요" />
+      <PageHead title="종목 관리" sub="종목마다 현재가와 미체결 주문 수를 봐요. 최근 등록한 종목이 위에 와요" />
       <section className="panel">
         {query.isPending ? (
           <Loading />
@@ -270,7 +270,7 @@ function PriceForm({ stockId }: { stockId: number }) {
 
   return (
     <>
-      <PageHead title="시세 입력" sub="S-32 · 새 시세를 넣으면 그 시세에 맞는 미체결 주문이 바로 체결돼요" />
+      <PageHead title="시세 입력" sub="새 시세를 넣으면 그 시세에 맞는 미체결 주문이 바로 체결돼요" />
       <section className="panel hero">
         <div className="stock-line">
           <span className="row-title">
@@ -347,7 +347,7 @@ export function AdminPricePage() {
   if (!Number.isInteger(stockId) || stockId <= 0)
     return (
       <div className="stack">
-        <PageHead title="시세 입력" sub="S-32 · 새 시세를 넣으면 그 시세에 맞는 미체결 주문이 바로 체결돼요" />
+        <PageHead title="시세 입력" sub="새 시세를 넣으면 그 시세에 맞는 미체결 주문이 바로 체결돼요" />
         <section className="panel empty" data-testid="opsprice-pick-empty">
           <p>시세를 넣을 종목을 먼저 골라 주세요</p>
           <Link to="/ops/stocks" className="button soft" data-testid="opsprice-stocks-link">
