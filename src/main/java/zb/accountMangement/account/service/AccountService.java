@@ -15,6 +15,7 @@ import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.exception.UniqueConstraint;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
@@ -96,7 +97,9 @@ public class AccountService {
         try {
             accountRepository.saveAndFlush(account);
         } catch (DataIntegrityViolationException e) {
-            throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT_NUMBER);
+            if (UniqueConstraint.isViolated(e, "uk_account_account_number"))
+                throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT_NUMBER);
+            throw e;
         }
         return account;
     }

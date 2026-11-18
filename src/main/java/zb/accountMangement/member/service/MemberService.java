@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.exception.UniqueConstraint;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.model.PhoneNumber;
@@ -73,7 +74,7 @@ public class MemberService {
 		sendMessageService.consumeVerifiedPhone(normalized, VerificationPurpose.SIGN_UP);
 
 		// 위의 중복 검사는 아직 커밋되지 않은 같은 번호의 가입을 보지 못함. 그런 가입이 먼저 커밋되면 저장이 유니크 제약에 걸리므로
-		// 여기서 잡아 같은 오류 코드로 바꿈. 회원 테이블의 유니크 제약은 전화번호 하나뿐임
+		// 여기서 잡아 같은 오류 코드로 바꿈. 다른 저장 오류는 중복이 아니므로 그대로 올려 보냄
 		try {
 			return memberRepository.saveAndFlush(Member.builder()
 					.name(name)
@@ -82,7 +83,9 @@ public class MemberService {
 					.role(RoleType.USER)
 					.build());
 		} catch (DataIntegrityViolationException e) {
-			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			if (UniqueConstraint.isViolated(e, "uk_member_phone_number"))
+				throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			throw e;
 		}
 	}
 
@@ -123,7 +126,9 @@ public class MemberService {
 		try {
 			memberRepository.saveAndFlush(member);
 		} catch (DataIntegrityViolationException e) {
-			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			if (UniqueConstraint.isViolated(e, "uk_member_phone_number"))
+				throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			throw e;
 		}
 		if (passwordChanged)
 			jwtTokenProvider.deleteRefreshToken(member.getId());

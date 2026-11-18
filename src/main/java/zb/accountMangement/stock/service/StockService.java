@@ -12,6 +12,7 @@ import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.exception.UniqueConstraint;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
@@ -120,7 +121,7 @@ public class StockService {
         if (stockRepository.existsByCode(registerStockDto.getCode()))
             throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
         // 위의 검사는 아직 커밋되지 않은 같은 코드의 등록을 보지 못해, 그런 등록이 먼저 커밋되면 저장이 유니크 제약에 걸림.
-        // 종목 테이블의 유니크 제약은 종목코드 하나뿐이라 같은 오류 코드로 바꿈
+        // 종목코드 유니크 위반일 때만 같은 오류 코드로 바꾸고, 다른 저장 오류는 그대로 올려 보냄
         try {
             return stockRepository.saveAndFlush(Stock.builder()
                     .code(registerStockDto.getCode())
@@ -128,7 +129,9 @@ public class StockService {
                     .currentPrice(registerStockDto.getCurrentPrice())
                     .build());
         } catch (DataIntegrityViolationException e) {
-            throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
+            if (UniqueConstraint.isViolated(e, "uk_stock_code"))
+                throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
+            throw e;
         }
     }
 
