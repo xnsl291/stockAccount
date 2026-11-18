@@ -72,7 +72,8 @@ public class AccountService {
      */
     @Transactional
     public Account openAccount(Long memberId, AccountManagementDto accountManagementDto) {
-        memberService.checkActive(memberService.getMemberById(memberId));
+        // 탈퇴와 겹치면 탈퇴가 읽은 계좌 목록에 새 계좌가 빠져 살아 남으므로, 탈퇴와 같은 회원 행 잠금을 먼저 잡음
+        memberService.checkActive(memberService.getMemberForUpdate(memberId));
 
         // 계좌번호 랜덤생성 - 중복 생성 x
         String accountNumber = accountNumberGenerator.generate();
