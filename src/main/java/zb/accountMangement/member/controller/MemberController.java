@@ -5,7 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import zb.accountMangement.common.service.ValidationService;
+import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.service.MemberService;
 
@@ -19,7 +20,6 @@ import javax.validation.constraints.Min;
 @RequestMapping("/api/member")
 public class MemberController {
   private final MemberService memberService;
-  private final ValidationService validationService;
 
   /**
    * 회원 정보 열람 기능
@@ -30,7 +30,7 @@ public class MemberController {
   public ResponseEntity<MemberResponse> getMemberInfo(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("member_id") @Min(1) Long memberId  ){
-    validationService.validMemberId(loginMemberId,memberId);
+    validMemberId(loginMemberId,memberId);
     return ResponseEntity.ok().body(MemberResponse.from(memberService.getMemberById(memberId)));
   }
 
@@ -45,7 +45,7 @@ public class MemberController {
       @AuthenticationPrincipal Long loginMemberId,
       @PathVariable("member_id") @Min(1) long memberId,
       @RequestBody @Valid UpdateMemberDto updateMemberDto){
-    validationService.validMemberId(loginMemberId,memberId);
+    validMemberId(loginMemberId,memberId);
     return ResponseEntity.ok().body(MemberResponse.from(memberService.updateMemberInfo(loginMemberId, memberId, updateMemberDto)));
   }
 
@@ -65,7 +65,7 @@ public class MemberController {
           @PathVariable("member_id") @Min(1) Long memberId,
           @Valid @RequestBody FindMemberInfoDto findMemberInfoDto,
           HttpServletRequest request) {
-    validationService.validMemberId(loginMemberId,memberId);
+    validMemberId(loginMemberId,memberId);
     return ResponseEntity.ok().body(memberService.requestResetPw(loginMemberId,memberId,findMemberInfoDto,request.getRemoteAddr()));
   }
 
@@ -81,7 +81,12 @@ public class MemberController {
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("member_id") @Min(1) Long memberId,
           @Valid @RequestBody ResetPwDto resetPwDto) {
-    validationService.validMemberId(loginMemberId,memberId);
+    validMemberId(loginMemberId,memberId);
     return ResponseEntity.ok().body(memberService.verifyResetPw(loginMemberId,memberId,resetPwDto));
+  }
+
+  private void validMemberId(Long loginMemberId, Long memberId){
+    if (!loginMemberId.equals(memberId))
+      throw new CustomException(ErrorCode.MISMATCHED_USER_ID);
   }
 }

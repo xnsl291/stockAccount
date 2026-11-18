@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.account.model.entity.IdempotencyRecord;
 import zb.accountMangement.account.service.IdempotencyService;
-import zb.accountMangement.common.service.ValidationService;
+import zb.accountMangement.account.service.AccountValidationService;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
 import zb.accountMangement.stock.model.entity.Stock;
@@ -31,7 +31,7 @@ public class StockController {
 
     private final StockService stockService;
     private final OrderService orderService;
-    private final ValidationService validationService;
+    private final AccountValidationService accountValidationService;
     private final IdempotencyService idempotencyService;
 
     /**
@@ -65,7 +65,7 @@ public class StockController {
     }
 
     private TradingResponse placeOrder(Long loginMemberId, String idempotencyKey, TradeType type, TradeStockDto tradeStockDto) {
-        validationService.validAccountPassword(loginMemberId, tradeStockDto.getAccountId(), tradeStockDto.getAccountPassword());
+        accountValidationService.validAccountPassword(loginMemberId, tradeStockDto.getAccountId(), tradeStockDto.getAccountPassword());
         String orderId = idempotencyService.execute(loginMemberId, idempotencyKey,
                 type + " " + tradeStockDto.getAccountId() + " " + tradeStockDto.getStockId() + " "
                         + tradeStockDto.getPrice() + " " + tradeStockDto.getQuantity(),
@@ -86,7 +86,7 @@ public class StockController {
             @AuthenticationPrincipal Long loginMemberId,
             @PathVariable("account_id") Long accountId,
             @PathVariable("order_id") Long orderId){
-        validationService.validAccountOwner(loginMemberId, accountId);
+        accountValidationService.validAccountOwner(loginMemberId, accountId);
         Trading order = orderService.cancelOrder(accountId, orderId);
         return ResponseEntity.ok().body(TradingResponse.of(order, stockService.getStockById(order.getStockId())));
     }
@@ -103,7 +103,7 @@ public class StockController {
             @AuthenticationPrincipal Long loginMemberId,
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody TransferStockDto transferStockDto){
-        validationService.validAccountPassword(loginMemberId, transferStockDto.getSenderAccountId(), transferStockDto.getAccountPassword());
+        accountValidationService.validAccountPassword(loginMemberId, transferStockDto.getSenderAccountId(), transferStockDto.getAccountPassword());
         return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
                 "STOCK_TRANSFER " + transferStockDto.getSenderAccountId() + " " + transferStockDto.getReceiverAccountId() + " "
                         + transferStockDto.getStockId() + " " + transferStockDto.getQuantity(),
@@ -120,7 +120,7 @@ public class StockController {
     public ResponseEntity<List<StockBalanceResponse>> getStockBalance(
             @AuthenticationPrincipal Long loginMemberId,
             @Validated @PathVariable("account_id") Long accountId){
-        validationService.validAccountOwner(loginMemberId, accountId);
+        accountValidationService.validAccountOwner(loginMemberId, accountId);
         return ResponseEntity.ok().body(stockService.getStockBalance(accountId));
     }
 
@@ -138,7 +138,7 @@ public class StockController {
             @Validated @PathVariable("account_id") Long accountId,
             @RequestParam(required = false) OrderStatus status,
             @ModelAttribute @Valid DateDto dateDto) {
-        validationService.validAccountOwner(loginMemberId, accountId);
+        accountValidationService.validAccountOwner(loginMemberId, accountId);
         List<Trading> history = orderService.getTradeHistory(accountId, status, dateDto);
         Map<Long, Stock> stocks = stockService.getStocksById(history.stream().map(Trading::getStockId).collect(Collectors.toSet()));
         return ResponseEntity.ok().body(history.stream()

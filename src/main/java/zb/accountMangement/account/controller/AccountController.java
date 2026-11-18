@@ -9,7 +9,7 @@ import zb.accountMangement.account.dto.AccountResponse;
 import zb.accountMangement.account.dto.SearchAccountDto;
 import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.service.AccountService;
-import zb.accountMangement.common.service.ValidationService;
+import zb.accountMangement.account.service.AccountValidationService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/accounts")
 public class AccountController {
   private final AccountService accountService;
-  private final ValidationService validationService;
+  private final AccountValidationService accountValidationService;
 
   /**
    * 계좌개설
@@ -45,7 +45,7 @@ public class AccountController {
   public ResponseEntity<AccountResponse> getAccountInfo(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id") Long accountId){
-    validationService.validAccountOwner(loginMemberId,accountId);
+    accountValidationService.validAccountOwner(loginMemberId,accountId);
     return ResponseEntity.ok().body(AccountResponse.from(accountService.getAccountInfo(accountId)));
   }
 
@@ -61,7 +61,7 @@ public class AccountController {
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id") Long accountId,
           @Valid @RequestBody UpdateAccountDto updateAccountDto){
-    validationService.validAccountPassword(loginMemberId, accountId, updateAccountDto.getCurrentPassword());
+    accountValidationService.validAccountPassword(loginMemberId, accountId, updateAccountDto.getCurrentPassword());
     return ResponseEntity.ok().body(AccountResponse.from(accountService.updateAccount(accountId, updateAccountDto)));
   }
 
@@ -75,7 +75,7 @@ public class AccountController {
   public ResponseEntity<AccountResponse> unlockAccount(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id") Long accountId){
-    validationService.validAccountOwner(loginMemberId, accountId);
+    accountValidationService.validAccountOwner(loginMemberId, accountId);
     return ResponseEntity.ok().body(AccountResponse.from(accountService.unlockAccount(accountId)));
   }
 
@@ -89,7 +89,7 @@ public class AccountController {
   public ResponseEntity<Boolean> deleteAccountInfo(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id")Long accountId){
-    validationService.validAccountOwner(loginMemberId,accountId);
+    accountValidationService.validAccountOwner(loginMemberId,accountId);
     return ResponseEntity.ok().body(accountService.deleteAccount(accountId));
   }
 
