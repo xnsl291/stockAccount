@@ -49,6 +49,12 @@ Flyway 도입 전(`ddl-auto: update`)에 만든 로컬 DB가 있으면 지우고
 docker compose down -v && docker compose up -d
 ```
 
+### 모니터링
+
+`docker compose up -d`가 Prometheus(`127.0.0.1:9090`)와 Grafana(`127.0.0.1:3000`, 기본 계정 admin/admin, `GRAFANA_ADMIN_PASSWORD`로 바꿈)도 띄움. Grafana에 `StockAccount 기본` 대시보드(경로별 응답 시간 p95, 처리량, 응답 상태, DB 커넥션 풀 대기, JVM 메모리·GC, CPU)가 들어 있음
+
+앱은 지표를 업무 포트(8080)가 아니라 관리 포트 `127.0.0.1:8081`의 `/actuator/prometheus`, `/actuator/health`로만 내보냄. 이 두 경로는 토큰 없이 열리지만 이 PC 밖에서는 닿지 않음. 다른 장비의 Prometheus가 긁어 가게 하려면 `MANAGEMENT_ADDRESS`, `MANAGEMENT_PORT`를 바꿈
+
 ### 관리자 계정
 
 관리자 가입 API는 일부러 두지 않음. 로컬에서는 일반 회원으로 가입한 뒤 DB에서 권한을 바꾸고 다시 로그인함(권한은 토큰에 들어가므로 기존 토큰에는 반영되지 않음)

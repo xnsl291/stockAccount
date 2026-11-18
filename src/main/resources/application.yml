@@ -24,10 +24,8 @@ spring:
     hibernate:
       # 스키마는 Flyway(db/migration)가 만들고, Hibernate는 엔티티와 스키마가 맞는지만 확인함
       ddl-auto: validate
-    properties:
-      hibernate:
-        format_sql: true
-    show-sql: true
+    # 모든 SQL을 로그로 찍으면 부하 측정 때 로그 쓰기가 응답 시간에 섞이므로 기본으로 끔
+    show-sql: false
 
   mvc:
     pathmatch:
@@ -36,6 +34,27 @@ spring:
   redis:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
+
+management:
+  # 지표 경로는 업무 API(8080)와 다른 포트에서만 열고, 기본으로 이 PC 안에서만 접속되게 묶음
+  # Prometheus를 다른 장비·컨테이너에서 돌리면 MANAGEMENT_ADDRESS를 그 망에서 닿는 주소로 바꿈
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+    address: ${MANAGEMENT_ADDRESS:127.0.0.1}
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: stock-account
+    distribution:
+      # p95·p99를 Prometheus에서 계산하려면 응답 시간을 구간별 개수(히스토그램)로 내보내야 함
+      percentiles-histogram:
+        http.server.requests: true
 
 jwt:
   # 기본값을 두지 않음. JWT_SECRET 환경변수나 application-secret.yml로 넣어야 하고, 없으면 앱이 뜨지 않음
