@@ -62,11 +62,16 @@ class AccountHeldAmountTest {
 	}
 
 	@Test
-	void 음수_금액으로_묶인_금액을_0_아래로_내릴_수_없다() {
+	void 음수나_0으로_묶거나_풀면_방향이_뒤집히지_않고_거절한다() {
 		Account account = accountWith(10_000);
+		account.hold(3_000);
 
-		assertThatThrownBy(() -> account.hold(-1))
-				.isInstanceOf(IllegalStateException.class);
-		assertThat(account.getHeldAmount()).isZero();
+		assertThatThrownBy(() -> account.hold(-1_000))
+				.isInstanceOf(IllegalArgumentException.class);
+		assertThatThrownBy(() -> account.releaseHold(-1_000))
+				.isInstanceOf(IllegalArgumentException.class);
+		assertThatThrownBy(() -> account.hold(0))
+				.isInstanceOf(IllegalArgumentException.class);
+		assertThat(account.getHeldAmount()).isEqualTo(3_000);
 	}
 }
