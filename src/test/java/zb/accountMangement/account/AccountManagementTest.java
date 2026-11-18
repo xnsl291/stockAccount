@@ -250,6 +250,7 @@ class AccountManagementTest extends ApiTest {
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(status().isOk());
 	}
 
+	// 수정 뒤 코드는 getData를 부르지 않아 아래 끼워넣기 장치가 걸리지 않음. 다른 비원자 방식(예: 확인 후 삭제)으로 바뀌면 이 테스트가 우연히 통과할 수 있음
 	@Test
 	void 문자_인증_한_번으로는_거래정지된_계좌_하나만_풀린다() throws Exception {
 		Member member = saveMember();
