@@ -41,8 +41,9 @@ public class SecurityConfig {
           .antMatchers("/api/auth/login", "/api/auth/sign-up", "/api/auth/reissue",
             "/api/auth/send-code", "/api/auth/verify-phone")
           .permitAll()
-          .antMatchers("/api/accounts/**", "/api/transactions/**", "/api/stocks/**", "/api/auth/**",
-            "/api/member/**").hasRole("USER")
+          // 로그아웃·탈퇴는 자기 토큰만 다루므로 역할과 무관하게 로그인만 요구함. 관리자도 로그아웃할 수 있어야 함
+          .antMatchers("/api/auth/**").authenticated()
+          .antMatchers("/api/accounts/**", "/api/transactions/**", "/api/stocks/**", "/api/member/**").hasRole("USER")
           .antMatchers("/admin/**").hasRole("ADMIN")
           .anyRequest().authenticated()
         .and()
