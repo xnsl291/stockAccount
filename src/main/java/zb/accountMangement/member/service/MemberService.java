@@ -108,7 +108,8 @@ public class MemberService {
 	 */
 	@Transactional
 	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
-		Member member = checkMemberPermission(loginMemberId, memberId);
+		// 저장할 때 역할까지 모든 칸을 다시 쓰므로, 잠그지 않고 읽으면 그사이 커밋된 탈퇴를 읽은 시점 값으로 되돌림
+		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
 		if (!passwordEncoder.matches(updateMemberDto.getCurrentPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
@@ -144,7 +145,7 @@ public class MemberService {
 	 * @return "인증 메세지 발송 완료"
 	 */
 	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
-		Member member = checkMemberPermission(loginMemberId, memberId);
+		Member member = checkMemberPermission(loginMemberId, getMemberById(memberId));
 
 		if (!member.getName().equals(findMemberInfoDto.getName())
 				|| !member.getPhoneNumber().equals(PhoneNumber.normalize(findMemberInfoDto.getPhoneNumber())))
@@ -161,7 +162,8 @@ public class MemberService {
 	 */
 	@Transactional
 	public String verifyResetPw(Long loginMemberId, Long memberId, ResetPwDto resetPwDto) {
-		Member member = checkMemberPermission(loginMemberId, memberId);
+		// 회원정보 수정과 같은 이유로 잠그고 읽음
+		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
 		sendMessageService.confirmCode(member.getPhoneNumber(), resetPwDto.getInputCode());
 		member.setPassword(passwordEncoder.encode(resetPwDto.getNewPassword()));
 		jwtTokenProvider.deleteRefreshToken(member.getId());
@@ -169,9 +171,7 @@ public class MemberService {
 	}
 
 
-	public Member checkMemberPermission(Long loginMemberId, long memberId){
-		Member member = getMemberById(memberId);
-
+	public Member checkMemberPermission(Long loginMemberId, Member member){
 		if(!member.getId().equals(loginMemberId))
 			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
 
