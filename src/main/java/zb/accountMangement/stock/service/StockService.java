@@ -1,6 +1,8 @@
 package zb.accountMangement.stock.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +15,10 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.model.entity.Trading;
+import zb.accountMangement.stock.dto.AdminStockResponse;
 import zb.accountMangement.stock.dto.RegisterStockDto;
+import zb.accountMangement.stock.dto.TradingResponse;
+import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.dto.StockBalanceResponse;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
@@ -58,6 +63,40 @@ public class StockService {
      */
     public Long getCurrentStockPrice(Long stockId) {
         return getStockById(stockId).getCurrentPrice();
+    }
+
+    /**
+     * 관리자용 종목 목록 - 최근 등록 순
+     * @param page - 페이지 번호 (0부터)
+     * @param size - 페이지 크기
+     * @return 종목과 종목별 미체결 주문 수
+     */
+    public Page<AdminStockResponse> getAdminStocks(int page, int size) {
+        return stockRepository.findAllWithPendingOrderCount(PageRequest.of(page, size));
+    }
+
+    /**
+     * 관리자용 종목 한 건 조회
+     * @param stockId - 주식 ID
+     * @return 종목과 미체결 주문 수
+     */
+    public AdminStockResponse getAdminStock(Long stockId) {
+        Stock stock = getStockById(stockId);
+        return new AdminStockResponse(stock.getId(), stock.getCode(), stock.getName(), stock.getCurrentPrice(),
+                tradeHistoryRepository.countByStockIdAndStatus(stockId, OrderStatus.PENDING));
+    }
+
+    /**
+     * 종목에 걸린 주문 조회 - 먼저 들어온 순서(체결 순서와 같음)
+     * @param stockId - 주식 ID
+     * @param status - 주문 상태
+     * @return 주문 리스트
+     */
+    public List<TradingResponse> getOrdersOfStock(Long stockId, OrderStatus status) {
+        Stock stock = getStockById(stockId);
+        return tradeHistoryRepository.findByStockIdAndStatusOrderByIdAsc(stockId, status).stream()
+                .map(trading -> TradingResponse.of(trading, stock))
+                .collect(Collectors.toList());
     }
 
     /**

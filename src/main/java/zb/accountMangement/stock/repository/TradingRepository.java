@@ -14,6 +14,8 @@ import java.util.List;
 public interface TradingRepository extends JpaRepository<Trading, Long> {
     List<Trading> findByStockIdAndStatusOrderByIdAsc(Long stockId, OrderStatus status);
 
+    long countByStockIdAndStatus(Long stockId, OrderStatus status);
+
     @Query("select t from Trading t where t.accountId = :accountId"
             + " and (:status is null or t.status = :status)"
             + " and (:from is null or t.createdAt >= :from)"
