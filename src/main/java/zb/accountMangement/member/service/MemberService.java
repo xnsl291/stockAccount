@@ -38,6 +38,18 @@ public class MemberService {
 
 
 	/**
+	 * 다른 요청이 같은 회원의 탈퇴와 계좌 개설을 동시에 하지 못하게 회원 행을 잠그고 읽음.
+	 * 트랜잭션 안에서, 그 트랜잭션의 첫 조회로 불러야 함. 잠금 순서는 회원 → 계좌임
+	 *
+	 * @param memberId - id
+	 * @return Member
+	 */
+	public Member getMemberForUpdate(long memberId) {
+		return memberRepository.findByIdForUpdate(memberId).orElseThrow(
+				() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+	}
+
+	/**
 	 * 가입용 회원 생성 - 가입 용도의 핸드폰 인증을 마친 번호여야 하고, 인증 표시는 이때 지움
 	 *
 	 * @param name          - 이름 (한글·영문·숫자 2~10자)
