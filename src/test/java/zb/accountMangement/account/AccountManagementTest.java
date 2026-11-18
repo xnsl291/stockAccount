@@ -1,5 +1,6 @@
 package zb.accountMangement.account;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
@@ -21,6 +22,9 @@ import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
+import zb.accountMangement.stock.model.entity.Stock;
+import zb.accountMangement.stock.model.entity.StockBalance;
+import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +44,8 @@ class AccountManagementTest extends ApiTest {
 
 	@Autowired
 	PlatformTransactionManager transactionManager;
+	@Autowired
+	StockBalanceRepository stockBalanceRepository;
 
 	@Test
 	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
@@ -297,6 +303,38 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(1))
 				.andExpect(jsonPath("$[0].id").value(last.getId()));
+	}
+
+	@Test
+	void 계좌_두_개를_동시에_해지해도_하나는_남는다() throws Exception {
+		Member member = saveMember();
+		Account first = saveAccount(member);
+		Account second = saveAccount(member);
+		Stock stock = saveStock(1_000);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		List<Future<Integer>> closes = new ArrayList<>();
+
+		// 두 계좌에 보유 주식을 넣고 커밋하지 않은 상태를 만들어, 두 해지 요청이 계좌 수를 센 다음 보유 주식 확인에서 기다리게 함.
+		// 그 뒤 넣은 것을 되돌려 두 요청이 해지를 이어 가게 함. 계좌 수를 잠금 없이 세면 둘 다 "2개"를 본 채로 해지함
+		TransactionStatus incoming = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			for (Account account : List.of(first, second))
+				stockBalanceRepository.saveAndFlush(StockBalance.builder()
+						.accountId(account.getId()).stockId(stock.getId()).quantity(1).build());
+			for (Account account : List.of(first, second))
+				closes.add(executor.submit(() -> closeAccount(member, account).andReturn().getResponse().getStatus()));
+			awaitLockWaits(2);
+		} finally {
+			transactionManager.rollback(incoming);
+		}
+
+		List<Integer> statuses = new ArrayList<>();
+		for (Future<Integer> close : closes)
+			statuses.add(close.get(30, TimeUnit.SECONDS));
+		executor.shutdown();
+		assertThat(statuses).containsExactlyInAnyOrder(200, 400);
+		assertThat(List.of(statusOf(first), statusOf(second)))
+				.containsExactlyInAnyOrder(AccountStatus.EXISTS, AccountStatus.DELETED);
 	}
 
 	private ResultActions closeAccount(Member member, Account account) throws Exception {
