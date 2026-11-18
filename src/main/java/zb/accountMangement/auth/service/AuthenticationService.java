@@ -1,4 +1,4 @@
-package zb.accountMangement.member.service;
+package zb.accountMangement.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,8 +14,10 @@ import zb.accountMangement.member.model.PhoneNumber;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
-import zb.accountMangement.member.dto.*;
+import zb.accountMangement.auth.dto.*;
 import zb.accountMangement.member.repository.MemberRepository;
+import zb.accountMangement.member.service.MemberService;
+import zb.accountMangement.member.service.SendMessageService;
 
 @Service
 @RequiredArgsConstructor
