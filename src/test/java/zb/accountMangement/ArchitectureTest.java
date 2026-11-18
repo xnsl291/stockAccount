@@ -37,7 +37,9 @@ class ArchitectureTest {
 
 	// 허용한 예외 하나: 계좌 해지·탈퇴 때 AccountService가 보유 주식 행을 잠가 읽으려고 이 저장소를 직접 부름.
 	// 주식 서비스가 이미 AccountService를 주입받고 있어 반대로 서비스를 주입하면 빈이 서로 물리기 때문임.
-	// 클래스 하나로 못 박아 두어, 계좌가 주식 쪽 다른 클래스를 쓰기 시작하면 아래 규칙들이 실패함
+	// 부르는 쪽(AccountService)과 불리는 쪽(StockBalanceRepository)을 모두 클래스 하나로 못 박아 두어,
+	// 계좌 모듈의 다른 클래스가 이 저장소를 쓰거나 AccountService가 주식 쪽 다른 클래스를 쓰면 아래 규칙들이 실패함
+	private static final DescribedPredicate<JavaClass> ACCOUNT_TO_STOCK_ORIGIN = equivalentTo(AccountService.class);
 	private static final DescribedPredicate<JavaClass> ACCOUNT_TO_STOCK_EXCEPTION = equivalentTo(StockBalanceRepository.class);
 
 	@Test
@@ -57,7 +59,7 @@ class ArchitectureTest {
 				.whereLayer("member").mayOnlyAccessLayers("common")
 				// 공통이 기능 모듈을 알면 의존 방향이 거꾸로 됨
 				.whereLayer("common").mayNotAccessAnyLayer()
-				.ignoreDependency(resideInAPackage(BASE + ".account.."), ACCOUNT_TO_STOCK_EXCEPTION)
+				.ignoreDependency(ACCOUNT_TO_STOCK_ORIGIN, ACCOUNT_TO_STOCK_EXCEPTION)
 				.check(CLASSES);
 	}
 
@@ -65,7 +67,7 @@ class ArchitectureTest {
 	void 모듈_사이_순환은_계좌와_주식의_예외_하나뿐이다() {
 		slices().matching(BASE + ".(*)..")
 				.should().beFreeOfCycles()
-				.ignoreDependency(resideInAPackage(BASE + ".account.."), ACCOUNT_TO_STOCK_EXCEPTION)
+				.ignoreDependency(ACCOUNT_TO_STOCK_ORIGIN, ACCOUNT_TO_STOCK_EXCEPTION)
 				.check(CLASSES);
 	}
 
@@ -75,8 +77,15 @@ class ArchitectureTest {
 	void 다른_모듈의_저장소를_쓰지_않는다(String module) {
 		DescribedPredicate<JavaClass> otherRepository = resideInAPackage(BASE + "..repository..")
 				.and(not(resideInAPackage(BASE + "." + module + "..")));
-		if (module.equals("account"))
-			otherRepository = otherRepository.and(not(ACCOUNT_TO_STOCK_EXCEPTION));
+		if (module.equals("account")) {
+			noClasses().that().resideInAPackage(BASE + ".account..").and(not(ACCOUNT_TO_STOCK_ORIGIN))
+					.should().dependOnClassesThat(otherRepository)
+					.check(CLASSES);
+			noClasses().that(ACCOUNT_TO_STOCK_ORIGIN)
+					.should().dependOnClassesThat(otherRepository.and(not(ACCOUNT_TO_STOCK_EXCEPTION)))
+					.check(CLASSES);
+			return;
+		}
 
 		noClasses().that().resideInAPackage(BASE + "." + module + "..")
 				.should().dependOnClassesThat(otherRepository)
