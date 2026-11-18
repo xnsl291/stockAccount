@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,19 +26,12 @@ import zb.accountMangement.stock.repository.StockBalanceRepository;
 @Slf4j
 public class AccountService {
 
-    private final int ACCOUNT_NUMBER_LENGTH = 14;
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StockBalanceRepository stockBalanceRepository;
     private final SendMessageService sendMessageService;
     private final MemberService memberService;
-    /**
-     * 계좌번호 생성
-     * @return 계좌번호
-     */
-    private String createAccountNumber() {
-      return RandomStringUtils.random(ACCOUNT_NUMBER_LENGTH, false, true);
-  }
+    private final AccountNumberGenerator accountNumberGenerator;
 
     /**
      * id를 이용한 계좌정보 열람
@@ -82,10 +74,10 @@ public class AccountService {
         memberService.checkActive(memberService.getMemberById(memberId));
 
         // 계좌번호 랜덤생성 - 중복 생성 x
-        String accountNumber = createAccountNumber();
+        String accountNumber = accountNumberGenerator.generate();
 
         while(accountRepository.findByAccountNumber(accountNumber).isPresent()) {
-            accountNumber = createAccountNumber();
+            accountNumber = accountNumberGenerator.generate();
         }
 
         Account account = Account.builder()
