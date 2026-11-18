@@ -6,13 +6,12 @@ import { Link, useSearchParams } from 'react-router';
 import { transferStock } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, PasswordPanel, ResultPanel, unlockPath } from '../components/Flow';
 import { Amount, LoadError, Loading, NumberField, PageHead, Row, SelectField, TextField } from '../components/ui';
-import { useAccount, useHoldings, useStockPrice } from '../hooks/queries';
+import { useAccount, useHoldings } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
 import { useRecipient } from '../hooks/useRecipient';
 import { stockTransferFee } from '../lib/fee';
 import { formatAmount } from '../lib/format';
-import { stockName } from '../lib/stockNames';
 
 export function StockTransferPage() {
   const [params, setParams] = useSearchParams();
@@ -22,7 +21,7 @@ export function StockTransferPage() {
   const recipient = useRecipient(choice.selectedId, choice.accounts);
   const list = holdings.data ?? [];
   const stockId = list.some((h) => h.stockId === Number(params.get('stockId'))) ? Number(params.get('stockId')) : (list[0]?.stockId ?? null);
-  const price = useStockPrice(stockId);
+  const holding = list.find((h) => h.stockId === stockId);
   const [quantity, setQuantity] = useState('');
   const qtyNum = Number(quantity);
   const to = recipient.found;
@@ -45,7 +44,7 @@ export function StockTransferPage() {
 
   const a = account.data;
   const here = `/stock-transfer?${params.toString()}`;
-  const name = stockId ? stockName(stockId) : '';
+  const name = holding?.stockName ?? '';
   if (flow.step === 'result' && flow.result) {
     return (
       <div className="narrow">
@@ -60,7 +59,7 @@ export function StockTransferPage() {
   }
 
   const available = list.find((h) => h.stockId === stockId)?.availableQuantity ?? 0;
-  const fee = to && !recipient.isMine && price.data ? stockTransferFee(price.data, qtyNum) : 0;
+  const fee = to && !recipient.isMine && holding ? stockTransferFee(holding.currentPrice, qtyNum) : 0;
   const locked = a?.status === 'PENDING';
   const quantityError = quantity === '' ? null : qtyNum < 1 ? '1주 이상 입력해 주세요' : qtyNum > available ? `보낼 수 있는 수량(${formatAmount(available)}주)보다 많아요` : null;
   const canNext = !!a && !locked && !!stockId && !!to && quantity !== '' && !quantityError;
@@ -96,12 +95,12 @@ export function StockTransferPage() {
               testid="stocktransfer-stock-select"
               value={stockId ? String(stockId) : ''}
               onChange={selectStock}
-              options={list.map((h) => ({ value: String(h.stockId), label: stockName(h.stockId) }))}
+              options={list.map((h) => ({ value: String(h.stockId), label: h.stockName }))}
               disabled={!editing}
             />
             <p>
               보낼 수 있는 수량 <Amount value={available} unit="주" testid="stocktransfer-available" /> · 현재가{' '}
-              {price.data !== undefined && <Amount value={price.data} testid="stocktransfer-price" />}
+              {holding && <Amount value={holding.currentPrice} testid="stocktransfer-price" />}
             </p>
             <NumberField
               label="보낼 수량"

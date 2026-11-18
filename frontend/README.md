@@ -35,6 +35,8 @@ npm run e2e:down                                        # 컨테이너 정리(�
 
 - 인증번호는 E2E 전용 Redis의 `SMS:{숫자만 번호}`에서 읽고, 발송 직전마다 `SMS_SEND_IP:*`를 지움. 개발용 Redis에서는 돌리지 않음
 - 백엔드를 고치지 않았으면 `SKIP_BACKEND_BUILD=1 npm run e2e`로 jar 빌드를 건너뜀
+- 다른 작업 폴더의 백엔드로 돌리려면 `BACKEND_DIR=<그 폴더> npm run e2e`. jar 빌드와 실행 둘 다 그 폴더를 씀
+- 백엔드는 Flyway로 테이블을 만들어서, 다른 방식으로 테이블이 생긴 DB가 남아 있으면 뜨지 않음. 백엔드 브랜치를 바꿨으면 `npm run e2e:down` 뒤에 돌림
 - 확인용 스크린샷 위치는 `E2E_SCREENSHOT_DIR`로 정함(없으면 `test-results/screenshots`)
 - 백엔드 로그: `e2e/.logs/backend-8081.log`, `backend-8082.log`
 
@@ -50,4 +52,3 @@ CAPTURE_DIR=../../../design/ui-draft/impl-screenshots-v2 npx playwright test -c 
 
 - 토큰 두 개를 localStorage에 둠(1차 결정). 화면에 악성 스크립트가 끼어들면 토큰을 가져갈 수 있어, 빌드 결과에 CSP(`script-src 'self'`)를 넣고 외부 스크립트를 쓰지 않음. 리프레시 토큰 쿠키 방식은 2차
 - 같은 회원이 다른 브라우저에서 로그인하면 먼저 쓰던 쪽의 재발급이 실패함(백엔드 리프레시 토큰이 회원당 하나). 기기별 토큰은 2차
-- 보유 주식·주문 내역 응답에 종목 이름이 없어, 화면에서 본 종목 이름을 브라우저에 모아 두고 모르면 "종목 #ID"로 보임

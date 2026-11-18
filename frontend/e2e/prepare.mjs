@@ -7,7 +7,8 @@ import path from 'node:path';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const frontend = path.resolve(here, '..');
-const repo = path.resolve(frontend, '..');
+// 백엔드를 다른 작업 폴더(git worktree)의 코드로 돌릴 때는 BACKEND_DIR에 그 폴더를 넣음
+const repo = process.env.BACKEND_DIR ? path.resolve(process.env.BACKEND_DIR) : path.resolve(frontend, '..');
 
 function run(cmd, opts = {}) {
   console.log(`> ${cmd}`);

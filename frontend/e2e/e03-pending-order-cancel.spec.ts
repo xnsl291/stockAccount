@@ -22,7 +22,7 @@ test('E-03 시세 70,000원 종목에 65,000원 × 10주 매수 → 미체결로
   await expect(page.getByTestId('search-row-price')).toHaveText('70,000');
 
   // 2 종목 상세 → 매수
-  const priced = waitApi(page, 'GET', `/api/stocks/${stock.id}`);
+  const priced = waitApi(page, 'GET', `/api/stocks/${stock.id}/info`);
   await page.getByTestId('search-row').click();
   expect((await priced).status()).toBe(200);
   await expect(page.getByTestId('stock-price')).toHaveText('70,000');

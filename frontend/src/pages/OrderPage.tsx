@@ -6,13 +6,12 @@ import { Link, useSearchParams } from 'react-router';
 import { placeOrder, type Order } from '../api/endpoints';
 import { ConfirmPanel, LockedBanner, PasswordPanel, unlockPath } from '../components/Flow';
 import { Amount, LoadError, Loading, NotFound, NumberField, PageHead, Row, SelectField, StatusBadge } from '../components/ui';
-import { useAccount, useHoldings, useStockPrice } from '../hooks/queries';
+import { useAccount, useHoldings, useStockInfo } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
 import { buyHoldAmount, maxBuyQuantity, tradeFee } from '../lib/fee';
 import { formatAmount } from '../lib/format';
 import { ORDER_STATUS } from '../lib/labels';
-import { stockLabel, stockName } from '../lib/stockNames';
 
 const MAX_QTY = 1_000_000; // TradeStockDto @Max
 
@@ -24,7 +23,7 @@ export function OrderPage() {
   const choice = useAccountChoice();
   const account = useAccount(choice.selectedId);
   const holdings = useHoldings(choice.selectedId);
-  const price = useStockPrice(validStock ? stockId : null);
+  const stock = useStockInfo(validStock ? stockId : null);
   const [orderPrice, setOrderPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const priceNum = Number(orderPrice);
@@ -39,15 +38,14 @@ export function OrderPage() {
   });
 
   if (!validStock) return <NotFound message="이 종목을 찾을 수 없어요" />;
-  if (choice.query.isPending || price.isPending) return <Loading />;
+  if (choice.query.isPending || stock.isPending) return <Loading />;
   if (choice.query.isError) return <LoadError error={choice.query.error} onRetry={() => void choice.query.refetch()} />;
-  if (price.isError) return <LoadError error={price.error} onRetry={() => void price.refetch()} />;
+  if (stock.isError) return <LoadError error={stock.error} onRetry={() => void stock.refetch()} />;
 
   const a = account.data;
   const here = `/order?${params.toString()}`;
   const sideLabel = side === 'buy' ? '매수' : '매도';
-  const name = stockName(stockId);
-  const code = stockLabel(stockId)?.code ?? '';
+  const { name, code } = stock.data;
 
   if (flow.step === 'result' && flow.result) {
     const o = flow.result.data;
@@ -142,7 +140,7 @@ export function OrderPage() {
       <section className="panel">
         <p>
           <span data-testid="order-stock-name">{name}</span> <span data-testid="order-stock-code">{code}</span> · 현재가{' '}
-          <Amount value={price.data} testid="order-stock-price" />
+          <Amount value={stock.data.currentPrice} testid="order-stock-price" />
         </p>
         <SelectField
           label="주문 계좌"

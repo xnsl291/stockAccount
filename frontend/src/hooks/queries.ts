@@ -7,7 +7,7 @@ import {
   getHoldings,
   getMember,
   getOrders,
-  getStockPrice,
+  getStockInfo,
   getTransactions,
   type Account,
   type OrderStatus,
@@ -18,7 +18,7 @@ export const keys = {
   accounts: ['accounts'] as const,
   account: (id: number) => ['account', id] as const,
   member: (id: number) => ['member', id] as const,
-  price: (stockId: number) => ['price', stockId] as const,
+  stock: (stockId: number) => ['stock', stockId] as const,
 };
 
 /** 해지 계좌(DELETED)는 C1이 같이 돌려주므로 화면에서 거름 */
@@ -65,22 +65,9 @@ export function useHoldings(accountId: number | null) {
   });
 }
 
-export function useStockPrice(stockId: number | null) {
-  return useQuery({ queryKey: keys.price(stockId ?? 0), queryFn: () => getStockPrice(stockId!), enabled: !!stockId });
-}
-
-/** 종목마다 현재가(K2)를 따로 부름. 보유 주식 응답에 현재가가 없어서임(N-05 전 임시) */
-export function useStockPrices(stockIds: number[]) {
-  return useQueries({
-    queries: stockIds.map((id) => ({ queryKey: keys.price(id), queryFn: () => getStockPrice(id) })),
-    combine: (results) => {
-      const prices = new Map<number, number>();
-      results.forEach((r, i) => {
-        if (r.data !== undefined) prices.set(stockIds[i], r.data);
-      });
-      return prices;
-    },
-  });
+/** 종목 한 건(이름·코드·현재가). 종목 상세·주문 화면이 씀 */
+export function useStockInfo(stockId: number | null) {
+  return useQuery({ queryKey: keys.stock(stockId ?? 0), queryFn: () => getStockInfo(stockId!), enabled: !!stockId });
 }
 
 /** 계좌마다 보유 주식(K6). 종목 상세에서 내 계좌별 보유를 모을 때 씀 */

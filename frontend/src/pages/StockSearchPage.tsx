@@ -1,4 +1,4 @@
-// S-13 종목 검색. 검색어가 있어야 하는 API(K1)라 검색 전에는 빈 화면. 결과는 종목 이름 임시 저장소에 넣음
+// S-13 종목 검색. 검색어가 있어야 하는 API(K1)라 검색 전에는 빈 화면
 // 결과 줄 하나가 종목 상세로 가는 링크임
 
 import { useState, type FormEvent } from 'react';
@@ -7,18 +7,13 @@ import { useQuery } from '@tanstack/react-query';
 import { searchStocks } from '../api/endpoints';
 import { IconChevron } from '../components/icons';
 import { Amount, LoadError, Loading, PageHead, TextField } from '../components/ui';
-import { rememberStocks } from '../lib/stockNames';
 
 export function StockSearchPage() {
   const [input, setInput] = useState('');
   const [keyword, setKeyword] = useState('');
   const query = useQuery({
     queryKey: ['stocks', keyword],
-    queryFn: async () => {
-      const list = await searchStocks(keyword);
-      rememberStocks(list);
-      return list;
-    },
+    queryFn: () => searchStocks(keyword),
     enabled: keyword !== '',
   });
 

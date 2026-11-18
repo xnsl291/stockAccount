@@ -10,7 +10,6 @@ import { buyHoldAmount } from '../../lib/fee';
 import { formatDateTime } from '../../lib/format';
 import { ORDER_STATUS, tradeSide } from '../../lib/labels';
 import { errorMessage } from '../../lib/messages';
-import { stockName } from '../../lib/stockNames';
 
 function heldOf(o: Order): { amount: number | null; quantity: number | null } {
   if (o.status !== 'PENDING') return { amount: null, quantity: null };
@@ -133,7 +132,7 @@ export function OrdersTab({ accountId }: { accountId: number }) {
                   <li data-testid="orders-row" data-id={o.id} className={`row wrap-sm${o.status === 'CANCELLED' ? ' cancelled' : ''}`}>
                     <span className="row-main">
                       <span className="row-title">
-                        <span data-testid="orders-row-stock">{stockName(o.stockId)}</span>
+                        <span data-testid="orders-row-stock">{o.stockName}</span>
                         <StatusBadge testid="orders-row-status" state={o.status} label={ORDER_STATUS[o.status]} />
                       </span>
                       <span className="row-sub">
@@ -202,7 +201,7 @@ export function OrdersTab({ accountId }: { accountId: number }) {
                       <div className="panel" data-testid="orders-cancel-panel">
                         <h3>주문 취소 확인</h3>
                         <p>
-                          <span data-testid="orders-cancel-stock">{stockName(o.stockId)}</span> · {tradeSide(o.type, o.quantity)} · <Amount value={o.price} /> ×{' '}
+                          <span data-testid="orders-cancel-stock">{o.stockName}</span> · {tradeSide(o.type, o.quantity)} · <Amount value={o.price} /> ×{' '}
                           <Amount value={o.quantity} unit="주" />
                         </p>
                         <dl className="summary">

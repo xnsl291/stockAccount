@@ -69,6 +69,8 @@ export interface Order {
   id: number;
   accountId: number;
   stockId: number;
+  stockCode: string;
+  stockName: string;
   type: TradeType;
   status: OrderStatus;
   price: number;
@@ -80,9 +82,14 @@ export interface Order {
 
 export interface StockBalance {
   stockId: number;
+  stockCode: string;
+  stockName: string;
   quantity: number;
   availableQuantity: number;
   avgPrice: number;
+  currentPrice: number;
+  /** 현재가 × 수량. 서버가 계산한 표시용 값이며 원장 값이 아님 */
+  evaluationAmount: number;
   profitNLoss: number;
 }
 
@@ -155,7 +162,7 @@ export const getTransactions = (
 
 // 주식(K)
 export const searchStocks = (keyword: string) => api.request<Stock[]>(`/api/stocks${query({ keyword })}`);
-export const getStockPrice = (stockId: number) => api.request<number>(`/api/stocks/${stockId}`);
+export const getStockInfo = (stockId: number) => api.request<Stock>(`/api/stocks/${stockId}/info`);
 export const placeOrder = (
   key: string,
   side: 'buy' | 'sell',

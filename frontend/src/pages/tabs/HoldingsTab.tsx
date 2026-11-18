@@ -1,13 +1,11 @@
-// S-17 보유 주식(S-06의 탭이자 단독 화면). 현재가는 종목마다 K2로 받고 평가금액은 화면이 계산(표시용, 원장 값 아님)
+// S-17 보유 주식(S-06의 탭이자 단독 화면). 종목 이름·현재가·평가금액은 K6 응답에 같이 옴(평가금액은 표시용, 원장 값 아님)
 
 import { Link } from 'react-router';
 import { Amount, LoadError, Loading } from '../../components/ui';
-import { useHoldings, useStockPrices } from '../../hooks/queries';
-import { stockLabel, stockName } from '../../lib/stockNames';
+import { useHoldings } from '../../hooks/queries';
 
 export function HoldingsTab({ accountId }: { accountId: number }) {
   const query = useHoldings(accountId);
-  const prices = useStockPrices((query.data ?? []).map((h) => h.stockId));
 
   if (query.isPending) return <Loading />;
   if (query.isError) return <LoadError error={query.error} onRetry={() => void query.refetch()} />;
@@ -22,7 +20,7 @@ export function HoldingsTab({ accountId }: { accountId: number }) {
       </div>
     );
 
-  const totalValue = rows.reduce((s, h) => s + (prices.get(h.stockId) ?? 0) * h.quantity, 0);
+  const totalValue = rows.reduce((s, h) => s + h.evaluationAmount, 0);
   const totalPnl = rows.reduce((s, h) => s + h.profitNLoss, 0);
 
   return (
@@ -43,10 +41,9 @@ export function HoldingsTab({ accountId }: { accountId: number }) {
       </dl>
       <ul className="rows">
         {rows.map((h) => {
-          const price = prices.get(h.stockId);
           const cost = h.avgPrice * h.quantity;
           const rate = cost > 0 ? ((h.profitNLoss / cost) * 100).toFixed(2) : '0.00';
-          const name = stockName(h.stockId);
+          const name = h.stockName;
           const canMove = h.availableQuantity > 0;
           return (
             <li key={h.stockId} className="row wrap-sm" data-testid="holdings-row" data-id={h.stockId}>
@@ -54,7 +51,7 @@ export function HoldingsTab({ accountId }: { accountId: number }) {
                 <span className="row-title">
                   <span data-testid="holdings-row-name">{name}</span>
                   <span className="hint" data-testid="holdings-row-code">
-                    {stockLabel(h.stockId)?.code ?? ''}
+                    {h.stockCode}
                   </span>
                 </span>
                 <span className="row-sub">
@@ -72,11 +69,15 @@ export function HoldingsTab({ accountId }: { accountId: number }) {
                   <span>
                     평균 <Amount value={h.avgPrice} testid="holdings-row-avg-price" />
                   </span>
-                  <span>현재 {price === undefined ? '…' : <Amount value={price} testid="holdings-row-price" />}</span>
+                  <span>
+                    현재 <Amount value={h.currentPrice} testid="holdings-row-price" />
+                  </span>
                 </span>
               </span>
               <span className="row-side">
-                <span className="row-amount">{price === undefined ? '…' : <Amount value={price * h.quantity} testid="holdings-row-value" />}</span>
+                <span className="row-amount">
+                  <Amount value={h.evaluationAmount} testid="holdings-row-value" />
+                </span>
                 <span>
                   <Amount value={h.profitNLoss} signed tone testid="holdings-row-pnl" /> (<span data-testid="holdings-row-pnl-rate">{rate}%</span>)
                 </span>

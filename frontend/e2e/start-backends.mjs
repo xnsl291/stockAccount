@@ -1,7 +1,7 @@
 // E2E용 백엔드 두 개를 차례로 띄움(Playwright webServer가 부름)
 //  - 8081: 기본 설정(액세스 토큰 30분)
 //  - 8082: 액세스 토큰 5초(E-08 토큰 재발급, E-12 여러 탭 재발급). 만료 설정은 앱 전체에 걸려 따로 띄움(설계 3.4 E-08)
-// 둘 다 빈 DB에 테이블을 만들기(ddl-auto update) 때문에 동시에 띄우면 겹칠 수 있어 앞의 것이 뜬 뒤 다음 것을 띄움
+// 둘 다 빈 DB에 테이블을 만들기 때문에 동시에 띄우면 겹칠 수 있어 앞의 것이 뜬 뒤 다음 것을 띄움
 // 로그는 e2e/.logs/ 아래. 문자는 보내지 않고 로그만 남김(sms.provider=log)
 
 import { spawn } from 'node:child_process';
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { E2E } from './config.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repo = path.resolve(here, '..', '..');
+const repo = process.env.BACKEND_DIR ? path.resolve(process.env.BACKEND_DIR) : path.resolve(here, '..', '..'); // prepare.mjs와 같은 규칙
 const libs = path.join(repo, 'build', 'libs');
 const jar = fs
   .readdirSync(libs)
@@ -43,6 +43,8 @@ function start(port, accessSeconds) {
       JWT_SECRET: secret,
       JWT_ACCESS_TOKEN_SECONDS: String(accessSeconds),
       SMS_PROVIDER: 'log',
+      // 백엔드의 지표 포트 기본값(8081)이 E2E 업무 포트와 겹쳐서 앱마다 따로 줌
+      MANAGEMENT_PORT: String(port + 100),
     },
     stdio: ['ignore', log, log],
   });

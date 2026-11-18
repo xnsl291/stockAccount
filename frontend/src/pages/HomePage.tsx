@@ -12,7 +12,6 @@ import { formatShortDateTime } from '../lib/format';
 import { ACCOUNT_STATUS, TX_TYPE, tradeSide } from '../lib/labels';
 import { MESSAGES } from '../lib/messages';
 import { buyHoldAmount } from '../lib/fee';
-import { stockName } from '../lib/stockNames';
 
 export function HomePage() {
   const accountsQuery = useAccounts();
@@ -180,7 +179,7 @@ export function HomePage() {
               {pending.map((o) => (
                 <li key={o.id} className="row" data-testid="home-pending-row" data-id={o.id}>
                   <span className="row-main">
-                    <span className="row-title">{stockName(o.stockId)}</span>
+                    <span className="row-title">{o.stockName}</span>
                     <span className="row-sub">
                       <span>{tradeSide(o.type, o.quantity)}</span>
                       <span>
