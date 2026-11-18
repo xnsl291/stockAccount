@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static zb.accountMangement.member.model.VerificationPurpose.PHONE_CHANGE;
@@ -224,6 +226,41 @@ class MemberSecurityTest extends ApiTest {
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
 		assertThat(statusOf(first)).isEqualTo(AccountStatus.DELETED);
 		assertThat(statusOf(second)).isEqualTo(AccountStatus.DELETED);
+	}
+
+	@Test
+	void 탈퇴와_계좌_개설이_겹쳐도_탈퇴한_회원에게_살아_있는_계좌가_남지_않는다() throws Exception {
+		Member member = saveMember();
+		Account existing = saveAccount(member);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		Future<Integer> signOut;
+		Future<Integer> open;
+
+		// 기존 계좌 행을 잠근 트랜잭션을 열어 두어, 탈퇴가 계좌 목록을 읽은 뒤 그 계좌의 잠금에서 기다리게 하고 그동안 계좌를 개설함
+		TransactionStatus holdingAccount = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			accountRepository.findByIdForUpdate(existing.getId()).orElseThrow();
+			signOut = executor.submit(() -> signOut(member).andReturn().getResponse().getStatus());
+			awaitLockWaits(1);
+			open = executor.submit(() -> mockMvc.perform(as(member, post("/api/accounts/open"))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(Map.of("password", ACCOUNT_PASSWORD))))
+					.andReturn().getResponse().getStatus());
+			// 개설이 탈퇴보다 먼저 끝나거나, 탈퇴가 잡은 잠금에서 개설도 기다리기 시작할 때까지 진행시킨 뒤 계좌 잠금을 풂
+			try {
+				open.get(3, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				awaitLockWaits(2);
+			}
+		} finally {
+			transactionManager.commit(holdingAccount);
+		}
+
+		assertThat(signOut.get(30, TimeUnit.SECONDS)).isEqualTo(200);
+		open.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
+		assertThat(accountRepository.findByMemberId(member.getId())).noneMatch(Account::isExistsAccount);
 	}
 
 	private ResultActions updatePhone(Member member, String phone) throws Exception {
