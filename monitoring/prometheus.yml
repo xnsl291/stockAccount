@@ -6,5 +6,5 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       # 앱은 컨테이너가 아니라 이 PC에서 ./gradlew bootRun으로 뜸. Docker Desktop은 host.docker.internal로
-      # 이 PC의 127.0.0.1에 묶인 관리 포트(8081)까지 닿음. Linux Docker에서는 MANAGEMENT_ADDRESS를 바꿔야 함
-      - targets: ["host.docker.internal:8081"]
+      # 이 PC의 127.0.0.1에 묶인 관리 포트(9081)까지 닿음. Linux Docker에서는 MANAGEMENT_ADDRESS를 바꿔야 함
+      - targets: ["host.docker.internal:9081"]
