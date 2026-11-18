@@ -22,6 +22,7 @@ public class SendMessageService {
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_SENDS = 3;
     private static final int MAX_SENDS_PER_CLIENT = 10;
+    private static final String VERIFIED = "true";
 
     private final RedisService redisService;
     private final SmsSender smsSender;
@@ -86,21 +87,20 @@ public class SendMessageService {
      */
     public boolean verifyPhone(String phoneNumber, String verificationCode, VerificationPurpose purpose) {
         confirmCode(phoneNumber, verificationCode);
-        redisService.setData(verifiedKey(PhoneNumber.normalize(phoneNumber), purpose), "true",
+        redisService.setData(verifiedKey(PhoneNumber.normalize(phoneNumber), purpose), VERIFIED,
                 Duration.ofMinutes(PHONE_VERIFIED.getTime()));
         return true;
     }
 
     /**
-     * 인증 완료 표시를 확인하고 지움. 인증 한 번으로 정한 용도의 작업을 한 번만 할 수 있음
+     * 인증 완료 표시를 확인하고 지움. 인증 한 번으로 정한 용도의 작업을 한 번만 할 수 있음.
+     * 확인과 삭제를 따로 부르면 두 요청이 모두 확인을 통과한 뒤 지워 인증 한 번이 두 번 쓰이므로, Redis 안에서 한 번에 처리함
      * @param phoneNumber - 핸드폰번호
      * @param purpose - 인증을 쓸 곳
      */
     public void consumeVerifiedPhone(String phoneNumber, VerificationPurpose purpose) {
-        String key = verifiedKey(PhoneNumber.normalize(phoneNumber), purpose);
-        if (redisService.getData(key) == null)
+        if (!redisService.deleteIfEquals(verifiedKey(PhoneNumber.normalize(phoneNumber), purpose), VERIFIED))
             throw new CustomException(ErrorCode.UNVERIFIED_PHONE_NUMBER);
-        redisService.deleteData(key);
     }
 
     private String codeKey(String phoneNumber) {
