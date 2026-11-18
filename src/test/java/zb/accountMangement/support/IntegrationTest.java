@@ -12,6 +12,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import zb.accountMangement.account.service.AccountNumberGenerator;
 import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.member.service.SmsSender;
 
@@ -39,6 +40,8 @@ public abstract class IntegrationTest {
 	// 평소에는 실제 Redis를 그대로 쓰고, 동시성 테스트만 특정 호출 직후에 멈춰 세우는 데 씀
 	@SpyBean
 	protected RedisService redisService;
+	@SpyBean
+	protected AccountNumberGenerator accountNumberGenerator;
 
 	@Autowired
 	private JdbcTemplate lockInspector;

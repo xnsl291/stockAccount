@@ -3,11 +3,20 @@ package zb.accountMangement.account;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
@@ -17,6 +26,7 @@ import zb.accountMangement.support.ApiTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static zb.accountMangement.member.model.VerificationPurpose.ACCOUNT_UNLOCK;
 import static zb.accountMangement.member.model.VerificationPurpose.SIGN_UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -27,6 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AccountManagementTest extends ApiTest {
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@Test
 	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
@@ -92,6 +105,37 @@ class AccountManagementTest extends ApiTest {
 		mockMvc.perform(openWithTokenIssuedBeforeWithdrawal)
 				.andExpect(jsonPath("$.code").value("WITHDRAWN_MEMBER"));
 
+		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+	}
+
+	@Test
+	void 같은_계좌번호의_개설이_겹쳐도_500이_아니라_계좌번호_중복_오류로_응답한다() throws Exception {
+		Member member = saveMember();
+		Member other = saveMember();
+		String accountNumber = "9" + ThreadLocalRandom.current().nextLong(1_000_000_000_000L, 10_000_000_000_000L);
+		doReturn(accountNumber).when(accountNumberGenerator).generate();
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> open;
+
+		// 같은 번호의 계좌를 저장만 하고 커밋하지 않은 상태를 만들어, 개설 요청이 번호 조회는 통과하고 저장에서 기다리게 함
+		TransactionStatus otherOpen = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			accountRepository.saveAndFlush(Account.builder()
+					.memberId(other.getId()).accountNumber(accountNumber).password("x").build());
+			open = executor.submit(() -> mockMvc.perform(as(member, post("/api/accounts/open"))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(Map.of("password", ACCOUNT_PASSWORD))))
+					.andReturn());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(otherOpen);
+		}
+
+		MvcResult result = open.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(409);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
+				.isEqualTo("DUPLICATED_ACCOUNT_NUMBER");
 		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
 	}
 
