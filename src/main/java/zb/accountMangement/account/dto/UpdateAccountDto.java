@@ -5,12 +5,15 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Getter
 @Setter
 public class UpdateAccountDto {
 
-    private String nickname; // 없으면 그대로 둠
+    // 없으면 그대로 둠. DB 칸(VARCHAR(255))보다 길면 저장에서 실패하므로 요청 단계에서 막음
+    @Size(max = 255)
+    private String nickname;
 
     @NotBlank
     private String currentPassword;

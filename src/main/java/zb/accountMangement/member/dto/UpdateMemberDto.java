@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -16,7 +17,9 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 public class UpdateMemberDto {
 
+  // DB 칸(VARCHAR(255))보다 길면 저장에서 실패하므로 요청 단계에서 막음
   @NotBlank
+  @Size(max = 255)
   private String name;
 
   @NotBlank
