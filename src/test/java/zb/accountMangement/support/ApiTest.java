@@ -20,7 +20,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -59,8 +58,6 @@ public abstract class ApiTest extends IntegrationTest {
 	protected MemberRepository memberRepository;
 	@Autowired
 	protected AccountRepository accountRepository;
-	@Autowired
-	protected BCryptPasswordEncoder passwordEncoder;
 	@Autowired
 	protected JwtTokenProvider jwtTokenProvider;
 	@Autowired
