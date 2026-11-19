@@ -1,0 +1,179 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /scripts/other-account.js
+        output: csv (/raw/2026-11-19-A-other-control.csv.gz)
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m0s max duration (incl. graceful stop):
+              * other: 20.00 iterations/s for 30s (maxVUs: 100-1000, exec: other, gracefulStop: 30s)
+
+
+Run     [ 100% ] setup()
+other   [   0% ]
+
+Run     [ 100% ] setup()
+other   [   0% ]
+
+Run     [ 100% ] setup()
+other   [   0% ]
+
+running (0m04.0s), 0002/0100 VUs, 13 complete and 0 interrupted iterations
+other   [   2% ] 0002/0100 VUs  00.7s/30s  20.00 iters/s
+
+running (0m05.0s), 0005/0100 VUs, 30 complete and 0 interrupted iterations
+other   [   6% ] 0005/0100 VUs  01.7s/30s  20.00 iters/s
+
+running (0m06.0s), 0008/0100 VUs, 47 complete and 0 interrupted iterations
+other   [   9% ] 0008/0100 VUs  02.7s/30s  20.00 iters/s
+
+running (0m07.0s), 0009/0100 VUs, 66 complete and 0 interrupted iterations
+other   [  12% ] 0009/0100 VUs  03.7s/30s  20.00 iters/s
+
+running (0m08.0s), 0009/0100 VUs, 86 complete and 0 interrupted iterations
+other   [  16% ] 0009/0100 VUs  04.7s/30s  20.00 iters/s
+
+running (0m09.0s), 0010/0100 VUs, 105 complete and 0 interrupted iterations
+other   [  19% ] 0010/0100 VUs  05.7s/30s  20.00 iters/s
+
+running (0m10.0s), 0011/0100 VUs, 124 complete and 0 interrupted iterations
+other   [  22% ] 0011/0100 VUs  06.7s/30s  20.00 iters/s
+
+running (0m11.0s), 0009/0100 VUs, 146 complete and 0 interrupted iterations
+other   [  26% ] 0009/0100 VUs  07.7s/30s  20.00 iters/s
+
+running (0m12.0s), 0009/0100 VUs, 166 complete and 0 interrupted iterations
+other   [  29% ] 0009/0100 VUs  08.7s/30s  20.00 iters/s
+
+running (0m13.0s), 0010/0100 VUs, 185 complete and 0 interrupted iterations
+other   [  32% ] 0010/0100 VUs  09.7s/30s  20.00 iters/s
+
+running (0m14.0s), 0010/0100 VUs, 205 complete and 0 interrupted iterations
+other   [  36% ] 0010/0100 VUs  10.7s/30s  20.00 iters/s
+
+running (0m15.0s), 0011/0100 VUs, 224 complete and 0 interrupted iterations
+other   [  39% ] 0011/0100 VUs  11.7s/30s  20.00 iters/s
+
+running (0m16.0s), 0011/0100 VUs, 244 complete and 0 interrupted iterations
+other   [  42% ] 0011/0100 VUs  12.7s/30s  20.00 iters/s
+
+running (0m17.0s), 0011/0100 VUs, 264 complete and 0 interrupted iterations
+other   [  46% ] 0011/0100 VUs  13.7s/30s  20.00 iters/s
+
+running (0m18.0s), 0011/0100 VUs, 284 complete and 0 interrupted iterations
+other   [  49% ] 0011/0100 VUs  14.7s/30s  20.00 iters/s
+
+running (0m19.0s), 0009/0100 VUs, 306 complete and 0 interrupted iterations
+other   [  52% ] 0009/0100 VUs  15.7s/30s  20.00 iters/s
+
+running (0m20.0s), 0009/0100 VUs, 326 complete and 0 interrupted iterations
+other   [  56% ] 0009/0100 VUs  16.7s/30s  20.00 iters/s
+
+running (0m21.0s), 0009/0100 VUs, 346 complete and 0 interrupted iterations
+other   [  59% ] 0009/0100 VUs  17.7s/30s  20.00 iters/s
+
+running (0m22.0s), 0011/0100 VUs, 364 complete and 0 interrupted iterations
+other   [  62% ] 0011/0100 VUs  18.7s/30s  20.00 iters/s
+
+running (0m23.0s), 0009/0100 VUs, 386 complete and 0 interrupted iterations
+other   [  66% ] 0009/0100 VUs  19.7s/30s  20.00 iters/s
+
+running (0m24.0s), 0010/0100 VUs, 405 complete and 0 interrupted iterations
+other   [  69% ] 0010/0100 VUs  20.7s/30s  20.00 iters/s
+
+running (0m25.0s), 0010/0100 VUs, 425 complete and 0 interrupted iterations
+other   [  72% ] 0010/0100 VUs  21.7s/30s  20.00 iters/s
+
+running (0m26.0s), 0010/0100 VUs, 445 complete and 0 interrupted iterations
+other   [  76% ] 0010/0100 VUs  22.7s/30s  20.00 iters/s
+
+running (0m27.0s), 0011/0100 VUs, 464 complete and 0 interrupted iterations
+other   [  79% ] 0011/0100 VUs  23.7s/30s  20.00 iters/s
+
+running (0m28.0s), 0009/0100 VUs, 486 complete and 0 interrupted iterations
+other   [  82% ] 0009/0100 VUs  24.7s/30s  20.00 iters/s
+
+running (0m29.0s), 0010/0100 VUs, 505 complete and 0 interrupted iterations
+other   [  86% ] 0010/0100 VUs  25.7s/30s  20.00 iters/s
+
+running (0m30.0s), 0011/0100 VUs, 524 complete and 0 interrupted iterations
+other   [  89% ] 0011/0100 VUs  26.7s/30s  20.00 iters/s
+
+running (0m31.0s), 0011/0100 VUs, 544 complete and 0 interrupted iterations
+other   [  92% ] 0011/0100 VUs  27.7s/30s  20.00 iters/s
+
+running (0m32.0s), 0011/0100 VUs, 564 complete and 0 interrupted iterations
+other   [  96% ] 0011/0100 VUs  28.7s/30s  20.00 iters/s
+
+running (0m33.0s), 0011/0100 VUs, 584 complete and 0 interrupted iterations
+other   [  99% ] 0011/0100 VUs  29.7s/30s  20.00 iters/s
+time="2026-11-19T02:49:06Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/36\": dial: i/o timeout"
+time="2026-11-19T02:49:07Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/95\": dial: i/o timeout"
+
+running (0m34.0s), 0007/0100 VUs, 594 complete and 0 interrupted iterations
+other ↓ [ 100% ] 0011/0100 VUs  30s  20.00 iters/s
+time="2026-11-19T02:49:07Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/27\": dial: i/o timeout"
+
+running (0m35.0s), 0006/0100 VUs, 595 complete and 0 interrupted iterations
+other ↓ [ 100% ] 0011/0100 VUs  30s  20.00 iters/s
+time="2026-11-19T02:49:08Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T02:49:08Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/59\": dial: i/o timeout"
+time="2026-11-19T02:49:08Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/136\": dial: i/o timeout"
+
+running (0m36.0s), 0003/0100 VUs, 598 complete and 0 interrupted iterations
+other ↓ [ 100% ] 0011/0100 VUs  30s  20.00 iters/s
+time="2026-11-19T02:49:10Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/104\": dial: i/o timeout"
+time="2026-11-19T02:49:10Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/192\": dial: i/o timeout"
+
+running (0m37.0s), 0001/0100 VUs, 600 complete and 0 interrupted iterations
+other ↓ [ 100% ] 0011/0100 VUs  30s  20.00 iters/s
+time="2026-11-19T02:49:11Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+
+running (0m38.0s), 0000/0100 VUs, 601 complete and 0 interrupted iterations
+other ✓ [ 100% ] 0000/0100 VUs  30s  20.00 iters/s
+
+     data_received..........................: 463 kB 12 kB/s
+     data_sent..............................: 306 kB 8.1 kB/s
+     http_req_blocked.......................: avg=516.41µs min=0s     med=5.14µs   p(90)=1.85ms   p(95)=2.73ms   p(99)=5.69ms   max=73.67ms  count=802
+     http_req_connecting....................: avg=355.78µs min=0s     med=0s       p(90)=1.74ms   p(95)=2.55ms   p(99)=5.36ms   max=12.67ms  count=802
+     http_req_duration......................: avg=67.03ms  min=0s     med=75.9ms   p(90)=115.08ms p(95)=125.3ms  p(99)=155.68ms max=198.98ms count=802
+       { expected_response:true }...........: avg=67.79ms  min=8.44ms med=76.3ms   p(90)=115.13ms p(95)=125.56ms p(99)=155.85ms max=198.98ms count=793
+     ✓ { name:hot_withdraw }................: avg=0s       min=0s     med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s       count=0  
+     ✓ { name:other_read }..................: avg=17.84ms  min=0s     med=15.49ms  p(90)=27.64ms  p(95)=33.58ms  p(99)=58.62ms  max=70.42ms  count=298
+     ✓ { name:other_withdraw }..............: avg=108.19ms min=0s     med=104.41ms p(90)=132.9ms  p(95)=142.26ms p(99)=167.74ms max=198.98ms count=303
+     ✓ { scenario:other }...................: avg=63.39ms  min=0s     med=85.83ms  p(90)=119.97ms p(95)=132.96ms p(99)=158.98ms max=198.98ms count=601
+     http_req_failed........................: 1.12%  9 out of 802
+     ✓ { scenario:other }...................: 1.49%  9 out of 601
+     http_req_receiving.....................: avg=105.4µs  min=0s     med=91.8µs   p(90)=159.42µs p(95)=213.38µs p(99)=343.79µs max=796.9µs  count=802
+     http_req_sending.......................: avg=38.05µs  min=0s     med=32.9µs   p(90)=77.67µs  p(95)=99.54µs  p(99)=146.58µs max=239.26µs count=802
+     http_req_tls_handshaking...............: avg=0s       min=0s     med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s       count=802
+     http_req_waiting.......................: avg=66.89ms  min=0s     med=75.75ms  p(90)=114.9ms  p(95)=125.16ms p(99)=155.36ms max=198.83ms count=802
+     http_reqs..............................: 802    21.131024/s
+     iteration_duration.....................: avg=513.39ms min=8.68ms med=90.17ms  p(90)=122.8ms  p(95)=139.78ms p(99)=30s      max=30s      count=601
+     iterations.............................: 601    15.835094/s
+     status_by_request......................: 601    15.835094/s
+     ✓ { name:hot_withdraw,status:200 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:400 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:401 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:409 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:500 }.....: 0      0/s
+     ✓ { name:other_read,status:200 }.......: 291    7.667242/s
+     ✓ { name:other_read,status:400 }.......: 0      0/s
+     ✓ { name:other_read,status:401 }.......: 0      0/s
+     ✓ { name:other_read,status:409 }.......: 0      0/s
+     ✓ { name:other_read,status:500 }.......: 0      0/s
+     ✓ { name:other_withdraw,status:200 }...: 301    7.930721/s
+     ✓ { name:other_withdraw,status:400 }...: 0      0/s
+     ✓ { name:other_withdraw,status:401 }...: 0      0/s
+     ✓ { name:other_withdraw,status:409 }...: 0      0/s
+     ✓ { name:other_withdraw,status:500 }...: 0      0/s
+     vus....................................: 1      min=0        max=11 
+     vus_max................................: 100    min=100      max=100
+
+
+running (0m38.0s), 0000/0100 VUs, 601 complete and 0 interrupted iterations
+other ✓ [ 100% ] 0000/0100 VUs  30s  20.00 iters/s
