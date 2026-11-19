@@ -14,8 +14,8 @@ import zb.accountMangement.account.dto.TransactionDto;
 import zb.accountMangement.account.dto.TransferDto;
 import zb.accountMangement.account.dto.WithdrawalDto;
 import zb.accountMangement.account.model.TransactionType;
-import zb.accountMangement.account.model.entity.IdempotencyRecord;
-import zb.accountMangement.account.service.IdempotencyService;
+import zb.accountMangement.idempotency.model.entity.IdempotencyRecord;
+import zb.accountMangement.idempotency.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.account.service.AccountValidationService;
 

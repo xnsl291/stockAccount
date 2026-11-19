@@ -1,4 +1,4 @@
-package zb.accountMangement.account.model.entity;
+package zb.accountMangement.idempotency.model.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
