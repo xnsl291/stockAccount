@@ -1,0 +1,497 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /scripts/hot-account.js
+        output: csv (/raw/2026-11-19-B-hot-3.csv.gz)
+
+     scenarios: (100.00%) 3 scenarios, 900 max VUs, 3m50s max duration (incl. graceful stop):
+              * hot_withdraw: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: withdraw, gracefulStop: 30s)
+              * hot_order: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: order, startTime: 40s, gracefulStop: 30s)
+              * hot_cancel: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: cancel, startTime: 1m20s, gracefulStop: 30s)
+
+
+running (0m00.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m00.7s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  39.3s        
+hot_cancel   • [   0% ] waiting  1m19.3s      
+
+running (0m01.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m01.7s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  38.3s        
+hot_cancel   • [   0% ] waiting  1m18.3s      
+
+running (0m02.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m02.7s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  37.3s        
+hot_cancel   • [   0% ] waiting  1m17.3s      
+
+running (0m03.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m03.7s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  36.3s        
+hot_cancel   • [   0% ] waiting  1m16.3s      
+
+running (0m04.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m04.7s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  35.3s        
+hot_cancel   • [   0% ] waiting  1m15.3s      
+
+running (0m05.9s), 284/900 VUs, 16 complete and 0 interrupted iterations
+hot_withdraw   [   5% ] 300 VUs  0m05.7s/2m0s  016/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  34.3s        
+hot_cancel   • [   0% ] waiting  1m14.3s      
+
+running (0m06.9s), 161/900 VUs, 139 complete and 0 interrupted iterations
+hot_withdraw   [  46% ] 300 VUs  0m06.7s/2m0s  139/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  33.3s        
+hot_cancel   • [   0% ] waiting  1m13.3s      
+
+running (0m07.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  32.3s        
+hot_cancel   • [   0% ] waiting  1m12.3s      
+
+running (0m08.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  31.3s        
+hot_cancel   • [   0% ] waiting  1m11.3s      
+
+running (0m09.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  30.3s        
+hot_cancel   • [   0% ] waiting  1m10.3s      
+
+running (0m10.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  29.3s        
+hot_cancel   • [   0% ] waiting  1m09.3s      
+
+running (0m11.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  28.3s        
+hot_cancel   • [   0% ] waiting  1m08.3s      
+
+running (0m12.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  27.3s        
+hot_cancel   • [   0% ] waiting  1m07.3s      
+
+running (0m13.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  26.3s        
+hot_cancel   • [   0% ] waiting  1m06.3s      
+
+running (0m14.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  25.3s        
+hot_cancel   • [   0% ] waiting  1m05.3s      
+
+running (0m15.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  24.3s        
+hot_cancel   • [   0% ] waiting  1m04.3s      
+
+running (0m16.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  23.3s        
+hot_cancel   • [   0% ] waiting  1m03.3s      
+
+running (0m17.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  22.3s        
+hot_cancel   • [   0% ] waiting  1m02.3s      
+
+running (0m18.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  21.3s        
+hot_cancel   • [   0% ] waiting  1m01.3s      
+
+running (0m19.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  20.3s        
+hot_cancel   • [   0% ] waiting  1m00.3s      
+
+running (0m20.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  19.3s        
+hot_cancel   • [   0% ] waiting  0m59.3s      
+
+running (0m21.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  18.3s        
+hot_cancel   • [   0% ] waiting  0m58.3s      
+
+running (0m22.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  17.3s        
+hot_cancel   • [   0% ] waiting  0m57.3s      
+
+running (0m23.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  16.3s        
+hot_cancel   • [   0% ] waiting  0m56.3s      
+
+running (0m24.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  15.3s        
+hot_cancel   • [   0% ] waiting  0m55.3s      
+
+running (0m25.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  14.3s        
+hot_cancel   • [   0% ] waiting  0m54.3s      
+
+running (0m26.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  13.3s        
+hot_cancel   • [   0% ] waiting  0m53.3s      
+
+running (0m27.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  12.3s        
+hot_cancel   • [   0% ] waiting  0m52.3s      
+
+running (0m28.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  11.3s        
+hot_cancel   • [   0% ] waiting  0m51.3s      
+
+running (0m29.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  10.3s        
+hot_cancel   • [   0% ] waiting  0m50.3s      
+
+running (0m30.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  09.3s        
+hot_cancel   • [   0% ] waiting  0m49.3s      
+
+running (0m31.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  08.3s        
+hot_cancel   • [   0% ] waiting  0m48.3s      
+
+running (0m32.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  07.3s        
+hot_cancel   • [   0% ] waiting  0m47.3s      
+
+running (0m33.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  06.3s        
+hot_cancel   • [   0% ] waiting  0m46.3s      
+
+running (0m34.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  05.3s        
+hot_cancel   • [   0% ] waiting  0m45.3s      
+
+running (0m35.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  04.3s        
+hot_cancel   • [   0% ] waiting  0m44.3s      
+
+running (0m36.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  03.3s        
+hot_cancel   • [   0% ] waiting  0m43.3s      
+
+running (0m37.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  02.3s        
+hot_cancel   • [   0% ] waiting  0m42.3s      
+
+running (0m38.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  01.3s        
+hot_cancel   • [   0% ] waiting  0m41.3s      
+
+running (0m39.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  00.3s        
+hot_cancel   • [   0% ] waiting  0m40.3s      
+
+running (0m40.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m00.7s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m39.3s      
+
+running (0m41.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m01.7s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m38.3s      
+
+running (0m42.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m02.7s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m37.3s      
+
+running (0m43.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m03.7s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m36.3s      
+
+running (0m44.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m04.7s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m35.3s      
+
+running (0m45.9s), 298/900 VUs, 302 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [   1% ] 300 VUs  0m05.7s/2m0s  002/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m34.3s      
+
+running (0m46.9s), 225/900 VUs, 375 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  25% ] 300 VUs  0m06.7s/2m0s  075/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m33.3s      
+
+running (0m47.9s), 090/900 VUs, 510 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  70% ] 300 VUs  0m07.7s/2m0s  210/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m32.3s      
+
+running (0m48.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m08.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m31.3s      
+
+running (0m49.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m09.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m30.3s      
+
+running (0m50.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m10.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m29.3s      
+
+running (0m51.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m11.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m28.3s      
+
+running (0m52.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m12.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m27.3s      
+
+running (0m53.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m13.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m26.3s      
+
+running (0m54.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m14.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m25.3s      
+
+running (0m55.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m15.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m24.3s      
+
+running (0m56.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m16.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m23.3s      
+
+running (0m57.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m17.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m22.3s      
+
+running (0m58.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m18.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m21.3s      
+
+running (0m59.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m19.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m20.3s      
+
+running (1m00.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m20.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m19.3s      
+
+running (1m01.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m21.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m18.3s      
+
+running (1m02.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m22.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m17.3s      
+
+running (1m03.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m23.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m16.3s      
+
+running (1m04.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m24.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m15.3s      
+
+running (1m05.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m25.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m14.3s      
+
+running (1m06.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m26.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m13.3s      
+
+running (1m07.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m27.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m12.3s      
+
+running (1m08.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m28.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m11.3s      
+
+running (1m09.9s), 023/900 VUs, 577 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  92% ] 300 VUs  0m29.7s/2m0s  277/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m10.3s      
+time="2026-11-19T02:33:43Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:43Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (1m10.9s), 022/900 VUs, 578 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  93% ] 300 VUs  0m30.7s/2m0s  278/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m09.3s      
+time="2026-11-19T02:33:43Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:43Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:43Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (1m11.9s), 008/900 VUs, 592 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order      [  97% ] 300 VUs  0m31.7s/2m0s  292/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m08.3s      
+time="2026-11-19T02:33:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:33:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (1m12.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m07.3s      
+
+running (1m13.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m06.3s      
+
+running (1m14.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m05.3s      
+
+running (1m15.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m04.3s      
+
+running (1m16.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m03.3s      
+
+running (1m17.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m02.3s      
+
+running (1m18.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m01.3s      
+
+running (1m19.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m00.3s      
+
+running (1m20.9s), 287/900 VUs, 613 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel     [   4% ] 300 VUs  0m00.7s/2m0s  013/300 iters, 1 per VU
+
+running (1m21.9s), 028/900 VUs, 872 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel     [  91% ] 300 VUs  0m01.7s/2m0s  272/300 iters, 1 per VU
+
+     data_received........................: 7.0 MB 85 kB/s
+     data_sent............................: 779 kB 9.5 kB/s
+     http_req_blocked.....................: avg=27.35ms  min=0s       med=527.53µs p(90)=89.75ms p(95)=130.25ms p(99)=141.41ms max=5.13s   count=1802
+     http_req_connecting..................: avg=27.29ms  min=0s       med=472.1µs  p(90)=89.7ms  p(95)=130.22ms p(99)=141.38ms max=5.13s   count=1802
+     http_req_duration....................: avg=1.16s    min=0s       med=594.92ms p(90)=3.44s   p(95)=3.63s    p(99)=3.82s    max=3.89s   count=1802
+       { expected_response:true }.........: avg=610.62ms min=5.57ms   med=178.96ms p(90)=2.23s   p(95)=2.66s    p(99)=3.48s    max=3.8s    count=1172
+     ✓ { name:hot_cancel }................: avg=779.28ms min=37.85ms  med=770.88ms p(90)=1.13s   p(95)=1.16s    p(99)=1.28s    max=1.35s   count=300 
+     ✓ { name:hot_order }.................: avg=2.91s    min=86.59ms  med=2.98s    p(90)=3.79s   p(95)=3.82s    p(99)=3.85s    max=3.89s   count=300 
+     ✓ { name:hot_withdraw }..............: avg=2.76s    min=177.55ms med=2.77s    p(90)=3.53s   p(95)=3.55s    p(99)=3.57s    max=3.62s   count=300 
+     ✓ { scenario:hot_cancel }............: avg=641.37ms min=37.85ms  med=636.16ms p(90)=1.07s   p(95)=1.14s    p(99)=1.35s    max=1.58s   count=600 
+     ✓ { scenario:hot_order }.............: avg=1.46s    min=0s       med=57.03ms  p(90)=3.73s   p(95)=3.79s    p(99)=3.84s    max=3.89s   count=600 
+     ✓ { scenario:hot_withdraw }..........: avg=1.39s    min=5.72ms   med=352.73ms p(90)=3.47s   p(95)=3.53s    p(99)=3.57s    max=3.62s   count=600 
+     http_req_failed......................: 34.96% 630 out of 1802
+     ✓ { scenario:hot_cancel }............: 34.33% 206 out of 600
+     ✓ { scenario:hot_order }.............: 37.33% 224 out of 600
+     ✓ { scenario:hot_withdraw }..........: 33.33% 200 out of 600
+     http_req_receiving...................: avg=497.6µs  min=0s       med=123.02µs p(90)=1.56ms  p(95)=2.8ms    p(99)=5.02ms   max=12.81ms count=1802
+     http_req_sending.....................: avg=51.61µs  min=0s       med=30.95µs  p(90)=68.65µs p(95)=87.4µs   p(99)=997.65µs max=2.25ms  count=1802
+     http_req_tls_handshaking.............: avg=0s       min=0s       med=0s       p(90)=0s      p(95)=0s       p(99)=0s       max=0s      count=1802
+     http_req_waiting.....................: avg=1.16s    min=0s       med=594.69ms p(90)=3.44s   p(95)=3.63s    p(99)=3.82s    max=3.89s   count=1802
+     http_reqs............................: 1802   21.985162/s
+     iteration_duration...................: avg=5.73s    min=320.49ms med=6.61s    p(90)=7.71s   p(95)=7.81s    p(99)=31.44s   max=32.1s   count=900 
+     iterations...........................: 900    10.98038/s
+     status_by_request....................: 900    10.98038/s
+     ✓ { name:hot_cancel,status:200 }.....: 94     1.14684/s
+     ✓ { name:hot_cancel,status:400 }.....: 206    2.513287/s
+     ✓ { name:hot_cancel,status:401 }.....: 0      0/s
+     ✓ { name:hot_cancel,status:409 }.....: 0      0/s
+     ✓ { name:hot_cancel,status:500 }.....: 0      0/s
+     ✓ { name:hot_order,status:200 }......: 99     1.207842/s
+     ✓ { name:hot_order,status:400 }......: 201    2.452285/s
+     ✓ { name:hot_order,status:401 }......: 0      0/s
+     ✓ { name:hot_order,status:409 }......: 0      0/s
+     ✓ { name:hot_order,status:500 }......: 0      0/s
+     ✓ { name:hot_withdraw,status:200 }...: 100    1.220042/s
+     ✓ { name:hot_withdraw,status:400 }...: 200    2.440085/s
+     ✓ { name:hot_withdraw,status:401 }...: 0      0/s
+     ✓ { name:hot_withdraw,status:409 }...: 0      0/s
+     ✓ { name:hot_withdraw,status:500 }...: 0      0/s
+     vus..................................: 28     min=0           max=300
+     vus_max..............................: 900    min=900         max=900
+
+
+running (1m22.0s), 000/900 VUs, 900 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m07.6s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m32.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   ✓ [ 100% ] 300 VUs  0m01.8s/2m0s  300/300 iters, 1 per VU
