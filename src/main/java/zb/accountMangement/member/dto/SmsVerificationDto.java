@@ -3,7 +3,10 @@ package zb.accountMangement.member.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import zb.accountMangement.member.model.VerificationPurpose;
+
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Getter
@@ -16,5 +19,8 @@ public class SmsVerificationDto {
 
   @NotBlank
   private String verificationCode;
+
+  @NotNull
+  private VerificationPurpose purpose;
 
 }

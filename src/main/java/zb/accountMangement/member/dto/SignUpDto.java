@@ -1,7 +1,9 @@
 package zb.accountMangement.member.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
@@ -10,6 +12,8 @@ import javax.validation.constraints.Pattern;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignUpDto {
 
   @NotBlank
@@ -20,7 +24,7 @@ public class SignUpDto {
   private String phoneNumber;
 
   @NotBlank
-  private String password; //로그인 패스워드
+  private String loginPassword;
 
   @NotBlank
   private String initialAccountPassword; //초기 생성되는 계좌 비밀번호

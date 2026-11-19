@@ -1,3 +1,4 @@
+
 server:
   port: 8080
 
@@ -12,11 +13,14 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/accountSystem?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: rtrt
+    url: ${DB_URL:jdbc:mysql://localhost:3306/accountSystem?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:account}
+    password: ${DB_PASSWORD:account}
 
   jpa:
+    # 요청 하나가 영속성 컨텍스트 하나를 끝까지 공유하면 소유자 확인 때 읽어 둔 계좌가 남아,
+    # 잔액을 바꿀 때 잠금을 걸고 다시 읽어도 예전 잔액을 보게 됨
+    open-in-view: false
     hibernate:
       ddl-auto:  update  #create
     properties:
@@ -29,5 +33,23 @@ spring:
       matching-strategy: ant_path_matcher
 
   redis:
-    host: localhost #127.0.0.1
-    port: 6379
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+jwt:
+  # 기본값을 두지 않음. JWT_SECRET 환경변수나 application-secret.yml로 넣어야 하고, 없으면 앱이 뜨지 않음
+  secret: ${JWT_SECRET:}
+  expiration:
+    access-token-seconds: ${JWT_ACCESS_TOKEN_SECONDS:1800}
+    refresh-token-seconds: ${JWT_REFRESH_TOKEN_SECONDS:1209600}
+
+sms:
+  # log: 문자를 보내지 않고 로그만 남김, coolsms: 실제 발송
+  provider: ${SMS_PROVIDER:log}
+
+coolsms:
+  api-key: ${COOLSMS_API_KEY:}
+  secret-key: ${COOLSMS_SECRET_KEY:}
+
+provider:
+  phone-number: ${SMS_SENDER_PHONE_NUMBER:}

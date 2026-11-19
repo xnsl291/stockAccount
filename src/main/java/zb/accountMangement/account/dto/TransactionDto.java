@@ -3,10 +3,8 @@ package zb.accountMangement.account.dto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.data.annotation.CreatedDate;
+import zb.accountMangement.account.model.TransactionType;
 
-import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Getter
@@ -14,17 +12,17 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionDto {
 
-    @NotNull
     private Long accountId;
 
-    @NotBlank
+    private TransactionType type;
+
     private String name;
 
-    @NotBlank
-    private Double amount;
+    private long amount; // 잔액이 늘면 양수, 줄면 음수
+
+    private long balanceAfter; // 거래 후 잔액
 
     private String memo;
 
-    @CreatedDate
     private LocalDateTime transactedAt;
 }
