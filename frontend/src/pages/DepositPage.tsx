@@ -8,7 +8,7 @@ import { useAccount } from '../hooks/queries';
 import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
 import { accountLabel } from '../lib/labels';
-import { AMOUNT_MAX, MEMO_MAX } from '../lib/validation';
+import { AMOUNT_MAX, MEMO_MAX, charCount } from '../lib/validation';
 
 export function DepositPage() {
   const choice = useAccountChoice();
@@ -30,7 +30,7 @@ export function DepositPage() {
   const locked = a?.status === 'PENDING';
   const amountError =
     amount === '' ? null : amountNum < 1 ? '1원 이상 입력해 주세요' : amountNum > AMOUNT_MAX ? '처리할 수 있는 금액보다 커요' : null;
-  const canNext = !!a && !locked && amount !== '' && !amountError && memo.length <= MEMO_MAX;
+  const canNext = !!a && !locked && amount !== '' && !amountError && charCount(memo) <= MEMO_MAX;
   const editing = flow.step === 'input';
 
   if (flow.step === 'result' && flow.result) {
@@ -71,7 +71,7 @@ export function DepositPage() {
           errorTestid="deposit-amount-error"
           disabled={!editing}
         />
-        <TextField label="메모(선택)" testid="deposit-memo-input" value={memo} onChange={setMemo} maxLength={MEMO_MAX} disabled={!editing} />
+        <TextField label="메모(선택)" testid="deposit-memo-input" value={memo} onChange={setMemo} countMax={MEMO_MAX} countTestid="deposit-memo-count" disabled={!editing} />
         {editing && (
           <button type="button" className="primary block" data-testid="deposit-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             입금 확인으로

@@ -109,6 +109,9 @@ button:disabled, button[aria-disabled='true'], .button[aria-disabled='true'] {
 input[type='checkbox'] { width: 28px; height: 28px; accent-color: var(--primary); }
 .check { display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); cursor: pointer; }
 
+/* 글자 수 표시: 입력 칸 오른쪽 아래, 넘으면 빨간색 */
+.char-count { align-self: flex-end; font-size: var(--fs-cap); color: var(--ink-3); line-height: 1.2; }
+.char-count.over { color: var(--danger); font-weight: 600; }
 .hint { font-size: var(--fs-cap); color: var(--ink-3); line-height: 1.45; }
 .error { font-size: var(--fs-cap); color: var(--danger); font-weight: 600; }
 .notice {

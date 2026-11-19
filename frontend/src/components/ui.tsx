@@ -5,6 +5,7 @@ import { useId, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { formatAmount, formatAmountInput, formatSigned, digitsOnly } from '../lib/format';
 import { errorMessage, isNotFound, type ErrorContext } from '../lib/messages';
+import { charCount } from '../lib/validation';
 
 export function Amount({
   value,
@@ -45,6 +46,9 @@ interface FieldProps {
   inputMode?: 'text' | 'numeric' | 'tel';
   autoComplete?: string;
   maxLength?: number;
+  /** 글자 수 표시 상한. 넘게 입력은 되고, 넘으면 숫자와 테두리가 빨개짐(진행 막기는 화면이 따로 함) */
+  countMax?: number;
+  countTestid?: string;
   disabled?: boolean;
   placeholder?: string;
   suffix?: string;
@@ -54,6 +58,8 @@ export function TextField(props: FieldProps) {
   const id = useId();
   const hintId = `${id}-hint`;
   const errId = `${id}-err`;
+  const count = props.countMax !== undefined ? charCount(props.value) : null;
+  const overCount = count !== null && count > props.countMax!;
   const describedBy = [props.hint ? hintId : null, props.error ? errId : null].filter(Boolean).join(' ') || undefined;
   return (
     <div className="field">
@@ -69,13 +75,18 @@ export function TextField(props: FieldProps) {
           value={props.value}
           disabled={props.disabled}
           placeholder={props.placeholder}
-          aria-invalid={props.error ? true : undefined}
+          aria-invalid={props.error || overCount ? true : undefined}
           aria-describedby={describedBy}
           className={props.suffix ? 'num' : undefined}
           onChange={(e) => props.onChange(e.target.value)}
         />
         {props.suffix && <span className="unit">{props.suffix}</span>}
       </div>
+      {count !== null && (
+        <p className={overCount ? 'char-count over' : 'char-count'} data-testid={props.countTestid}>
+          {count}/{props.countMax}
+        </p>
+      )}
       {props.hint && (
         <p className="hint" id={hintId}>
           {props.hint}

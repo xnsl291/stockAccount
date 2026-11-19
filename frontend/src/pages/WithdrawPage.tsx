@@ -10,7 +10,7 @@ import { useMoneyFlow } from '../hooks/useMoneyFlow';
 import { formatAmount } from '../lib/format';
 import { accountLabel } from '../lib/labels';
 import { MESSAGES } from '../lib/messages';
-import { MEMO_MAX } from '../lib/validation';
+import { MEMO_MAX, charCount } from '../lib/validation';
 
 export function WithdrawPage() {
   const choice = useAccountChoice();
@@ -52,7 +52,7 @@ export function WithdrawPage() {
         : amountNum > withdrawable
           ? `출금 가능 금액(${formatAmount(withdrawable)}원)보다 커요`
           : null;
-  const canNext = !!a && !locked && amount !== '' && !amountError && memo.length <= MEMO_MAX;
+  const canNext = !!a && !locked && amount !== '' && !amountError && charCount(memo) <= MEMO_MAX;
   const editing = flow.step === 'input';
 
   return (
@@ -86,7 +86,7 @@ export function WithdrawPage() {
           errorTestid="withdraw-amount-error"
           disabled={!editing}
         />
-        <TextField label="메모(선택)" testid="withdraw-memo-input" value={memo} onChange={setMemo} maxLength={MEMO_MAX} disabled={!editing} />
+        <TextField label="메모(선택)" testid="withdraw-memo-input" value={memo} onChange={setMemo} countMax={MEMO_MAX} countTestid="withdraw-memo-count" disabled={!editing} />
         {editing && (
           <button type="button" className="primary block" data-testid="withdraw-next" disabled={!canNext} onClick={() => flow.setStep('confirm')}>
             출금 확인으로

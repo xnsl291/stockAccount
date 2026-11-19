@@ -12,9 +12,14 @@ export const CODE_PATTERN = /^\d{5}$/;
 /** 계좌번호는 숫자 14자리 */
 export const ACCOUNT_NUMBER_LENGTH = 14;
 
-/** 화면 상한(서버 상한 없음, DB 칸 기본 길이 255자 추정). 사용자 결정: 메모 50자, 별칭 20자 */
-export const MEMO_MAX = 50;
+/** 화면 상한. 거래 메모는 DB 칸 길이(255자)를 넘으면 서버가 오류를 내므로 화면에서 막음. 별칭은 20자 */
+export const MEMO_MAX = 255;
 export const NICKNAME_MAX = 20;
+
+/** 사람이 보는 글자 수. 이모지 같은 두 칸짜리 문자도 한 글자로 셈(.length는 두 글자로 셈) */
+export function charCount(text: string): number {
+  return [...text].length;
+}
 
 /** 자바스크립트가 정확히 다루는 가장 큰 정수 */
 export const AMOUNT_MAX = Number.MAX_SAFE_INTEGER;

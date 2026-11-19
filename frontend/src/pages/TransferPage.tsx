@@ -10,7 +10,7 @@ import { useAccountChoice } from '../hooks/useAccountChoice';
 import { useMoneyFlow } from '../hooks/useMoneyFlow';
 import { useRecipient } from '../hooks/useRecipient';
 import { formatAmount } from '../lib/format';
-import { MEMO_MAX } from '../lib/validation';
+import { MEMO_MAX, charCount } from '../lib/validation';
 
 export function TransferPage() {
   const choice = useAccountChoice();
@@ -54,7 +54,7 @@ export function TransferPage() {
         : amountNum > sendable
           ? `보낼 수 있는 금액(${formatAmount(sendable)}원)보다 커요`
           : null;
-  const canNext = !!a && !locked && !!to && amount !== '' && !amountError && memo.length <= MEMO_MAX;
+  const canNext = !!a && !locked && !!to && amount !== '' && !amountError && charCount(memo) <= MEMO_MAX;
   const editing = flow.step === 'input';
 
   return (
@@ -108,7 +108,7 @@ export function TransferPage() {
           testid="transfer-memo-input"
           value={memo}
           onChange={setMemo}
-          maxLength={MEMO_MAX}
+          countMax={MEMO_MAX} countTestid="transfer-memo-count"
           hint="받는 사람 거래내역에도 남아요"
           disabled={!editing}
         />
