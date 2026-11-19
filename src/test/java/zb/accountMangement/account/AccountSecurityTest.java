@@ -3,6 +3,7 @@ package zb.accountMangement.account;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -12,8 +13,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.support.ApiTest;
@@ -26,6 +31,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AccountSecurityTest extends ApiTest {
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@Test
 	void 남의_계좌로는_입금_출금_송금_조회를_할_수_없다() throws Exception {
@@ -173,6 +181,55 @@ class AccountSecurityTest extends ApiTest {
 			executor.shutdown();
 			executor.awaitTermination(15, TimeUnit.SECONDS);
 		}
+		assertThat(balanceOf(account)).isEqualTo(50_000);
+	}
+
+	@Test
+	void 맞는_비밀번호를_확인한_뒤_실행_전에_계좌가_거래정지되면_틀린_요청과_같은_거래정지_응답을_받는다() throws Exception {
+		Member member = saveMember();
+		Account receiver = saveAccount(saveMember());
+
+		Account withdrawFrom = saveAccount(member, 50_000);
+		expectSuspendedAfterPasswordCheck(withdrawFrom, () -> withdraw(member, withdrawFrom, ACCOUNT_PASSWORD).andReturn());
+		Account transferFrom = saveAccount(member, 50_000);
+		expectSuspendedAfterPasswordCheck(transferFrom, () -> postJson("/api/transactions/" + transferFrom.getId() + "/transfer/" + receiver.getId(),
+				member, Map.of("amount", 10_000, "accountPassword", ACCOUNT_PASSWORD)).andReturn());
+		Account buyFrom = saveAccount(member, 50_000);
+		expectSuspendedAfterPasswordCheck(buyFrom, () -> postJson("/api/stocks/buy", member, Map.of("accountId", buyFrom.getId(),
+				"stockId", saveStock(1_000).getId(), "price", 1_000, "quantity", 1, "accountPassword", ACCOUNT_PASSWORD)).andReturn());
+		Account stockFrom = saveAccount(member, 50_000);
+		expectSuspendedAfterPasswordCheck(stockFrom, () -> postJson("/api/stocks/transfer", member, Map.of("senderAccountId", stockFrom.getId(),
+				"receiverAccountId", receiver.getId(), "stockId", saveStock(1_000).getId(), "quantity", 1,
+				"accountPassword", ACCOUNT_PASSWORD)).andReturn());
+
+		assertThat(balanceOf(receiver)).isZero();
+	}
+
+	// 계좌 행을 잠가 둔 채 맞는 비밀번호 요청을 보내, 비밀번호 확인은 마치고 실행 단계의 계좌 잠금에서 기다리게 함.
+	// 그동안 틀린 요청 다섯 건이 커밋된 것처럼 계좌를 거래정지시키고 잠금을 풂.
+	// 정답 요청만 다른 오류 코드를 받으면, 동시에 여러 비밀번호를 넣어 본 쪽이 어느 것이 맞았는지 알 수 있음
+	private void expectSuspendedAfterPasswordCheck(Account account, Callable<MvcResult> correctRequest) throws Exception {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> request;
+		TransactionStatus wrongAttempts = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			Account locked = accountRepository.findByIdForUpdate(account.getId()).orElseThrow();
+			request = executor.submit(correctRequest);
+			awaitLockWaits(1);
+			for (int i = 0; i < 5; i++)
+				locked.recordPasswordFailure();
+		} catch (Exception | AssertionError e) {
+			transactionManager.rollback(wrongAttempts);
+			executor.shutdownNow();
+			throw e;
+		}
+		transactionManager.commit(wrongAttempts);
+
+		MvcResult result = request.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(400);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).path("code").asText())
+				.isEqualTo("PENDING_ACCOUNT");
 		assertThat(balanceOf(account)).isEqualTo(50_000);
 	}
 
