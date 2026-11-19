@@ -1,11 +1,11 @@
-package zb.accountMangement.account.service;
+package zb.accountMangement.idempotency.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import zb.accountMangement.account.model.entity.IdempotencyRecord;
-import zb.accountMangement.account.repository.IdempotencyRecordRepository;
+import zb.accountMangement.idempotency.model.entity.IdempotencyRecord;
+import zb.accountMangement.idempotency.repository.IdempotencyRecordRepository;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 

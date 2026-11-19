@@ -17,7 +17,7 @@ import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.entity.Transaction;
 import zb.accountMangement.account.repository.TransactionRepository;
-import zb.accountMangement.account.service.IdempotencyService;
+import zb.accountMangement.idempotency.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.stock.model.entity.Stock;
