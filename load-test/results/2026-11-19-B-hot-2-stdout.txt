@@ -1,0 +1,766 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /scripts/hot-account.js
+        output: csv (/raw/2026-11-19-B-hot-2.csv.gz)
+
+     scenarios: (100.00%) 3 scenarios, 900 max VUs, 3m50s max duration (incl. graceful stop):
+              * hot_withdraw: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: withdraw, gracefulStop: 30s)
+              * hot_order: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: order, startTime: 40s, gracefulStop: 30s)
+              * hot_cancel: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: cancel, startTime: 1m20s, gracefulStop: 30s)
+
+
+running (0m00.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m00.6s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  39.4s        
+hot_cancel   • [   0% ] waiting  1m19.4s      
+
+running (0m01.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m01.6s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  38.4s        
+hot_cancel   • [   0% ] waiting  1m18.4s      
+
+running (0m02.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m02.6s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  37.4s        
+hot_cancel   • [   0% ] waiting  1m17.4s      
+
+running (0m03.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m03.6s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  36.4s        
+hot_cancel   • [   0% ] waiting  1m16.4s      
+
+running (0m04.9s), 300/900 VUs, 0 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs  0m04.6s/2m0s  000/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  35.4s        
+hot_cancel   • [   0% ] waiting  1m15.4s      
+
+running (0m05.9s), 288/900 VUs, 12 complete and 0 interrupted iterations
+hot_withdraw   [   4% ] 300 VUs  0m05.6s/2m0s  012/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  34.4s        
+hot_cancel   • [   0% ] waiting  1m14.4s      
+
+running (0m06.9s), 177/900 VUs, 123 complete and 0 interrupted iterations
+hot_withdraw   [  41% ] 300 VUs  0m06.6s/2m0s  123/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  33.4s        
+hot_cancel   • [   0% ] waiting  1m13.4s      
+
+running (0m07.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m07.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  32.4s        
+hot_cancel   • [   0% ] waiting  1m12.4s      
+
+running (0m08.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m08.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  31.4s        
+hot_cancel   • [   0% ] waiting  1m11.4s      
+
+running (0m09.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m09.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  30.4s        
+hot_cancel   • [   0% ] waiting  1m10.4s      
+
+running (0m10.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m10.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  29.4s        
+hot_cancel   • [   0% ] waiting  1m09.4s      
+
+running (0m11.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m11.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  28.4s        
+hot_cancel   • [   0% ] waiting  1m08.4s      
+
+running (0m12.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m12.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  27.4s        
+hot_cancel   • [   0% ] waiting  1m07.4s      
+
+running (0m13.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m13.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  26.4s        
+hot_cancel   • [   0% ] waiting  1m06.4s      
+
+running (0m14.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m14.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  25.4s        
+hot_cancel   • [   0% ] waiting  1m05.4s      
+
+running (0m15.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m15.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  24.4s        
+hot_cancel   • [   0% ] waiting  1m04.4s      
+
+running (0m16.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m16.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  23.4s        
+hot_cancel   • [   0% ] waiting  1m03.4s      
+
+running (0m17.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m17.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  22.4s        
+hot_cancel   • [   0% ] waiting  1m02.4s      
+
+running (0m18.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m18.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  21.4s        
+hot_cancel   • [   0% ] waiting  1m01.4s      
+
+running (0m19.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m19.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  20.4s        
+hot_cancel   • [   0% ] waiting  1m00.4s      
+
+running (0m20.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m20.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  19.4s        
+hot_cancel   • [   0% ] waiting  0m59.4s      
+
+running (0m21.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m21.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  18.4s        
+hot_cancel   • [   0% ] waiting  0m58.4s      
+
+running (0m22.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m22.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  17.4s        
+hot_cancel   • [   0% ] waiting  0m57.4s      
+
+running (0m23.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m23.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  16.4s        
+hot_cancel   • [   0% ] waiting  0m56.4s      
+
+running (0m24.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m24.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  15.4s        
+hot_cancel   • [   0% ] waiting  0m55.4s      
+
+running (0m25.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m25.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  14.4s        
+hot_cancel   • [   0% ] waiting  0m54.4s      
+
+running (0m26.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m26.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  13.4s        
+hot_cancel   • [   0% ] waiting  0m53.4s      
+
+running (0m27.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m27.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  12.4s        
+hot_cancel   • [   0% ] waiting  0m52.4s      
+
+running (0m28.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m28.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  11.4s        
+hot_cancel   • [   0% ] waiting  0m51.4s      
+
+running (0m29.9s), 033/900 VUs, 267 complete and 0 interrupted iterations
+hot_withdraw   [  89% ] 300 VUs  0m29.6s/2m0s  267/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  10.4s        
+hot_cancel   • [   0% ] waiting  0m50.4s      
+time="2026-11-19T02:31:02Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:02Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:02Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:02Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:02Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:02Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (0m30.9s), 020/900 VUs, 280 complete and 0 interrupted iterations
+hot_withdraw   [  93% ] 300 VUs  0m30.6s/2m0s  280/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  09.4s        
+hot_cancel   • [   0% ] waiting  0m49.4s      
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:03Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (0m31.9s), 003/900 VUs, 297 complete and 0 interrupted iterations
+hot_withdraw   [  99% ] 300 VUs  0m31.6s/2m0s  297/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  08.4s        
+hot_cancel   • [   0% ] waiting  0m48.4s      
+time="2026-11-19T02:31:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (0m32.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  07.4s        
+hot_cancel   • [   0% ] waiting  0m47.4s      
+
+running (0m33.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  06.4s        
+hot_cancel   • [   0% ] waiting  0m46.4s      
+
+running (0m34.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  05.4s        
+hot_cancel   • [   0% ] waiting  0m45.4s      
+
+running (0m35.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  04.4s        
+hot_cancel   • [   0% ] waiting  0m44.4s      
+
+running (0m36.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  03.4s        
+hot_cancel   • [   0% ] waiting  0m43.4s      
+
+running (0m37.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  02.4s        
+hot_cancel   • [   0% ] waiting  0m42.4s      
+
+running (0m38.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  01.4s        
+hot_cancel   • [   0% ] waiting  0m41.4s      
+
+running (0m39.9s), 000/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    • [   0% ] waiting  00.4s        
+hot_cancel   • [   0% ] waiting  0m40.4s      
+
+running (0m40.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m00.6s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m39.4s      
+
+running (0m41.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m01.6s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m38.4s      
+
+running (0m42.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m02.6s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m37.4s      
+
+running (0m43.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m03.6s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m36.4s      
+
+running (0m44.9s), 300/900 VUs, 300 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m04.6s/2m0s  000/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m35.4s      
+
+running (0m45.9s), 299/900 VUs, 301 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   0% ] 300 VUs  0m05.6s/2m0s  001/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m34.4s      
+
+running (0m46.9s), 284/900 VUs, 316 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [   5% ] 300 VUs  0m06.6s/2m0s  016/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m33.4s      
+
+running (0m47.9s), 111/900 VUs, 489 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order      [  63% ] 300 VUs  0m07.6s/2m0s  189/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m32.4s      
+
+running (0m48.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m31.4s      
+
+running (0m49.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m30.4s      
+
+running (0m50.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m29.4s      
+
+running (0m51.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m28.4s      
+
+running (0m52.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m27.4s      
+
+running (0m53.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m26.4s      
+
+running (0m54.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m25.4s      
+
+running (0m55.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m24.4s      
+
+running (0m56.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m23.4s      
+
+running (0m57.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m22.4s      
+
+running (0m58.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m21.4s      
+
+running (0m59.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m20.4s      
+
+running (1m00.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m19.4s      
+
+running (1m01.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m18.4s      
+
+running (1m02.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m17.4s      
+
+running (1m03.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m16.4s      
+
+running (1m04.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m15.4s      
+
+running (1m05.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m14.4s      
+
+running (1m06.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m13.4s      
+
+running (1m07.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m12.4s      
+
+running (1m08.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m11.4s      
+
+running (1m09.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m10.4s      
+
+running (1m10.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m09.4s      
+
+running (1m11.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m08.4s      
+
+running (1m12.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m07.4s      
+
+running (1m13.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m06.4s      
+
+running (1m14.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m05.4s      
+
+running (1m15.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m04.4s      
+
+running (1m16.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m03.4s      
+
+running (1m17.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m02.4s      
+
+running (1m18.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m01.4s      
+
+running (1m19.9s), 000/900 VUs, 600 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   • [   0% ] waiting  0m00.4s      
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1002/history?status=PENDING\": dial tcp 192.168.65.254:8080: connect: connection refused"
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+time="2026-11-19T02:31:52Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat cancel (file:///scripts/hot-account.js:55:118(13))\n" executor=per-vu-iterations scenario=hot_cancel source=stacktrace
+
+running (1m20.9s), 134/900 VUs, 766 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel     [  55% ] 300 VUs  0m00.6s/2m0s  166/300 iters, 1 per VU
+
+     data_received........................: 4.0 MB 50 kB/s
+     data_sent............................: 665 kB 8.2 kB/s
+     http_req_blocked.....................: avg=6.84ms   min=0s      med=4.8µs    p(90)=11.55ms  p(95)=64.2ms   p(99)=84.7ms   max=91.36ms  count=1670
+     http_req_connecting..................: avg=6.78ms   min=0s      med=0s       p(90)=10.98ms  p(95)=64.15ms  p(99)=84.39ms  max=91.33ms  count=1670
+     http_req_duration....................: avg=1.08s    min=0s      med=211.47ms p(90)=3.11s    p(95)=3.83s    p(99)=4.06s    max=4.12s    count=1670
+       { expected_response:true }.........: avg=581.07ms min=5.65ms  med=14.52ms  p(90)=2.41s    p(95)=2.78s    p(99)=3.44s    max=3.98s    count=1022
+     ✓ { name:hot_cancel }................: avg=382.62ms min=75.76ms med=383.07ms p(90)=561.8ms  p(95)=630.05ms p(99)=707.64ms max=860.66ms count=168 
+     ✓ { name:hot_order }.................: avg=3.28s    min=1.32s   med=3.18s    p(90)=4.03s    p(95)=4.06s    p(99)=4.09s    max=4.12s    count=300 
+     ✓ { name:hot_withdraw }..............: avg=2.31s    min=84.32ms med=2.57s    p(90)=3.09s    p(95)=3.1s     p(99)=3.12s    max=3.12s    count=300 
+     ✓ { scenario:hot_cancel }............: avg=272.39ms min=0s      med=274.05ms p(90)=582.49ms p(95)=651.52ms p(99)=811.55ms max=913.6ms  count=468 
+     ✓ { scenario:hot_order }.............: avg=1.64s    min=5.65ms  med=677.26ms p(90)=3.96s    p(95)=4.03s    p(99)=4.08s    max=4.12s    count=600 
+     ✓ { scenario:hot_withdraw }..........: avg=1.16s    min=0s      med=75.53ms  p(90)=3.05s    p(95)=3.09s    p(99)=3.11s    max=3.12s    count=600 
+     http_req_failed......................: 38.80% 648 out of 1670
+     ✓ { scenario:hot_cancel }............: 45.72% 214 out of 468
+     ✓ { scenario:hot_order }.............: 33.50% 201 out of 600
+     ✓ { scenario:hot_withdraw }..........: 38.83% 233 out of 600
+     http_req_receiving...................: avg=329.15µs min=0s      med=106.64µs p(90)=612.14µs p(95)=1.47ms   p(99)=3.87ms   max=18.87ms  count=1670
+     http_req_sending.....................: avg=91.02µs  min=0s      med=30.72µs  p(90)=87.45µs  p(95)=119.64µs p(99)=2.34ms   max=3.68ms   count=1670
+     http_req_tls_handshaking.............: avg=0s       min=0s      med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s       count=1670
+     http_req_waiting.....................: avg=1.08s    min=0s      med=210.22ms p(90)=3.11s    p(95)=3.83s    p(99)=4.06s    max=4.12s    count=1670
+     http_reqs............................: 1670   20.513704/s
+     iteration_duration...................: avg=5.68s    min=91.29ms med=6.66s    p(90)=7.97s    p(95)=8.07s    p(99)=31.23s   max=31.75s   count=900 
+     iterations...........................: 900    11.055289/s
+     status_by_request....................: 768    9.433847/s
+     ✓ { name:hot_cancel,status:200 }.....: 86     1.056394/s
+     ✓ { name:hot_cancel,status:400 }.....: 82     1.00726/s
+     ✓ { name:hot_cancel,status:401 }.....: 0      0/s
+     ✓ { name:hot_cancel,status:409 }.....: 0      0/s
+     ✓ { name:hot_cancel,status:500 }.....: 0      0/s
+     ✓ { name:hot_order,status:200 }......: 99     1.216082/s
+     ✓ { name:hot_order,status:400 }......: 201    2.469015/s
+     ✓ { name:hot_order,status:401 }......: 0      0/s
+     ✓ { name:hot_order,status:409 }......: 0      0/s
+     ✓ { name:hot_order,status:500 }......: 0      0/s
+     ✓ { name:hot_withdraw,status:200 }...: 100    1.228365/s
+     ✓ { name:hot_withdraw,status:400 }...: 200    2.456731/s
+     ✓ { name:hot_withdraw,status:401 }...: 0      0/s
+     ✓ { name:hot_withdraw,status:409 }...: 0      0/s
+     ✓ { name:hot_withdraw,status:500 }...: 0      0/s
+     vus..................................: 134    min=0           max=300
+     vus_max..............................: 900    min=900         max=900
+
+
+running (1m21.4s), 000/900 VUs, 900 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs  0m31.8s/2m0s  300/300 iters, 1 per VU
+hot_order    ✓ [ 100% ] 300 VUs  0m08.1s/2m0s  300/300 iters, 1 per VU
+hot_cancel   ✓ [ 100% ] 300 VUs  0m01.1s/2m0s  300/300 iters, 1 per VU

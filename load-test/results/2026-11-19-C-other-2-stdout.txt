@@ -1,0 +1,243 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /scripts/other-account.js
+        output: csv (/raw/2026-11-19-C-other-2.csv.gz)
+
+     scenarios: (100.00%) 2 scenarios, 1300 max VUs, 2m30s max duration (incl. graceful stop):
+              * hot_withdraw: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: withdraw, gracefulStop: 30s)
+              * other: 20.00 iterations/s for 30s (maxVUs: 100-1000, exec: other, gracefulStop: 30s)
+
+
+Run            [ 100% ] setup()
+hot_withdraw   [   0% ]
+other          [   0% ]
+
+Run            [ 100% ] setup()
+hot_withdraw   [   0% ]
+other          [   0% ]
+
+Run            [ 100% ] setup()
+hot_withdraw   [   0% ]
+other          [   0% ]
+
+running (0m04.0s), 0301/0400 VUs, 14 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m00.7s/2m0s  000/300 iters, 1 per VU
+other          [   2% ] 0001/0100 VUs  00.7s/30s     20.00 iters/s
+
+running (0m05.0s), 0302/0400 VUs, 33 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m01.7s/2m0s  000/300 iters, 1 per VU
+other          [   6% ] 0002/0100 VUs  01.7s/30s     20.00 iters/s
+
+running (0m06.0s), 0309/0400 VUs, 46 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m02.7s/2m0s  000/300 iters, 1 per VU
+other          [   9% ] 0009/0100 VUs  02.7s/30s     20.00 iters/s
+
+running (0m07.0s), 0313/0400 VUs, 62 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m03.7s/2m0s  000/300 iters, 1 per VU
+other          [  12% ] 0013/0100 VUs  03.7s/30s     20.00 iters/s
+
+running (0m08.0s), 0326/0400 VUs, 69 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m04.7s/2m0s  000/300 iters, 1 per VU
+other          [  16% ] 0026/0100 VUs  04.7s/30s     20.00 iters/s
+
+running (0m09.0s), 0334/0400 VUs, 81 complete and 0 interrupted iterations
+hot_withdraw   [   4% ] 300 VUs        0m05.7s/2m0s  012/300 iters, 1 per VU
+other          [  19% ] 0046/0100 VUs  05.7s/30s     20.00 iters/s
+
+running (0m10.0s), 0245/0400 VUs, 190 complete and 0 interrupted iterations
+hot_withdraw   [  40% ] 300 VUs        0m06.7s/2m0s  120/300 iters, 1 per VU
+other          [  22% ] 0065/0100 VUs  06.7s/30s     20.00 iters/s
+
+running (0m11.0s), 0168/0400 VUs, 287 complete and 0 interrupted iterations
+hot_withdraw   [  66% ] 300 VUs        0m07.7s/2m0s  198/300 iters, 1 per VU
+other          [  26% ] 0066/0100 VUs  07.7s/30s     20.00 iters/s
+
+running (0m12.0s), 0033/0400 VUs, 442 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m08.7s/2m0s  285/300 iters, 1 per VU
+other          [  29% ] 0018/0100 VUs  08.7s/30s     20.00 iters/s
+
+running (0m13.0s), 0033/0400 VUs, 462 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m09.7s/2m0s  285/300 iters, 1 per VU
+other          [  32% ] 0018/0100 VUs  09.7s/30s     20.00 iters/s
+
+running (0m14.0s), 0031/0400 VUs, 484 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m10.7s/2m0s  285/300 iters, 1 per VU
+other          [  36% ] 0016/0100 VUs  10.7s/30s     20.00 iters/s
+
+running (0m15.0s), 0031/0400 VUs, 504 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m11.7s/2m0s  285/300 iters, 1 per VU
+other          [  39% ] 0016/0100 VUs  11.7s/30s     20.00 iters/s
+
+running (0m16.0s), 0033/0400 VUs, 522 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m12.7s/2m0s  285/300 iters, 1 per VU
+other          [  42% ] 0018/0100 VUs  12.7s/30s     20.00 iters/s
+
+running (0m17.0s), 0032/0400 VUs, 543 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m13.7s/2m0s  285/300 iters, 1 per VU
+other          [  46% ] 0017/0100 VUs  13.7s/30s     20.00 iters/s
+
+running (0m18.0s), 0033/0400 VUs, 562 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m14.7s/2m0s  285/300 iters, 1 per VU
+other          [  49% ] 0018/0100 VUs  14.7s/30s     20.00 iters/s
+
+running (0m19.0s), 0031/0400 VUs, 584 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m15.7s/2m0s  285/300 iters, 1 per VU
+other          [  52% ] 0016/0100 VUs  15.7s/30s     20.00 iters/s
+
+running (0m20.0s), 0032/0400 VUs, 603 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m16.7s/2m0s  285/300 iters, 1 per VU
+other          [  56% ] 0017/0100 VUs  16.7s/30s     20.00 iters/s
+
+running (0m21.0s), 0031/0400 VUs, 624 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m17.7s/2m0s  285/300 iters, 1 per VU
+other          [  59% ] 0016/0100 VUs  17.7s/30s     20.00 iters/s
+
+running (0m22.0s), 0031/0400 VUs, 644 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m18.7s/2m0s  285/300 iters, 1 per VU
+other          [  62% ] 0016/0100 VUs  18.7s/30s     20.00 iters/s
+
+running (0m23.0s), 0032/0400 VUs, 663 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m19.7s/2m0s  285/300 iters, 1 per VU
+other          [  66% ] 0017/0100 VUs  19.7s/30s     20.00 iters/s
+
+running (0m24.0s), 0032/0400 VUs, 683 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m20.7s/2m0s  285/300 iters, 1 per VU
+other          [  69% ] 0017/0100 VUs  20.7s/30s     20.00 iters/s
+
+running (0m25.0s), 0032/0400 VUs, 703 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m21.7s/2m0s  285/300 iters, 1 per VU
+other          [  72% ] 0017/0100 VUs  21.7s/30s     20.00 iters/s
+
+running (0m26.0s), 0032/0400 VUs, 723 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m22.7s/2m0s  285/300 iters, 1 per VU
+other          [  76% ] 0017/0100 VUs  22.7s/30s     20.00 iters/s
+
+running (0m27.0s), 0032/0400 VUs, 743 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m23.7s/2m0s  285/300 iters, 1 per VU
+other          [  79% ] 0017/0100 VUs  23.7s/30s     20.00 iters/s
+
+running (0m28.0s), 0032/0400 VUs, 763 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m24.7s/2m0s  285/300 iters, 1 per VU
+other          [  82% ] 0017/0100 VUs  24.7s/30s     20.00 iters/s
+
+running (0m29.0s), 0032/0400 VUs, 783 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m25.7s/2m0s  285/300 iters, 1 per VU
+other          [  86% ] 0017/0100 VUs  25.7s/30s     20.00 iters/s
+
+running (0m30.0s), 0032/0400 VUs, 803 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m26.7s/2m0s  285/300 iters, 1 per VU
+other          [  89% ] 0017/0100 VUs  26.7s/30s     20.00 iters/s
+
+running (0m31.0s), 0033/0400 VUs, 822 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m27.7s/2m0s  285/300 iters, 1 per VU
+other          [  92% ] 0018/0100 VUs  27.7s/30s     20.00 iters/s
+
+running (0m32.0s), 0032/0400 VUs, 843 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m28.7s/2m0s  285/300 iters, 1 per VU
+other          [  96% ] 0017/0100 VUs  28.7s/30s     20.00 iters/s
+
+running (0m33.0s), 0032/0400 VUs, 863 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m29.7s/2m0s  285/300 iters, 1 per VU
+other          [  99% ] 0017/0100 VUs  29.7s/30s     20.00 iters/s
+
+running (0m34.0s), 0031/0400 VUs, 870 complete and 0 interrupted iterations
+hot_withdraw   [  95% ] 300 VUs        0m30.7s/2m0s  285/300 iters, 1 per VU
+other        ↓ [ 100% ] 0019/0100 VUs  30s           20.00 iters/s
+time="2026-11-19T03:05:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/44\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+
+running (0m35.0s), 0021/0400 VUs, 880 complete and 0 interrupted iterations
+hot_withdraw   [  98% ] 300 VUs        0m31.7s/2m0s  293/300 iters, 1 per VU
+other        ↓ [ 100% ] 0019/0100 VUs  30s           20.00 iters/s
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/45\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/84\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/stocks/1\": dial: i/o timeout"
+time="2026-11-19T03:05:45Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:46Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:46Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+
+running (0m36.0s), 0007/0400 VUs, 894 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m32.1s/2m0s  300/300 iters, 1 per VU
+other        ↓ [ 100% ] 0019/0100 VUs  30s           20.00 iters/s
+time="2026-11-19T03:05:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/17\": dial: i/o timeout"
+time="2026-11-19T03:05:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/186\": dial: i/o timeout"
+time="2026-11-19T03:05:47Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+
+running (0m37.0s), 0004/0400 VUs, 897 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m32.1s/2m0s  300/300 iters, 1 per VU
+other        ↓ [ 100% ] 0019/0100 VUs  30s           20.00 iters/s
+time="2026-11-19T03:05:47Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:47Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8080/api/transactions/withdrawal\": dial: i/o timeout"
+time="2026-11-19T03:05:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/15\": dial: i/o timeout"
+
+running (0m38.0s), 0001/0400 VUs, 900 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m32.1s/2m0s  300/300 iters, 1 per VU
+other        ↓ [ 100% ] 0019/0100 VUs  30s           20.00 iters/s
+time="2026-11-19T03:05:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8080/api/accounts/129\": dial: i/o timeout"
+
+     data_received..........................: 725 kB 19 kB/s
+     data_sent..............................: 564 kB 15 kB/s
+     http_req_blocked.......................: avg=893.92µs min=0s      med=5.24µs   p(90)=2.11ms   p(95)=2.77ms   p(99)=15.44ms  max=42.01ms  count=1402
+     http_req_connecting....................: avg=838.93µs min=0s      med=0s       p(90)=2.01ms   p(95)=2.69ms   p(99)=14.21ms  max=32.24ms  count=1402
+     http_req_duration......................: avg=755.19ms min=0s      med=78.94ms  p(90)=3.11s    p(95)=3.89s    p(99)=4.24s    max=4.36s    count=1402
+       { expected_response:true }...........: avg=343.14ms min=5.63ms  med=73.77ms  p(90)=1.8s     p(95)=2.29s    p(99)=3.09s    max=4.09s    count=1171
+     ✓ { name:hot_withdraw }................: avg=2.88s    min=94.94ms med=2.83s    p(90)=4.12s    p(95)=4.23s    p(99)=4.32s    max=4.36s    count=300 
+     ✓ { name:other_read }..................: avg=206.15ms min=0s      med=15.79ms  p(90)=509.76ms p(95)=1.65s    p(99)=2.74s    max=3.76s    count=295 
+     ✓ { name:other_withdraw }..............: avg=369.27ms min=0s      med=109.69ms p(90)=1.19s    p(95)=2.41s    p(99)=3.8s     max=4.09s    count=306 
+     ✓ { scenario:hot_withdraw }............: avg=1.44s    min=0s      med=57.65ms  p(90)=3.92s    p(95)=4.12s    p(99)=4.31s    max=4.36s    count=600 
+     ✓ { scenario:other }...................: avg=289.2ms  min=0s      med=96.93ms  p(90)=754.83ms p(95)=2.03s    p(99)=3.49s    max=4.09s    count=601 
+     http_req_failed........................: 16.47% 231 out of 1402
+     ✓ { scenario:hot_withdraw }............: 35.83% 215 out of 600
+     ✓ { scenario:other }...................: 2.66%  16 out of 601
+     http_req_receiving.....................: avg=131.79µs min=0s      med=96.06µs  p(90)=215.83µs p(95)=272.98µs p(99)=637.94µs max=3.67ms   count=1402
+     http_req_sending.......................: avg=35.17µs  min=0s      med=31.68µs  p(90)=75.4µs   p(95)=88.21µs  p(99)=133.7µs  max=187.32µs count=1402
+     http_req_tls_handshaking...............: avg=0s       min=0s      med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s       count=1402
+     http_req_waiting.......................: avg=755.03ms min=0s      med=78.82ms  p(90)=3.11s    p(95)=3.89s    p(99)=4.24s    max=4.35s    count=1402
+     http_reqs..............................: 1402   36.723845/s
+     iteration_duration.....................: avg=3.47s    min=9.19ms  med=126.54ms p(90)=7.92s    p(95)=8.24s    p(99)=31.66s   max=32.09s   count=901 
+     iterations.............................: 901    23.600702/s
+     status_by_request......................: 901    23.600702/s
+     ✓ { name:hot_withdraw,status:200 }.....: 100    2.61939/s
+     ✓ { name:hot_withdraw,status:400 }.....: 200    5.23878/s
+     ✓ { name:hot_withdraw,status:401 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:409 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:500 }.....: 0      0/s
+     ✓ { name:other_read,status:200 }.......: 288    7.543843/s
+     ✓ { name:other_read,status:400 }.......: 0      0/s
+     ✓ { name:other_read,status:401 }.......: 0      0/s
+     ✓ { name:other_read,status:409 }.......: 0      0/s
+     ✓ { name:other_read,status:500 }.......: 0      0/s
+     ✓ { name:other_withdraw,status:200 }...: 297    7.779588/s
+     ✓ { name:other_withdraw,status:400 }...: 0      0/s
+     ✓ { name:other_withdraw,status:401 }...: 0      0/s
+     ✓ { name:other_withdraw,status:409 }...: 0      0/s
+     ✓ { name:other_withdraw,status:500 }...: 0      0/s
+     vus....................................: 1      min=0           max=334
+     vus_max................................: 400    min=400         max=400
+
+
+running (0m38.2s), 0000/0400 VUs, 901 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m32.1s/2m0s  300/300 iters, 1 per VU
+other        ✓ [ 100% ] 0000/0100 VUs  30s           20.00 iters/s

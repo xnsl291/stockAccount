@@ -2,6 +2,7 @@ package zb.accountMangement.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +20,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -59,8 +59,6 @@ public abstract class ApiTest extends IntegrationTest {
 	@Autowired
 	protected AccountRepository accountRepository;
 	@Autowired
-	protected BCryptPasswordEncoder passwordEncoder;
-	@Autowired
 	protected JwtTokenProvider jwtTokenProvider;
 	@Autowired
 	protected StockRepository stockRepository;
@@ -90,6 +88,23 @@ public abstract class ApiTest extends IntegrationTest {
 
 	protected long balanceOf(Account account) {
 		return accountRepository.findById(account.getId()).orElseThrow().getBalance();
+	}
+
+	protected int passwordFailCountOf(Account account) {
+		return accountRepository.findById(account.getId()).orElseThrow().getPasswordFailCount();
+	}
+
+	protected void changeAccountPassword(Account account, String newPassword) {
+		Account saved = accountRepository.findById(account.getId()).orElseThrow();
+		saved.setPassword(passwordEncoder.encode(newPassword));
+		accountRepository.save(saved);
+	}
+
+	// 같은 요청 본문에서 계좌 비밀번호만 바꾼 사본
+	protected static Map<String, Object> withPassword(Map<String, Object> body, String password) {
+		Map<String, Object> copy = new HashMap<>(body);
+		copy.put("accountPassword", password);
+		return copy;
 	}
 
 	protected ResultActions postJson(String url, Member loginMember, Map<String, Object> body) throws Exception {

@@ -308,6 +308,23 @@ class StockOrderTest extends ApiTest {
 	}
 
 	@Test
+	void 접수된_주문을_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_주문을_받고_틀린_횟수가_오르지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 10_000);
+		Stock stock = saveStock(1_000);
+		String key = UUID.randomUUID().toString();
+		Map<String, Object> buy = orderBody(account, stock, 900, 5);
+		long first = orderId(postJson("/api/stocks/buy", member, key, buy));
+
+		changeAccountPassword(account, "5678");
+		assertThat(orderId(postJson("/api/stocks/buy", member, key, withPassword(buy, ACCOUNT_PASSWORD)))).isEqualTo(first);
+		assertThat(orderId(postJson("/api/stocks/buy", member, key, withPassword(buy, "0000")))).isEqualTo(first);
+
+		assertThat(passwordFailCountOf(account)).isZero();
+		assertThat(ordersOf(account)).containsExactly("BUY PENDING");
+	}
+
+	@Test
 	void 주문에_Idempotency_Key_헤더가_없으면_400() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);

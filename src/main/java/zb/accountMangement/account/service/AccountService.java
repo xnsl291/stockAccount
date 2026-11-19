@@ -56,6 +56,86 @@ public class AccountService {
     }
 
     /**
+     * 잠금 밖에서 틀렸다고 비교된 계좌 비밀번호를 기록함 - 계좌를 잠근 뒤 상태를 다시 봄.
+     * 이미 거래정지면 횟수를 올리지 않고 거래정지로 거절하므로, 틀린 요청이 동시에 몇 건 몰려도 "틀림" 응답은 한도만큼만 나감
+     * @param accountId - 계좌 ID
+     * @param comparedHash - 잠금 밖에서 비교에 쓴 비밀번호 해시
+     * @param password - 입력한 계좌 비밀번호
+     */
+    // 틀린 횟수는 예외로 끝나도 저장되어야 하므로 롤백하지 않음
+    @Transactional(noRollbackFor = CustomException.class)
+    public void recordPasswordFailure(Long accountId, String comparedHash, String password) {
+        Account account = getAccountForUpdate(accountId);
+        checkTradable(account);
+        // 비교한 뒤에 비밀번호가 바뀌었으면 새 비밀번호와 다시 비교함. 바꾼 직후 새 비밀번호로 보낸 요청을 틀렸다고 세지 않기 위함
+        if (!account.getPassword().equals(comparedHash) && passwordEncoder.matches(password, account.getPassword())) {
+            account.resetPasswordFailure();
+            return;
+        }
+        account.recordPasswordFailure();
+        throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
+    }
+
+    /**
+     * 잠금 밖에서 맞았다고 비교된 계좌 비밀번호를 확정함 - 잠그지 않고 다시 읽어, 비교에 쓴 값에서 바뀐 것이 없는지 봄
+     * @param accountId - 계좌 ID
+     * @param compared - 비교할 때 읽은 계좌
+     * @return 바뀐 것이 없어 통과면 true. 그사이 틀린 요청·거래정지·비밀번호 변경이 있었으면 false이고, 잠금 안에서 다시 확인해야 함
+     */
+    @Transactional
+    public boolean confirmPasswordMatch(Long accountId, Account compared) {
+        Account account = getAccountById(accountId);
+        if (account.getStatus() != compared.getStatus()
+                || account.getPasswordFailCount() != compared.getPasswordFailCount()
+                || !account.getPassword().equals(compared.getPassword()))
+            return false;
+        // 평소(횟수 0)에는 쓰지 않음. 0으로 되돌리지 못했으면 다시 읽은 뒤에 틀린 요청이 커밋된 것이라 잠금 안에서 다시 확인함.
+        // 그냥 통과시키면 틀린 횟수가 남아, 어느 순서로 처리해도 나올 수 없는 값이 됨
+        if (compared.getPasswordFailCount() != 0)
+            return accountRepository.resetPasswordFailCount(accountId, compared.getPasswordFailCount(), AccountStatus.EXISTS) == 1;
+        return true;
+    }
+
+    /**
+     * 계좌를 잠근 채로 계좌 비밀번호를 비교함 - 잠금 밖 비교 뒤에 계좌 값이 바뀌었을 때만 씀
+     * @param accountId - 계좌 ID
+     * @param password - 입력한 계좌 비밀번호
+     */
+    // 틀린 횟수는 예외로 끝나도 저장되어야 하므로 롤백하지 않음
+    @Transactional(noRollbackFor = CustomException.class)
+    public void checkPasswordLocked(Long accountId, String password) {
+        Account account = getAccountForUpdate(accountId);
+        checkTradable(account);
+        if (!passwordEncoder.matches(password, account.getPassword())) {
+            account.recordPasswordFailure();
+            throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
+        }
+        account.resetPasswordFailure();
+    }
+
+    /**
+     * 해지·거래정지 계좌면 거절함
+     * @param account - 계좌
+     */
+    public void checkTradable(Account account) {
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
+        if (!account.isExistsAccount())
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
+    }
+
+    /**
+     * 비밀번호를 확인한 계좌가 그사이 거래정지됐으면 거절함 - 실행 단계에서 계좌를 잠근 뒤 부름.
+     * 틀린 요청과 같은 오류 코드로 거절해야, 동시에 여러 비밀번호를 넣어 본 쪽이 정답 요청만 다른 응답을 받아 비밀번호를 알아내지 못함.
+     * 해지 등 다른 상태는 부르는 쪽의 기존 오류 코드를 그대로 씀
+     * @param lockedAccount - 잠근 계좌
+     */
+    public void checkNotSuspended(Account lockedAccount) {
+        if (lockedAccount.isSuspendedAccount())
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
+    }
+
+    /**
      * 계좌번호를 이용한 계좌정보 열람
      * @param accountNumber - 계좌번호
      * @return Account

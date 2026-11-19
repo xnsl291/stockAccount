@@ -5,8 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import zb.accountMangement.account.model.entity.IdempotencyRecord;
-import zb.accountMangement.account.service.IdempotencyService;
+import zb.accountMangement.idempotency.model.entity.IdempotencyRecord;
+import zb.accountMangement.idempotency.service.IdempotencyService;
 import zb.accountMangement.account.service.AccountValidationService;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
@@ -65,11 +65,14 @@ public class StockController {
     }
 
     private TradingResponse placeOrder(Long loginMemberId, String idempotencyKey, TradeType type, TradeStockDto tradeStockDto) {
-        accountValidationService.validAccountPassword(loginMemberId, tradeStockDto.getAccountId(), tradeStockDto.getAccountPassword());
-        String orderId = idempotencyService.execute(loginMemberId, idempotencyKey,
-                type + " " + tradeStockDto.getAccountId() + " " + tradeStockDto.getStockId() + " "
-                        + tradeStockDto.getPrice() + " " + tradeStockDto.getQuantity(),
-                () -> String.valueOf(orderService.placeOrder(type, tradeStockDto)));
+        String request = type + " " + tradeStockDto.getAccountId() + " " + tradeStockDto.getStockId() + " "
+                + tradeStockDto.getPrice() + " " + tradeStockDto.getQuantity();
+        // 이미 접수한 주문을 다시 보낸 것이면 비밀번호를 보지 않고 처음 주문을 돌려줌. 틀린 횟수도 오르지 않음
+        String orderId = idempotencyService.findResponse(loginMemberId, idempotencyKey, request).orElseGet(() -> {
+            accountValidationService.validAccountPassword(loginMemberId, tradeStockDto.getAccountId(), tradeStockDto.getAccountPassword());
+            return idempotencyService.execute(loginMemberId, idempotencyKey, request,
+                    () -> String.valueOf(orderService.placeOrder(type, tradeStockDto)));
+        });
         // 위의 접수 트랜잭션이 커밋된 뒤에 다시 확인해야, 접수 중에 지나간 시세 갱신이 놓친 체결을 잡음
         orderService.recheckFill(tradeStockDto.getAccountId(), Long.valueOf(orderId));
         Trading order = orderService.getOrder(Long.valueOf(orderId));
@@ -105,11 +108,12 @@ public class StockController {
             @AuthenticationPrincipal Long loginMemberId,
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody TransferStockDto transferStockDto){
-        accountValidationService.validAccountPassword(loginMemberId, transferStockDto.getSenderAccountId(), transferStockDto.getAccountPassword());
-        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
-                "STOCK_TRANSFER " + transferStockDto.getSenderAccountId() + " " + transferStockDto.getReceiverAccountId() + " "
-                        + transferStockDto.getStockId() + " " + transferStockDto.getQuantity(),
-                () -> stockService.transferStock(transferStockDto)));
+        String request = "STOCK_TRANSFER " + transferStockDto.getSenderAccountId() + " " + transferStockDto.getReceiverAccountId() + " "
+                + transferStockDto.getStockId() + " " + transferStockDto.getQuantity();
+        return ResponseEntity.ok().body(idempotencyService.findResponse(loginMemberId, idempotencyKey, request).orElseGet(() -> {
+            accountValidationService.validAccountPassword(loginMemberId, transferStockDto.getSenderAccountId(), transferStockDto.getAccountPassword());
+            return idempotencyService.execute(loginMemberId, idempotencyKey, request, () -> stockService.transferStock(transferStockDto));
+        }));
     }
 
     /**

@@ -24,7 +24,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 /**
  * 모듈(최상위 패키지) 사이에 누가 누구를 import해도 되는지 고정하는 테스트.
- * 지금 있는 모듈(auth, account, member, stock, common)에만 규칙을 걸고, 새 모듈이 생기면 그때 규칙을 더함.
+ * 지금 있는 모듈(auth, account, member, stock, idempotency, common)에만 규칙을 걸고, 새 모듈이 생기면 그때 규칙을 더함.
  * 없는 패키지에 규칙을 걸면 검사할 클래스가 없어 항상 통과하므로 미리 넣지 않음
  */
 class ArchitectureTest {
@@ -50,13 +50,16 @@ class ArchitectureTest {
 				.layer("stock").definedBy(BASE + ".stock..")
 				.layer("account").definedBy(BASE + ".account..")
 				.layer("member").definedBy(BASE + ".member..")
+				.layer("idempotency").definedBy(BASE + ".idempotency..")
 				.layer("common").definedBy(BASE + ".common..")
 				// auth는 가입·탈퇴·로그인 순서를 짜는 맨 위 모듈이라 다른 모듈의 부품이 되지 않음
 				.whereLayer("auth").mayNotBeAccessedByAnyLayer()
 				.whereLayer("auth").mayOnlyAccessLayers("account", "member", "common")
-				.whereLayer("stock").mayOnlyAccessLayers("account", "common")
-				.whereLayer("account").mayOnlyAccessLayers("member", "common")
+				.whereLayer("stock").mayOnlyAccessLayers("account", "idempotency", "common")
+				.whereLayer("account").mayOnlyAccessLayers("member", "idempotency", "common")
 				.whereLayer("member").mayOnlyAccessLayers("common")
+				// 중복 요청 처리는 계좌·주식 요청을 감싸는 바닥 모듈이라 업무 모듈을 알지 않음
+				.whereLayer("idempotency").mayOnlyAccessLayers("common")
 				// 공통이 기능 모듈을 알면 의존 방향이 거꾸로 됨
 				.whereLayer("common").mayNotAccessAnyLayer()
 				.ignoreDependency(ACCOUNT_TO_STOCK_ORIGIN, ACCOUNT_TO_STOCK_EXCEPTION)
@@ -73,7 +76,7 @@ class ArchitectureTest {
 
 	// 테이블의 주인 모듈만 그 저장소를 씀
 	@ParameterizedTest
-	@ValueSource(strings = {"auth", "account", "member", "stock", "common"})
+	@ValueSource(strings = {"auth", "account", "member", "stock", "idempotency", "common"})
 	void 다른_모듈의_저장소를_쓰지_않는다(String module) {
 		DescribedPredicate<JavaClass> otherRepository = resideInAPackage(BASE + "..repository..")
 				.and(not(resideInAPackage(BASE + "." + module + "..")));
@@ -94,7 +97,7 @@ class ArchitectureTest {
 
 	// 엔티티 값을 바꿀 때는 주인 모듈이 연 메서드(예: Account.hold)를 씀
 	@ParameterizedTest
-	@ValueSource(strings = {"auth", "account", "member", "stock", "common"})
+	@ValueSource(strings = {"auth", "account", "member", "stock", "idempotency", "common"})
 	void 다른_모듈의_엔티티_setter를_부르지_않는다(String module) {
 		String ownPackage = BASE + "." + module + ".";
 		DescribedPredicate<JavaMethodCall> otherEntitySetter = new DescribedPredicate<JavaMethodCall>("다른 모듈 엔티티의 setter 호출") {

@@ -56,6 +56,7 @@ public class OrderService {
 	@Transactional
 	public Long placeOrder(TradeType type, TradeStockDto tradeStockDto) {
 		Account account = accountService.getAccountForUpdate(tradeStockDto.getAccountId());
+		accountService.checkNotSuspended(account);
 		if (!account.isExistsAccount())
 			throw new CustomException(ErrorCode.INVALID_ACCOUNT);
 		Stock stock = stockRepository.findById(tradeStockDto.getStockId())

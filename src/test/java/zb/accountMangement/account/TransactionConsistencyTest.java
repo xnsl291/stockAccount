@@ -17,7 +17,7 @@ import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.entity.Transaction;
 import zb.accountMangement.account.repository.TransactionRepository;
-import zb.accountMangement.account.service.IdempotencyService;
+import zb.accountMangement.idempotency.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.member.model.entity.Member;
 import zb.accountMangement.stock.model.entity.Stock;
@@ -105,6 +105,33 @@ class TransactionConsistencyTest extends ApiTest {
 
 		assertThat(balanceOf(account)).isEqualTo(40_000);
 		assertThat(ledgerOf(account)).hasSize(2);
+	}
+
+	@Test
+	void 성공한_출금과_송금을_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_응답을_받고_틀린_횟수가_오르지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 50_000);
+		Account receiver = saveAccount(saveMember());
+		String withdrawalKey = UUID.randomUUID().toString();
+		String transferKey = UUID.randomUUID().toString();
+		Map<String, Object> withdrawal = Map.of("accountId", account.getId(), "amount", 10_000, "accountPassword", ACCOUNT_PASSWORD);
+		Map<String, Object> transfer = Map.of("amount", 10_000, "accountPassword", ACCOUNT_PASSWORD);
+		String transferUrl = "/api/transactions/" + account.getId() + "/transfer/" + receiver.getId();
+		postJson("/api/transactions/withdrawal", member, withdrawalKey, withdrawal).andExpect(status().isOk());
+		postJson(transferUrl, member, transferKey, transfer).andExpect(status().isOk());
+
+		changeAccountPassword(account, "5678");
+		// 바뀌기 전 비밀번호와 아예 틀린 비밀번호 모두 지금은 틀린 비밀번호임
+		for (String password : List.of(ACCOUNT_PASSWORD, "0000")) {
+			postJson("/api/transactions/withdrawal", member, withdrawalKey, withPassword(withdrawal, password))
+					.andExpect(status().isOk()).andExpect(content().string("출금완료"));
+			postJson(transferUrl, member, transferKey, withPassword(transfer, password))
+					.andExpect(status().isOk()).andExpect(content().string("송금완료"));
+		}
+
+		assertThat(passwordFailCountOf(account)).isZero();
+		assertThat(balanceOf(account)).isEqualTo(30_000);
+		assertThat(balanceOf(receiver)).isEqualTo(10_000);
 	}
 
 	@Test

@@ -1,0 +1,347 @@
+{
+    "metrics": {
+        "data_sent": {
+            "count": 782368,
+            "rate": 7099.403588772033
+        },
+        "status_by_request{name:hot_withdraw,status:401}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_request{name:hot_withdraw,status:400}": {
+            "count": 200,
+            "rate": 1.8148501955018694,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_request{name:hot_cancel,status:409}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_tls_handshaking": {
+            "count": 1797,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0
+        },
+        "http_req_duration{name:hot_withdraw}": {
+            "p(90)": 3932.8855725,
+            "p(95)": 3953.1379429999997,
+            "p(99)": 3965.7638598999997,
+            "max": 3969.146944,
+            "count": 300,
+            "avg": 3184.112093133334,
+            "min": 91.633901,
+            "med": 3105.193355,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "status_by_request{name:hot_cancel,status:401}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_duration{name:hot_cancel}": {
+            "max": 1830.444445,
+            "count": 295,
+            "avg": 1243.9684532033898,
+            "min": 111.697322,
+            "med": 1336.634196,
+            "p(90)": 1579.157746,
+            "p(95)": 1645.5155631,
+            "p(99)": 1814.3897561600002,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_blocked": {
+            "p(95)": 127.52975639999953,
+            "p(99)": 161.56683955999998,
+            "max": 167.181995,
+            "count": 1797,
+            "avg": 16.385725770172506,
+            "min": 0,
+            "med": 0.022757,
+            "p(90)": 90.11316640000013
+        },
+        "http_req_duration{scenario:hot_order}": {
+            "min": 5.777038,
+            "med": 1296.1693570000002,
+            "p(90)": 4279.9077152,
+            "p(95)": 4335.18364585,
+            "p(99)": 4371.23839129,
+            "max": 4382.221551,
+            "count": 600,
+            "avg": 1869.1374204483336,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "status_by_request{name:hot_order,status:200}": {
+            "count": 99,
+            "rate": 0.8983508467734254,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_duration": {
+            "p(95)": 4222.0320249999995,
+            "p(99)": 4354.73876276,
+            "max": 4382.221551,
+            "count": 1797,
+            "avg": 1445.2813806783513,
+            "min": 0,
+            "med": 749.427647,
+            "p(90)": 3917.6334462
+        },
+        "http_req_failed{scenario:hot_cancel}": {
+            "passes": 201,
+            "fails": 394,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0.3378151260504202
+        },
+        "http_req_failed": {
+            "passes": 604,
+            "fails": 1193,
+            "value": 0.3361157484696717
+        },
+        "http_req_duration{scenario:hot_cancel}": {
+            "min": 0,
+            "med": 762.556347,
+            "p(90)": 1518.1360316,
+            "p(95)": 1601.9876644999995,
+            "p(99)": 1813.9966923799998,
+            "max": 2070.464495,
+            "count": 595,
+            "avg": 868.6639249630252,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "status_by_request{name:hot_cancel,status:500}": {
+            "rate": 0,
+            "count": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "iteration_duration": {
+            "med": 7002.318623,
+            "p(90)": 8242.6996564,
+            "p(95)": 8327.32509895,
+            "p(99)": 8387.76304636,
+            "max": 31314.433661,
+            "count": 900,
+            "avg": 5804.868865947781,
+            "min": 658.944051
+        },
+        "http_req_failed{scenario:hot_order}": {
+            "passes": 201,
+            "fails": 399,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0.335
+        },
+        "status_by_request{name:hot_cancel,status:400}": {
+            "count": 196,
+            "rate": 1.778553191591832,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_request{name:hot_withdraw,status:500}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_request{name:hot_order,status:401}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "vus": {
+            "value": 5,
+            "min": 0,
+            "max": 300
+        },
+        "status_by_request{name:hot_withdraw,status:409}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_failed{scenario:hot_withdraw}": {
+            "passes": 202,
+            "fails": 398,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0.33666666666666667
+        },
+        "status_by_request{name:hot_withdraw,status:200}": {
+            "count": 100,
+            "rate": 0.9074250977509347,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_reqs": {
+            "count": 1797,
+            "rate": 16.306429006584295
+        },
+        "status_by_request{name:hot_order,status:500}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_waiting": {
+            "min": 0,
+            "med": 748.143637,
+            "p(90)": 3917.4693792,
+            "p(95)": 4221.8018938,
+            "p(99)": 4351.38931692,
+            "max": 4382.097975,
+            "count": 1797,
+            "avg": 1432.2852876527554
+        },
+        "http_req_connecting": {
+            "max": 167.111488,
+            "count": 1797,
+            "avg": 16.31824617250974,
+            "min": 0,
+            "med": 0,
+            "p(90)": 90.05023040000013,
+            "p(95)": 127.49981219999952,
+            "p(99)": 161.5189556
+        },
+        "http_req_duration{name:hot_order}": {
+            "avg": 3727.446786266668,
+            "min": 2550.406272,
+            "med": 3814.823396,
+            "p(90)": 4335.2250357,
+            "p(95)": 4357.8638885,
+            "p(99)": 4378.61847723,
+            "max": 4382.221551,
+            "count": 300,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_sending": {
+            "p(95)": 0.09251979999999996,
+            "p(99)": 0.14358571999999983,
+            "max": 8.707803,
+            "count": 1797,
+            "avg": 0.050923627156371734,
+            "min": 0,
+            "med": 0.03196,
+            "p(90)": 0.07634700000000003
+        },
+        "status_by_request": {
+            "count": 895,
+            "rate": 8.121454624870866
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 729.3326606512984,
+            "min": 5.750508,
+            "med": 38.119422,
+            "p(90)": 2755.9090613999992,
+            "p(95)": 3354.942290399999,
+            "p(99)": 3938.82481596,
+            "max": 4191.890061,
+            "count": 1193
+        },
+        "data_received": {
+            "count": 7286301,
+            "rate": 66117.72397167733
+        },
+        "http_req_receiving": {
+            "max": 339.883999,
+            "count": 1797,
+            "avg": 12.945169398441855,
+            "min": 0,
+            "med": 0.125906,
+            "p(90)": 46.50426660000001,
+            "p(95)": 109.3090505999996,
+            "p(99)": 196.33671552
+        },
+        "iterations": {
+            "count": 900,
+            "rate": 8.166825879758411
+        },
+        "vus_max": {
+            "max": 900,
+            "value": 900,
+            "min": 900
+        },
+        "http_req_duration{scenario:hot_withdraw}": {
+            "min": 0,
+            "med": 64.0772535,
+            "p(90)": 3889.787349,
+            "p(95)": 3932.82289125,
+            "p(99)": 3961.71434833,
+            "max": 3969.146944,
+            "count": 600,
+            "avg": 1597.8025094900004,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "status_by_request{name:hot_order,status:400}": {
+            "rate": 1.8239244464793787,
+            "count": 201,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_request{name:hot_cancel,status:200}": {
+            "count": 99,
+            "rate": 0.8983508467734254,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_request{name:hot_order,status:409}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        }
+    },
+    "setup_data": {
+        "withdrawToken": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJiOGNmNjZhNS1iNTVmLTQ0Y2EtODk2MS1hZWY4ZDIyYTg2MzEiLCJzdWIiOiIxMDAyIiwicm9sZSI6IlVTRVIiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzk1MDU3MDcxLCJleHAiOjE3OTUwNjQyNzF9.S5nL3uBpNTOouOswyHDXuDRZKGIKgCsrDESHesId7OI",
+        "orderToken": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJmNzk5NGI0My1iYzc4LTQxYjktYTA2Yy03NDU2ZWI4NjVmNDMiLCJzdWIiOiIxMDAzIiwicm9sZSI6IlVTRVIiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzk1MDU3MDcxLCJleHAiOjE3OTUwNjQyNzF9.C02waLhS7u_YybmhN1D3TqW9EcJYVmVHCvUTMwCf27g"
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {}
+    }
+}
