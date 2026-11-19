@@ -158,11 +158,11 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 
 ## 테스트
 
-`./gradlew test`로 146개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
+`./gradlew test`로 153개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
 
 - `TransactionConsistencyTest`: 동시 출금·맞송금, Idempotency-Key 재전송·동시 전송, 거래 기록 합계와 잔액 일치, 금액·계좌 상태 검증
 - `TransactionHistoryTest`: 거래내역 페이지 나눔, 정렬, 기간·종류 필터
-- `AccountSecurityTest`, `AccountManagementTest`: 남의 계좌 접근 차단, 계좌 비밀번호 오류와 거래정지, 잠금 해제, 비밀번호 변경, 계좌번호 검색, 응답에 비밀번호가 없는지
+- `AccountSecurityTest`, `AccountManagementTest`: 남의 계좌 접근 차단, 계좌 비밀번호 오류와 거래정지(동시 오답과 변경 직후 옛 비밀번호 포함), 잠금 해제, 비밀번호 변경, 계좌번호 검색, 응답에 비밀번호가 없는지
 - `StockOrderTest`, `StockTransferTest`: 체결·미체결·취소, 동시 주문, 시세 갱신 체결, 이체 수수료와 평균단가, 보유 내역 유니크 제약, 수량·평균단가 범위 초과, 주식 이체와 탈퇴가 겹칠 때
 - `SignUpTest`, `MemberSecurityTest`, `JwtAuthenticationTest`: 가입·문자 인증(시도 횟수, 번호별·IP별 발송 횟수, 용도 구분)·번호 변경·탈퇴, 토큰 검증·만료·재발급·동시 재발급·권한, 비밀번호 변경 뒤 리프레시 토큰 무효화
 - `ErrorResponseTest`: 금액 범위 초과, 스프링 MVC 예외의 오류 형식
