@@ -1,4 +1,4 @@
-package zb.accountMangement.member.dto;
+package zb.accountMangement.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

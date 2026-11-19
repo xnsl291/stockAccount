@@ -59,6 +59,8 @@ dependencies {
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.21.3')
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:mysql'
+	// 모듈 사이 import 규칙을 테스트로 고정. 1.5.1은 Java 8 바이트코드로 배포되어 Java 11에서 돎
+	testImplementation 'com.tngtech.archunit:archunit:1.5.1'
 }
 
 tasks.named('test') {

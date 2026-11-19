@@ -1,4 +1,4 @@
-package zb.accountMangement.member.model;
+package zb.accountMangement.common.type;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collection;

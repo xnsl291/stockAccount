@@ -17,7 +17,7 @@ import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.model.entity.IdempotencyRecord;
 import zb.accountMangement.account.service.IdempotencyService;
 import zb.accountMangement.account.service.TransactionService;
-import zb.accountMangement.common.service.ValidationService;
+import zb.accountMangement.account.service.AccountValidationService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -33,7 +33,7 @@ public class TransactionController {
     private static final String IDEMPOTENCY_KEY = "Idempotency-Key";
 
     private final TransactionService transactionService;
-    private final ValidationService validationService;
+    private final AccountValidationService accountValidationService;
     private final IdempotencyService idempotencyService;
 
     /**
@@ -59,7 +59,7 @@ public class TransactionController {
             @AuthenticationPrincipal Long loginMemberId,
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody DepositDto depositDto) {
-        validationService.validAccountOwner(loginMemberId, depositDto.getAccountId());
+        accountValidationService.validAccountOwner(loginMemberId, depositDto.getAccountId());
         return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
                 "DEPOSIT " + depositDto.getAccountId() + " " + depositDto.getAmount(),
                 () -> transactionService.deposit(depositDto)));
@@ -77,7 +77,7 @@ public class TransactionController {
             @AuthenticationPrincipal Long loginMemberId,
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody WithdrawalDto withdrawalDto) {
-        validationService.validAccountPassword(loginMemberId, withdrawalDto.getAccountId(), withdrawalDto.getAccountPassword());
+        accountValidationService.validAccountPassword(loginMemberId, withdrawalDto.getAccountId(), withdrawalDto.getAccountPassword());
         return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
                 "WITHDRAW " + withdrawalDto.getAccountId() + " " + withdrawalDto.getAmount(),
                 () -> transactionService.withdrawal(withdrawalDto)));
@@ -99,7 +99,7 @@ public class TransactionController {
             @PathVariable("sender_account_id") @Min(1) Long senderAccountId ,
             @PathVariable("receiver_account_id") @Min(1) Long receiverAccountId,
             @Valid @RequestBody TransferDto transferDto) {
-        validationService.validAccountPassword(loginMemberId, senderAccountId, transferDto.getAccountPassword());
+        accountValidationService.validAccountPassword(loginMemberId, senderAccountId, transferDto.getAccountPassword());
         return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey,
                 "TRANSFER " + senderAccountId + " " + receiverAccountId + " " + transferDto.getAmount(),
                 () -> transactionService.transfer(senderAccountId, receiverAccountId, transferDto)));
@@ -124,7 +124,7 @@ public class TransactionController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-      validationService.validAccountOwner(loginMemberId,accountId);
+      accountValidationService.validAccountOwner(loginMemberId,accountId);
       return ResponseEntity.ok(transactionService.getTransactionsByAccountId(accountId, type, from, to, page, size));
     }
 }
