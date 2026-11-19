@@ -1,6 +1,8 @@
 package zb.accountMangement.stock.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +15,12 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.model.entity.Trading;
+import zb.accountMangement.stock.dto.AdminStockResponse;
+import zb.accountMangement.stock.dto.PriceUpdateResponse;
 import zb.accountMangement.stock.dto.RegisterStockDto;
+import zb.accountMangement.stock.dto.TradingResponse;
+import zb.accountMangement.stock.model.OrderStatus;
+import zb.accountMangement.stock.dto.StockBalanceResponse;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
@@ -22,6 +29,10 @@ import zb.accountMangement.stock.model.TradeType;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static zb.accountMangement.common.type.FeeRate.TRANSFER_FEE_RATE;
 
@@ -56,6 +67,40 @@ public class StockService {
     }
 
     /**
+     * 관리자용 종목 목록 - 최근 등록 순
+     * @param page - 페이지 번호 (0부터)
+     * @param size - 페이지 크기
+     * @return 종목과 종목별 미체결 주문 수
+     */
+    public Page<AdminStockResponse> getAdminStocks(int page, int size) {
+        return stockRepository.findAllWithPendingOrderCount(PageRequest.of(page, size));
+    }
+
+    /**
+     * 관리자용 종목 한 건 조회
+     * @param stockId - 주식 ID
+     * @return 종목과 미체결 주문 수
+     */
+    public AdminStockResponse getAdminStock(Long stockId) {
+        Stock stock = getStockById(stockId);
+        return new AdminStockResponse(stock.getId(), stock.getCode(), stock.getName(), stock.getCurrentPrice(),
+                tradeHistoryRepository.countByStockIdAndStatus(stockId, OrderStatus.PENDING));
+    }
+
+    /**
+     * 종목에 걸린 주문 조회 - 먼저 들어온 순서(체결 순서와 같음)
+     * @param stockId - 주식 ID
+     * @param status - 주문 상태
+     * @return 주문 리스트
+     */
+    public List<TradingResponse> getOrdersOfStock(Long stockId, OrderStatus status) {
+        Stock stock = getStockById(stockId);
+        return tradeHistoryRepository.findByStockIdAndStatusOrderByIdAsc(stockId, status).stream()
+                .map(trading -> TradingResponse.of(trading, stock))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 종목 검색
      * @param keyword - 종목코드 또는 종목명의 일부
      * @return 종목 리스트
@@ -84,16 +129,15 @@ public class StockService {
      * 시세 갱신 - 새 시세로 체결되는 미체결 주문을 함께 체결함
      * @param stockId - 주식 ID
      * @param price - 새 시세
-     * @return 시세가 바뀐 종목
+     * @return 시세가 바뀐 종목과 체결 결과
      */
     // 시세를 먼저 커밋해야 주문마다 따로 여는 체결 트랜잭션이 새 시세를 읽으므로, 전체를 한 트랜잭션으로 묶지 않음
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Stock updatePrice(Long stockId, long price) {
+    public PriceUpdateResponse updatePrice(Long stockId, long price) {
         Stock stock = getStockById(stockId);
         stock.setCurrentPrice(price);
         stockRepository.save(stock);
-        orderService.matchPendingOrders(stockId);
-        return stock;
+        return orderService.matchPendingOrders(stock);
     }
 
     /**
@@ -161,28 +205,25 @@ public class StockService {
     /**
      * 계좌 잔고 조회 - 평가손익순으로 정렬
      * @param accountId - 계좌  ID
-     * @return 현재 보유중인 주식 종목 리스트
+     * @return 현재 보유중인 주식 종목 리스트 (종목 정보와 현재가 기준 평가금액·평가손익 포함)
      */
-    public List<StockBalance> getStockBalance(Long accountId) {
+    public List<StockBalanceResponse> getStockBalance(Long accountId) {
         List<StockBalance> stockBalances = stockBalanceRepository.findByAccountId(accountId);
-
-        if (!stockBalances.isEmpty())
-            // TODO: 스케줄러에 등록해서 STOCK 정보가 업데이트 될 떄 같이 업데이트 되게 변경
-            for (StockBalance stockBalance : stockBalances)
-                stockBalance.setProfitNLoss(calculateProfitLoss(stockBalance));  // 평가손익 업데이트
-
-        //평가손익순으로 정렬
-        stockBalances.sort(Comparator.comparingLong(StockBalance::getProfitNLoss).reversed());
-        return stockBalances;
+        // 종목을 보유 건마다 따로 읽지 않고 한 번에 읽어, 보유 종목 수와 상관없이 쿼리 수가 같게 함
+        Map<Long, Stock> stocks = getStocksById(stockBalances.stream().map(StockBalance::getStockId).collect(Collectors.toSet()));
+        return stockBalances.stream()
+                .map(stockBalance -> StockBalanceResponse.of(stockBalance, stocks.get(stockBalance.getStockId())))
+                .sorted(Comparator.comparingLong(StockBalanceResponse::getProfitNLoss).reversed())
+                .collect(Collectors.toList());
     }
 
     /**
-     * 평가손익 계산
-     * @param stockBalance - 주식 잔고
-     * @return 평가손익
+     * 여러 종목을 쿼리 한 번으로 읽음
+     * @param stockIds - 주식 ID 목록
+     * @return 주식 ID별 종목
      */
-    private long calculateProfitLoss(StockBalance stockBalance){
-        Stock stock = getStockById(stockBalance.getStockId());
-        return Math.multiplyExact(Math.subtractExact(stock.getCurrentPrice(), stockBalance.getAvgPrice()), (long) stockBalance.getQuantity());
+    public Map<Long, Stock> getStocksById(Set<Long> stockIds) {
+        return stockRepository.findAllById(stockIds).stream()
+                .collect(Collectors.toMap(Stock::getId, Function.identity()));
     }
 }

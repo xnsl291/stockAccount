@@ -10,6 +10,8 @@ import zb.accountMangement.account.service.IdempotencyService;
 import zb.accountMangement.common.service.ValidationService;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
+import zb.accountMangement.stock.model.entity.Stock;
+import zb.accountMangement.stock.model.entity.Trading;
 import zb.accountMangement.stock.dto.*;
 import zb.accountMangement.stock.service.OrderService;
 import zb.accountMangement.stock.service.StockService;
@@ -17,6 +19,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -67,7 +70,8 @@ public class StockController {
                 type + " " + tradeStockDto.getAccountId() + " " + tradeStockDto.getStockId() + " "
                         + tradeStockDto.getPrice() + " " + tradeStockDto.getQuantity(),
                 () -> String.valueOf(orderService.placeOrder(type, tradeStockDto)));
-        return TradingResponse.from(orderService.getOrder(Long.valueOf(orderId)));
+        Trading order = orderService.getOrder(Long.valueOf(orderId));
+        return TradingResponse.of(order, stockService.getStockById(order.getStockId()));
     }
 
     /**
@@ -83,7 +87,8 @@ public class StockController {
             @PathVariable("account_id") Long accountId,
             @PathVariable("order_id") Long orderId){
         validationService.validAccountOwner(loginMemberId, accountId);
-        return ResponseEntity.ok().body(TradingResponse.from(orderService.cancelOrder(accountId, orderId)));
+        Trading order = orderService.cancelOrder(accountId, orderId);
+        return ResponseEntity.ok().body(TradingResponse.of(order, stockService.getStockById(order.getStockId())));
     }
 
     /**
@@ -116,9 +121,7 @@ public class StockController {
             @AuthenticationPrincipal Long loginMemberId,
             @Validated @PathVariable("account_id") Long accountId){
         validationService.validAccountOwner(loginMemberId, accountId);
-        return ResponseEntity.ok().body(stockService.getStockBalance(accountId).stream()
-                .map(StockBalanceResponse::from)
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok().body(stockService.getStockBalance(accountId));
     }
 
     /**
@@ -136,8 +139,10 @@ public class StockController {
             @RequestParam(required = false) OrderStatus status,
             @ModelAttribute @Valid DateDto dateDto) {
         validationService.validAccountOwner(loginMemberId, accountId);
-        return ResponseEntity.ok().body(orderService.getTradeHistory(accountId, status, dateDto).stream()
-                .map(TradingResponse::from)
+        List<Trading> history = orderService.getTradeHistory(accountId, status, dateDto);
+        Map<Long, Stock> stocks = stockService.getStocksById(history.stream().map(Trading::getStockId).collect(Collectors.toSet()));
+        return ResponseEntity.ok().body(history.stream()
+                .map(trading -> TradingResponse.of(trading, stocks.get(trading.getStockId())))
                 .collect(Collectors.toList()));
     }
 
@@ -151,6 +156,16 @@ public class StockController {
         return ResponseEntity.ok().body(stockService.searchStocks(keyword).stream()
                 .map(StockResponse::from)
                 .collect(Collectors.toList()));
+    }
+
+    /**
+     * 종목 한 건 조회 - 종목 ID만 아는 화면이 코드·이름·현재가를 얻을 때 씀
+     * @param stockId - 주식 ID
+     * @return 종목 (종목코드, 종목명, 현재가)
+     */
+    @GetMapping("/{stock_id}/info")
+    public ResponseEntity<StockResponse> getStock(@PathVariable("stock_id") Long stockId){
+        return ResponseEntity.ok().body(StockResponse.from(stockService.getStockById(stockId)));
     }
 
     /**
