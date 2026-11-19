@@ -16,6 +16,13 @@ spring:
     url: ${DB_URL:jdbc:mysql://localhost:3306/accountSystem?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${DB_USERNAME:account}
     password: ${DB_PASSWORD:account}
+    hikari:
+      # 동시에 쓸 수 있는 DB 연결 수와, 연결이 모두 쓰이고 있을 때 하나를 얻으려고 기다리는 최대 시간
+      # 값은 Hikari 기본값과 같음. 한 계좌에 몰린 요청은 계좌 행 잠금을 기다리는 동안 연결을 쥐고 있어, 연결을 50개로 늘려도
+      # 그 계좌의 대기와 다른 계좌 요청의 지연이 줄지 않았음(load-test/BASELINE.md). 바꿀 근거가 없어 그대로 두고 자리만 만듦
+      # 연결 대기 한도도 같은 측정에서 가장 오래 기다린 요청이 30초에 닿지 않아 기본값을 둠
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:30000}
 
   jpa:
     # 요청 하나가 영속성 컨텍스트 하나를 끝까지 공유하면 소유자 확인 때 읽어 둔 계좌가 남아,
