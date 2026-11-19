@@ -126,19 +126,22 @@ class AccountSecurityTest extends ApiTest {
 		Account account = saveAccount(member, 50_000);
 		int requests = 30;
 		// 모든 요청이 비밀번호 비교를 마친 뒤에 다음으로 가게 해, 모두가 "아직 정지 전"을 본 상태에서 틀린 횟수를 올리러 가는 순서를 만듦.
-		// 비교를 계좌 잠금 안에서 하는 구조라면 한 번에 한 요청만 비교하므로 2초 뒤 기다림을 풀고 그대로 진행함
+		// 다 모이지 못하면 기다림을 풀고 진행하되, 의도한 순서를 만들지 못한 것이므로 아래에서 실패로 처리함.
+		// 비교를 계좌 잠금 안에서 하는 구조라면 한 번에 한 요청만 비교하므로 여기서 실패함
 		CyclicBarrier allCompared = new CyclicBarrier(requests);
 		doAnswer(invocation -> {
 			Object matched = invocation.callRealMethod();
 			try {
-				allCompared.await(2, TimeUnit.SECONDS);
+				allCompared.await(10, TimeUnit.SECONDS);
 			} catch (TimeoutException | BrokenBarrierException e) {
-				// 다 모이지 못하면 기다리지 않고 진행함
+				// 장벽이 깨진 채로 남아 아래 단언이 잡음
 			}
 			return matched;
 		}).when(passwordEncoder).matches(any(), any());
 
 		List<String> codes = runConcurrently(requests, i -> () -> errorCode(withdraw(member, account, "0000")));
+
+		assertThat(allCompared.isBroken()).as("모든 요청이 비교를 마친 자리에 모이지 못함").isFalse();
 
 		assertThat(codes).filteredOn("UNMATCHED_PASSWORD"::equals).hasSize(5);
 		assertThat(codes).filteredOn("PENDING_ACCOUNT"::equals).hasSize(requests - 5);
