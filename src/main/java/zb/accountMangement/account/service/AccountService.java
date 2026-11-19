@@ -89,9 +89,10 @@ public class AccountService {
                 || account.getPasswordFailCount() != compared.getPasswordFailCount()
                 || !account.getPassword().equals(compared.getPassword()))
             return false;
-        // 평소(횟수 0)에는 쓰지 않음. 0으로 되돌리지 못했으면 그사이 틀린 요청이 들어온 것이라 그 기록을 지우지 않고 통과만 함
+        // 평소(횟수 0)에는 쓰지 않음. 0으로 되돌리지 못했으면 다시 읽은 뒤에 틀린 요청이 커밋된 것이라 잠금 안에서 다시 확인함.
+        // 그냥 통과시키면 틀린 횟수가 남아, 어느 순서로 처리해도 나올 수 없는 값이 됨
         if (compared.getPasswordFailCount() != 0)
-            accountRepository.resetPasswordFailCount(accountId, compared.getPasswordFailCount(), AccountStatus.EXISTS);
+            return accountRepository.resetPasswordFailCount(accountId, compared.getPasswordFailCount(), AccountStatus.EXISTS) == 1;
         return true;
     }
 
