@@ -62,8 +62,9 @@ public class TransactionService {
 	 */
 	@Transactional
 	public String withdrawal(WithdrawalDto withdrawalDto) {
-		changeBalance(withdrawalDto.getAccountId(), TransactionType.WITHDRAW, withdrawalDto.getAmount(),
-				"전자출금", withdrawalDto.getMemo());
+		Account account = accountService.getAccountForUpdate(withdrawalDto.getAccountId());
+		accountService.checkNotSuspended(account);
+		apply(account, TransactionType.WITHDRAW, withdrawalDto.getAmount(), "전자출금", withdrawalDto.getMemo());
 		return "출금완료";
 	}
 
@@ -82,6 +83,8 @@ public class TransactionService {
 		Account second = accountService.getAccountForUpdate(Math.max(senderAccountId, receiverAccountId));
 		Account senderAccount = first.getId().equals(senderAccountId) ? first : second;
 		Account receiverAccount = first.getId().equals(senderAccountId) ? second : first;
+		// 받는 계좌는 비밀번호를 확인한 계좌가 아니므로 거래정지여도 기존 코드로 거절함. 남의 계좌가 정지됐는지 알려 주지 않기 위함
+		accountService.checkNotSuspended(senderAccount);
 
 		Member sender = memberService.getMemberById(senderAccount.getMemberId());
 		Member receiver = memberService.getMemberById(receiverAccount.getMemberId());
@@ -92,7 +95,7 @@ public class TransactionService {
 	}
 
 	/**
-	 * 계좌를 잠그고 잔액을 바꾼 뒤 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드나 송금을 거쳐야 함
+	 * 계좌를 잠그고 잔액을 바꾼 뒤 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드나 출금·송금을 거쳐야 함
 	 * @param accountId - 계좌 ID
 	 * @param type - 거래 종류. 잔액이 늘어나는지 줄어드는지는 거래 종류가 정함
 	 * @param amount - 금액 (0보다 커야 함)

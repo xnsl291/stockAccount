@@ -124,6 +124,17 @@ public class AccountService {
     }
 
     /**
+     * 비밀번호를 확인한 계좌가 그사이 거래정지됐으면 거절함 - 실행 단계에서 계좌를 잠근 뒤 부름.
+     * 틀린 요청과 같은 오류 코드로 거절해야, 동시에 여러 비밀번호를 넣어 본 쪽이 정답 요청만 다른 응답을 받아 비밀번호를 알아내지 못함.
+     * 해지 등 다른 상태는 부르는 쪽의 기존 오류 코드를 그대로 씀
+     * @param lockedAccount - 잠근 계좌
+     */
+    public void checkNotSuspended(Account lockedAccount) {
+        if (lockedAccount.isSuspendedAccount())
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
+    }
+
+    /**
      * 계좌번호를 이용한 계좌정보 열람
      * @param accountNumber - 계좌번호
      * @return Account

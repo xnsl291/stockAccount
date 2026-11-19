@@ -169,6 +169,8 @@ public class StockService {
         Account second = accountService.getAccountForUpdate(Math.max(senderAccountId, receiverAccountId));
         Account sender = first.getId().equals(senderAccountId) ? first : second;
         Account receiver = first.getId().equals(senderAccountId) ? second : first;
+        // 받는 계좌는 비밀번호를 확인한 계좌가 아니므로 거래정지여도 기존 코드로 거절함. 남의 계좌가 정지됐는지 알려 주지 않기 위함
+        accountService.checkNotSuspended(sender);
         if (!sender.isExistsAccount() || !receiver.isExistsAccount())
             throw new CustomException(ErrorCode.INVALID_ACCOUNT);
 
