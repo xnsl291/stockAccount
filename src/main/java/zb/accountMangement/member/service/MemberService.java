@@ -1,11 +1,13 @@
 package zb.accountMangement.member.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.exception.UniqueConstraint;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.model.PhoneNumber;
@@ -37,6 +39,18 @@ public class MemberService {
 
 
 	/**
+	 * 다른 요청이 같은 회원의 탈퇴·계좌 개설·계좌 해지를 동시에 하지 못하게 회원 행을 잠그고 읽음.
+	 * 트랜잭션 안에서, 그 트랜잭션의 첫 조회로 불러야 함. 잠금 순서는 회원 → 계좌임
+	 *
+	 * @param memberId - id
+	 * @return Member
+	 */
+	public Member getMemberForUpdate(long memberId) {
+		return memberRepository.findByIdForUpdate(memberId).orElseThrow(
+				() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+	}
+
+	/**
 	 * 가입용 회원 생성 - 가입 용도의 핸드폰 인증을 마친 번호여야 하고, 인증 표시는 이때 지움
 	 *
 	 * @param name          - 이름 (한글·영문·숫자 2~10자)
@@ -59,12 +73,20 @@ public class MemberService {
 
 		sendMessageService.consumeVerifiedPhone(normalized, VerificationPurpose.SIGN_UP);
 
-		return memberRepository.save(Member.builder()
-				.name(name)
-				.password(passwordEncoder.encode(loginPassword))
-				.phoneNumber(normalized)
-				.role(RoleType.USER)
-				.build());
+		// 위의 중복 검사는 아직 커밋되지 않은 같은 번호의 가입을 보지 못함. 그런 가입이 먼저 커밋되면 저장이 유니크 제약에 걸리므로
+		// 여기서 잡아 같은 오류 코드로 바꿈. 다른 저장 오류는 중복이 아니므로 그대로 올려 보냄
+		try {
+			return memberRepository.saveAndFlush(Member.builder()
+					.name(name)
+					.password(passwordEncoder.encode(loginPassword))
+					.phoneNumber(normalized)
+					.role(RoleType.USER)
+					.build());
+		} catch (DataIntegrityViolationException e) {
+			if (UniqueConstraint.isViolated(e, "uk_member_phone_number"))
+				throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			throw e;
+		}
 	}
 
 	/**
@@ -86,7 +108,8 @@ public class MemberService {
 	 */
 	@Transactional
 	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
-		Member member = checkMemberPermission(loginMemberId, memberId);
+		// 저장할 때 역할까지 모든 칸을 다시 쓰므로, 잠그지 않고 읽으면 그사이 커밋된 탈퇴를 읽은 시점 값으로 되돌림
+		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
 		if (!passwordEncoder.matches(updateMemberDto.getCurrentPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
@@ -99,6 +122,15 @@ public class MemberService {
 
 		boolean passwordChanged = !updateMemberDto.getPassword().equals(updateMemberDto.getCurrentPassword());
 		member.update(updateMemberDto.getName(), phoneNumber, passwordEncoder.encode(updateMemberDto.getPassword()));
+		// 변경은 원래 트랜잭션이 끝날 때 DB에 반영돼 유니크 위반이 이 메서드 밖에서 500으로 나감.
+		// 바로 반영해 커밋 전인 같은 번호의 변경·가입과 겹친 경우를 여기서 잡음
+		try {
+			memberRepository.saveAndFlush(member);
+		} catch (DataIntegrityViolationException e) {
+			if (UniqueConstraint.isViolated(e, "uk_member_phone_number"))
+				throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
+			throw e;
+		}
 		if (passwordChanged)
 			jwtTokenProvider.deleteRefreshToken(member.getId());
 		return member;
@@ -113,7 +145,7 @@ public class MemberService {
 	 * @return "인증 메세지 발송 완료"
 	 */
 	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
-		Member member = checkMemberPermission(loginMemberId, memberId);
+		Member member = checkMemberPermission(loginMemberId, getMemberById(memberId));
 
 		if (!member.getName().equals(findMemberInfoDto.getName())
 				|| !member.getPhoneNumber().equals(PhoneNumber.normalize(findMemberInfoDto.getPhoneNumber())))
@@ -130,7 +162,8 @@ public class MemberService {
 	 */
 	@Transactional
 	public String verifyResetPw(Long loginMemberId, Long memberId, ResetPwDto resetPwDto) {
-		Member member = checkMemberPermission(loginMemberId, memberId);
+		// 회원정보 수정과 같은 이유로 잠그고 읽음
+		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
 		sendMessageService.confirmCode(member.getPhoneNumber(), resetPwDto.getInputCode());
 		member.setPassword(passwordEncoder.encode(resetPwDto.getNewPassword()));
 		jwtTokenProvider.deleteRefreshToken(member.getId());
@@ -138,9 +171,7 @@ public class MemberService {
 	}
 
 
-	public Member checkMemberPermission(Long loginMemberId, long memberId){
-		Member member = getMemberById(memberId);
-
+	public Member checkMemberPermission(Long loginMemberId, Member member){
 		if(!member.getId().equals(loginMemberId))
 			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
 

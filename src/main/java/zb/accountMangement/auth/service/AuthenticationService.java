@@ -48,7 +48,9 @@ public class AuthenticationService {
 	 */
 	@Transactional
 	public Boolean deleteMember(Long loginMemberId, String accessToken) {
-		Member member = memberService.checkMemberPermission(loginMemberId, loginMemberId);
+		// 회원 행을 먼저 잠가, 계좌 목록을 읽은 뒤에 같은 회원의 계좌 개설이 끼어들지 못하게 함
+		Member member = memberService.getMemberForUpdate(loginMemberId);
+		memberService.checkActive(member);
 		accountService.closeAllAccounts(loginMemberId);
 		memberService.withdraw(member);
 		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);

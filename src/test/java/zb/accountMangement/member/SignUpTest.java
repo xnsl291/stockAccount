@@ -4,7 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
@@ -14,7 +18,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.member.model.entity.Member;
@@ -48,6 +56,8 @@ class SignUpTest extends IntegrationTest {
 	AccountRepository accountRepository;
 	@Autowired
 	BCryptPasswordEncoder passwordEncoder;
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@Test
 	void 문자_인증_후_가입하면_로그인해서_인증이_필요한_API를_호출할_수_있다() throws Exception {
@@ -105,6 +115,30 @@ class SignUpTest extends IntegrationTest {
 		signUp(phone)
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("DUPLICATED_PHONE_NUMBER"));
+	}
+
+	@Test
+	void 같은_번호의_가입이_겹쳐도_500이_아니라_중복_번호_오류로_응답한다() throws Exception {
+		String phone = randomPhone();
+		verifyPhone(phone);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> signUp;
+
+		// 같은 번호의 회원을 저장만 하고 커밋하지 않은 상태를 만들어, 가입 요청이 중복 검사는 통과하고 저장에서 기다리게 함
+		TransactionStatus otherSignUp = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			memberRepository.saveAndFlush(Member.builder().name("tester").phoneNumber(phone).password("x").build());
+			signUp = executor.submit(() -> signUp(phone).andReturn());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(otherSignUp);
+		}
+
+		MvcResult result = signUp.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(400);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
+				.isEqualTo("DUPLICATED_PHONE_NUMBER");
 	}
 
 	@Test

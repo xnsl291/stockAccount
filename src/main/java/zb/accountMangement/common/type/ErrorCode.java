@@ -40,9 +40,11 @@ public enum ErrorCode {
     INVALID_ACCOUNT(HttpStatus.BAD_REQUEST,"거래할 수 없는 계좌 입니다."),
     SAME_ACCOUNT_TRANSFER(HttpStatus.BAD_REQUEST,"같은 계좌로는 보낼 수 없습니다."),
     IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT,"다른 요청에 이미 사용한 Idempotency-Key 입니다."),
+    DUPLICATED_ACCOUNT_NUMBER(HttpStatus.CONFLICT,"계좌번호가 겹쳐 개설하지 못했습니다. 다시 시도해 주세요."),
 
     MISMATCH_ACCOUNT_OWNER(HttpStatus.FORBIDDEN,"계좌 소유자와 유저 정보가 일치하지 않습니다."),
     REMAINING_ASSET(HttpStatus.BAD_REQUEST,"잔액이나 보유 주식이 남아 있는 계좌는 해지할 수 없습니다."),
+    LAST_ACCOUNT(HttpStatus.BAD_REQUEST,"마지막 남은 계좌는 해지할 수 없습니다."),
 
     //stock
     STOCK_NOT_EXIST(HttpStatus.NOT_FOUND,"일치하는 종목이 없습니다."),

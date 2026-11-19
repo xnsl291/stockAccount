@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +15,7 @@ import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.exception.UniqueConstraint;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
@@ -27,19 +28,12 @@ import zb.accountMangement.stock.repository.StockBalanceRepository;
 @Slf4j
 public class AccountService {
 
-    private final int ACCOUNT_NUMBER_LENGTH = 14;
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StockBalanceRepository stockBalanceRepository;
     private final SendMessageService sendMessageService;
     private final MemberService memberService;
-    /**
-     * 계좌번호 생성
-     * @return 계좌번호
-     */
-    private String createAccountNumber() {
-      return RandomStringUtils.random(ACCOUNT_NUMBER_LENGTH, false, true);
-  }
+    private final AccountNumberGenerator accountNumberGenerator;
 
     /**
      * id를 이용한 계좌정보 열람
@@ -79,13 +73,14 @@ public class AccountService {
      */
     @Transactional
     public Account openAccount(Long memberId, AccountManagementDto accountManagementDto) {
-        memberService.checkActive(memberService.getMemberById(memberId));
+        // 탈퇴와 겹치면 탈퇴가 읽은 계좌 목록에 새 계좌가 빠져 살아 남으므로, 탈퇴와 같은 회원 행 잠금을 먼저 잡음
+        memberService.checkActive(memberService.getMemberForUpdate(memberId));
 
         // 계좌번호 랜덤생성 - 중복 생성 x
-        String accountNumber = createAccountNumber();
+        String accountNumber = accountNumberGenerator.generate();
 
         while(accountRepository.findByAccountNumber(accountNumber).isPresent()) {
-            accountNumber = createAccountNumber();
+            accountNumber = accountNumberGenerator.generate();
         }
 
         Account account = Account.builder()
@@ -96,7 +91,16 @@ public class AccountService {
               .status(AccountStatus.EXISTS)
               .build();
 
-        accountRepository.save(account);
+        // 위의 조회는 아직 커밋되지 않은 같은 번호의 계좌를 보지 못함. 그런 계좌가 먼저 커밋되면 저장이 유니크 제약에 걸리므로
+        // 여기서 잡아 다시 시도하면 되는 오류로 알림. 같은 트랜잭션 안에서 새 번호로 다시 저장하지 않는 것은,
+        // 유니크 위반이 난 트랜잭션은 롤백만 할 수 있어 이어서 저장할 수 없기 때문임
+        try {
+            accountRepository.saveAndFlush(account);
+        } catch (DataIntegrityViolationException e) {
+            if (UniqueConstraint.isViolated(e, "uk_account_account_number"))
+                throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT_NUMBER);
+            throw e;
+        }
         return account;
     }
 
@@ -120,7 +124,8 @@ public class AccountService {
      */
     @Transactional
     public Account updateAccount(Long accountId, UpdateAccountDto updateAccountDto) {
-        Account account = getAccountById(accountId);
+        // 저장할 때 잔액·상태까지 모든 칸을 다시 쓰므로, 잠그지 않고 읽으면 그사이 커밋된 입금·해지를 읽은 시점 값으로 되돌림
+        Account account = getAccountForUpdate(accountId);
 
         if (account.isExistsAccount()) {
             if (updateAccountDto.getNickname() != null)
@@ -155,25 +160,30 @@ public class AccountService {
     }
 
     /**
-     * 계좌 해지 - 잔액이나 보유 주식이 남아 있으면 해지할 수 없음
+     * 계좌 해지 - 거래정지된 계좌, 마지막 남은 계좌, 잔액이나 보유 주식이 남은 계좌는 해지할 수 없음
+     * @param memberId - 계좌 소유자 ID. 호출하는 쪽에서 소유자인지 먼저 확인해야 함
      * @param accountId - 계좌 ID
-     * @return 성공여부
+     * @return true
      */
     @Transactional
-    public Boolean deleteAccount(Long accountId) {
-        boolean result = false;
+    public Boolean deleteAccount(Long memberId, Long accountId) {
+        // 같은 회원의 계좌 두 개를 동시에 해지하면 둘 다 "2개 이상"을 보고 해지할 수 있어, 회원 행을 먼저 잠가 한 줄로 세움.
+        // 잠금 순서는 탈퇴·계좌 개설과 같은 회원 → 계좌이고, 계좌 수는 회원 잠금을 얻은 뒤에 세어야 앞선 해지가 보임
+        memberService.getMemberForUpdate(memberId);
         Account account = getAccountForUpdate(accountId);
+        if (!account.getMemberId().equals(memberId))
+            throw new CustomException(ErrorCode.MISMATCH_ACCOUNT_OWNER);
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
+        if (!account.isExistsAccount())
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
+        // 해지된 계좌는 빼고 세어야 마지막 남은 계좌를 지킬 수 있음
+        if (getAllAccounts(memberId).size() < 2)
+            throw new CustomException(ErrorCode.LAST_ACCOUNT);
 
-        List<Account> memberAccounts = getAllAccounts(account.getMemberId());
-
-        // 사용자가 2개 이상의 계좌를 가지고 있어야 삭제 가능
-        if( account.isExistsAccount() && memberAccounts.size() >= 2 ) {
-            checkNoAssets(account);
-            account.close();
-            result = true;
-        }
-
-        return result;
+        checkNoAssets(account);
+        account.close();
+        return true;
     }
 
     /**
@@ -202,9 +212,13 @@ public class AccountService {
             throw new CustomException(ErrorCode.REMAINING_ASSET);
     }
 
-    // 전체 계좌 조회
+    /**
+     * 회원의 계좌 목록 - 해지된 계좌는 뺌
+     * @param memberId - 사용자 ID
+     * @return 계좌 목록
+     */
     public List<Account> getAllAccounts(Long memberId){
-        return accountRepository.findByMemberId(memberId);
+        return accountRepository.findByMemberIdAndStatusNot(memberId, AccountStatus.DELETED);
     }
 
     /**
