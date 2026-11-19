@@ -185,6 +185,42 @@ class AccountSecurityTest extends ApiTest {
 	}
 
 	@Test
+	void 틀렸다고_비교한_뒤에_비밀번호가_바뀌어_새_비밀번호와_맞으면_틀린_횟수로_세지_않고_거래한다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 50_000);
+		for (int i = 0; i < 2; i++)
+			withdraw(member, account, "0000").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
+		CountDownLatch compared = new CountDownLatch(1);
+		CountDownLatch changed = new CountDownLatch(1);
+		AtomicBoolean first = new AtomicBoolean(true);
+		// 새 비밀번호 요청이 옛 해시와 비교해 틀린 직후 멈춰 있는 동안 비밀번호 변경을 커밋함
+		doAnswer(invocation -> {
+			Object matched = invocation.callRealMethod();
+			if (first.compareAndSet(true, false)) {
+				compared.countDown();
+				changed.await(10, TimeUnit.SECONDS);
+			}
+			return matched;
+		}).when(passwordEncoder).matches(any(), any());
+
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		try {
+			Future<MvcResult> newPasswordRequest = executor.submit(() -> withdraw(member, account, "5678").andReturn());
+			assertThat(compared.await(10, TimeUnit.SECONDS)).isTrue();
+			executor.submit(() -> changeAccountPassword(account, "5678")).get(5, TimeUnit.SECONDS);
+			changed.countDown();
+
+			assertThat(newPasswordRequest.get(10, TimeUnit.SECONDS).getResponse().getStatus()).isEqualTo(200);
+		} finally {
+			changed.countDown();
+			executor.shutdown();
+			executor.awaitTermination(15, TimeUnit.SECONDS);
+		}
+		assertThat(passwordFailCountOf(account)).isZero();
+		assertThat(balanceOf(account)).isEqualTo(40_000);
+	}
+
+	@Test
 	void 맞는_비밀번호를_확인한_뒤_실행_전에_계좌가_거래정지되면_틀린_요청과_같은_거래정지_응답을_받는다() throws Exception {
 		Member member = saveMember();
 		Account receiver = saveAccount(saveMember());
