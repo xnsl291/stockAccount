@@ -234,6 +234,38 @@ class AccountSecurityTest extends ApiTest {
 	}
 
 	@Test
+	void 틀린_횟수가_남은_계좌에서_맞는_요청의_확정과_틀린_요청이_겹치면_줄_세운_순서대로_횟수가_남는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 50_000);
+		for (int i = 0; i < 3; i++)
+			withdraw(member, account, "0000").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> correct;
+
+		// 계좌 행을 잠가 둔 채 맞는 요청을 보내, 틀린 횟수 3을 읽고 0으로 되돌리려는 자리에서 기다리게 함.
+		// 그동안 틀린 요청 한 건이 커밋된 것처럼 횟수를 4로 올리고 잠금을 풂.
+		// 틀린 요청이 먼저 처리되고 맞는 요청이 뒤따른 순서와 같아야 하므로 횟수는 0이어야 함
+		TransactionStatus wrongAttempt = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			Account locked = accountRepository.findByIdForUpdate(account.getId()).orElseThrow();
+			correct = executor.submit(() -> withdraw(member, account, ACCOUNT_PASSWORD).andReturn());
+			awaitLockWaits(1);
+			locked.recordPasswordFailure();
+		} catch (Exception | AssertionError e) {
+			transactionManager.rollback(wrongAttempt);
+			executor.shutdownNow();
+			throw e;
+		}
+		transactionManager.commit(wrongAttempt);
+
+		MvcResult result = correct.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(200);
+		assertThat(passwordFailCountOf(account)).isZero();
+		assertThat(balanceOf(account)).isEqualTo(40_000);
+	}
+
+	@Test
 	void 계좌_한_건과_내_계좌_목록을_각각_조회할_수_있고_비밀번호는_응답에_없다() throws Exception {
 		Member member = saveMember();
 		Account first = saveAccount(member);
