@@ -3,7 +3,7 @@
 // 2단계 주문: 잔액 100만 원 계좌(1002번)에 1만 원 매수 주문 300건(현재가 3만 원이라 체결 안 됨) → 묶이는 금액 10,001원이라 최대 99건
 // 3단계 취소: 2단계의 미체결 주문마다 취소를 여러 번 동시에 보냄 → 주문마다 취소 성공은 1건이어야 함
 import { Counter } from 'k6/metrics';
-import { ACCOUNT_PASSWORD, SUMMARY_TREND_STATS, breakdownThresholds, get, login, send } from './common.js';
+import { ACCOUNT_PASSWORD, SUMMARY_TREND_STATS, breakdownThresholds, get, login, send, warmUp } from './common.js';
 
 const CONCURRENCY = Number(__ENV.CONCURRENCY || 300);
 const WITHDRAW_ACCOUNT = 1001;
@@ -39,11 +39,13 @@ function record(res, name) {
 }
 
 export function withdraw(data) {
+  warmUp(data.withdrawToken);
   record(send('POST', data.withdrawToken, '/api/transactions/withdrawal',
     { accountId: WITHDRAW_ACCOUNT, amount: 10000, accountPassword: ACCOUNT_PASSWORD }, 'hot_withdraw'), 'hot_withdraw');
 }
 
 export function order(data) {
+  warmUp(data.orderToken);
   record(send('POST', data.orderToken, '/api/stocks/buy',
     { accountId: ORDER_ACCOUNT, stockId: ORDER_STOCK, price: 10000, quantity: 1, accountPassword: ACCOUNT_PASSWORD }, 'hot_order'), 'hot_order');
 }
