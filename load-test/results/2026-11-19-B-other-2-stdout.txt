@@ -1,0 +1,192 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /scripts/other-account.js
+        output: csv (/raw/2026-11-19-B-other-2.csv.gz)
+
+     scenarios: (100.00%) 2 scenarios, 1300 max VUs, 2m30s max duration (incl. graceful stop):
+              * hot_withdraw: 1 iterations for each of 300 VUs (maxDuration: 2m0s, exec: withdraw, gracefulStop: 30s)
+              * other: 20.00 iterations/s for 30s (maxVUs: 100-1000, exec: other, gracefulStop: 30s)
+
+
+Run            [ 100% ] setup()
+hot_withdraw   [   0% ]
+other          [   0% ]
+
+Run            [ 100% ] setup()
+hot_withdraw   [   0% ]
+other          [   0% ]
+
+Run            [ 100% ] setup()
+hot_withdraw   [   0% ]
+other          [   0% ]
+
+running (0m04.0s), 0302/0400 VUs, 14 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m00.8s/2m0s  000/300 iters, 1 per VU
+other          [   3% ] 0002/0100 VUs  00.8s/30s     20.00 iters/s
+
+running (0m05.0s), 0302/0400 VUs, 34 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m01.8s/2m0s  000/300 iters, 1 per VU
+other          [   6% ] 0002/0100 VUs  01.8s/30s     20.00 iters/s
+
+running (0m06.0s), 0302/0400 VUs, 54 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m02.8s/2m0s  000/300 iters, 1 per VU
+other          [   9% ] 0002/0100 VUs  02.8s/30s     20.00 iters/s
+
+running (0m07.0s), 0302/0400 VUs, 74 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m03.8s/2m0s  000/300 iters, 1 per VU
+other          [  13% ] 0002/0100 VUs  03.8s/30s     20.00 iters/s
+
+running (0m08.0s), 0316/0400 VUs, 80 complete and 0 interrupted iterations
+hot_withdraw   [   0% ] 300 VUs        0m04.8s/2m0s  000/300 iters, 1 per VU
+other          [  16% ] 0016/0100 VUs  04.8s/30s     20.00 iters/s
+
+running (0m09.0s), 0310/0400 VUs, 106 complete and 0 interrupted iterations
+hot_withdraw   [   9% ] 300 VUs        0m05.8s/2m0s  026/300 iters, 1 per VU
+other          [  19% ] 0036/0100 VUs  05.8s/30s     20.00 iters/s
+
+running (0m10.0s), 0220/0400 VUs, 216 complete and 0 interrupted iterations
+hot_withdraw   [  45% ] 300 VUs        0m06.8s/2m0s  136/300 iters, 1 per VU
+other          [  23% ] 0056/0100 VUs  06.8s/30s     20.00 iters/s
+
+running (0m11.0s), 0055/0400 VUs, 401 complete and 0 interrupted iterations
+hot_withdraw   [  91% ] 300 VUs        0m07.8s/2m0s  274/300 iters, 1 per VU
+other          [  26% ] 0029/0100 VUs  07.8s/30s     20.00 iters/s
+
+running (0m12.0s), 0000/0400 VUs, 476 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  29% ] 0000/0100 VUs  08.8s/30s     20.00 iters/s
+
+running (0m13.0s), 0002/0400 VUs, 494 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  33% ] 0002/0100 VUs  09.8s/30s     20.00 iters/s
+
+running (0m14.0s), 0001/0400 VUs, 515 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  36% ] 0001/0100 VUs  10.8s/30s     20.00 iters/s
+
+running (0m15.0s), 0003/0400 VUs, 533 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  39% ] 0003/0100 VUs  11.8s/30s     20.00 iters/s
+
+running (0m16.0s), 0003/0400 VUs, 553 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  43% ] 0003/0100 VUs  12.8s/30s     20.00 iters/s
+
+running (0m17.0s), 0002/0400 VUs, 574 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  46% ] 0002/0100 VUs  13.8s/30s     20.00 iters/s
+
+running (0m18.0s), 0001/0400 VUs, 595 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  49% ] 0001/0100 VUs  14.8s/30s     20.00 iters/s
+
+running (0m19.0s), 0001/0400 VUs, 615 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  53% ] 0001/0100 VUs  15.8s/30s     20.00 iters/s
+
+running (0m20.0s), 0002/0400 VUs, 634 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  56% ] 0002/0100 VUs  16.8s/30s     20.00 iters/s
+
+running (0m21.0s), 0001/0400 VUs, 655 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  59% ] 0001/0100 VUs  17.8s/30s     20.00 iters/s
+
+running (0m22.0s), 0001/0400 VUs, 675 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  63% ] 0001/0100 VUs  18.8s/30s     20.00 iters/s
+
+running (0m23.0s), 0002/0400 VUs, 694 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  66% ] 0002/0100 VUs  19.8s/30s     20.00 iters/s
+
+running (0m24.0s), 0001/0400 VUs, 715 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  69% ] 0001/0100 VUs  20.8s/30s     20.00 iters/s
+
+running (0m25.0s), 0002/0400 VUs, 734 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  73% ] 0002/0100 VUs  21.8s/30s     20.00 iters/s
+
+running (0m26.0s), 0001/0400 VUs, 755 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  76% ] 0001/0100 VUs  22.8s/30s     20.00 iters/s
+
+running (0m27.0s), 0001/0400 VUs, 775 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  79% ] 0001/0100 VUs  23.8s/30s     20.00 iters/s
+
+running (0m28.0s), 0002/0400 VUs, 794 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  83% ] 0002/0100 VUs  24.8s/30s     20.00 iters/s
+
+running (0m29.0s), 0001/0400 VUs, 815 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  86% ] 0001/0100 VUs  25.8s/30s     20.00 iters/s
+
+running (0m30.0s), 0002/0400 VUs, 834 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  89% ] 0002/0100 VUs  26.8s/30s     20.00 iters/s
+
+running (0m31.0s), 0002/0400 VUs, 854 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  93% ] 0002/0100 VUs  27.8s/30s     20.00 iters/s
+
+running (0m32.0s), 0002/0400 VUs, 874 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  96% ] 0002/0100 VUs  28.8s/30s     20.00 iters/s
+
+running (0m33.0s), 0002/0400 VUs, 894 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other          [  99% ] 0002/0100 VUs  29.8s/30s     20.00 iters/s
+
+     data_received..........................: 744 kB 22 kB/s
+     data_sent..............................: 572 kB 17 kB/s
+     http_req_blocked.......................: avg=10.49ms  min=1.04µs   med=5.37µs   p(90)=2.18ms   p(95)=3.93ms  p(99)=17.8ms   max=3.08s  count=1402
+     http_req_connecting....................: avg=10.44ms  min=0s       med=0s       p(90)=2.08ms   p(95)=3.67ms  p(99)=15.4ms   max=3.08s  count=1402
+     http_req_duration......................: avg=746.67ms min=5.15ms   med=79.58ms  p(90)=3.16s    p(95)=3.64s   p(99)=3.81s    max=3.87s  count=1402
+       { expected_response:true }...........: avg=325.81ms min=5.15ms   med=73.36ms  p(90)=1.67s    p(95)=2.2s    p(99)=3s       max=3.61s  count=1202
+     ✓ { name:hot_withdraw }................: avg=2.84s    min=505.84ms med=2.91s    p(90)=3.74s    p(95)=3.79s   p(99)=3.84s    max=3.87s  count=300 
+     ✓ { name:other_read }..................: avg=242.63ms min=9.06ms   med=16.69ms  p(90)=721.75ms p(95)=1.9s    p(99)=3.17s    max=3.61s  count=320 
+     ✓ { name:other_withdraw }..............: avg=324.19ms min=88.39ms  med=104.21ms p(90)=521.26ms p(95)=2.31s   p(99)=3.32s    max=3.55s  count=281 
+     ✓ { scenario:hot_withdraw }............: avg=1.43s    min=5.15ms   med=1.02s    p(90)=3.66s    p(95)=3.74s   p(99)=3.83s    max=3.87s  count=600 
+     ✓ { scenario:other }...................: avg=280.76ms min=9.06ms   med=93.64ms  p(90)=584.62ms p(95)=2.14s   p(99)=3.28s    max=3.61s  count=601 
+     http_req_failed........................: 14.26% 200 out of 1402
+     ✓ { scenario:hot_withdraw }............: 33.33% 200 out of 600
+     ✓ { scenario:other }...................: 0.00%  0 out of 601
+     http_req_receiving.....................: avg=130.36µs min=15.44µs  med=93.15µs  p(90)=213.8µs  p(95)=288.6µs p(99)=674.18µs max=3.89ms count=1402
+     http_req_sending.......................: avg=41.2µs   min=3.64µs   med=31.13µs  p(90)=76.29µs  p(95)=94.5µs  p(99)=147.19µs max=1.83ms count=1402
+     http_req_tls_handshaking...............: avg=0s       min=0s       med=0s       p(90)=0s       p(95)=0s      p(99)=0s       max=0s     count=1402
+     http_req_waiting.......................: avg=746.5ms  min=5.05ms   med=79.5ms   p(90)=3.16s    p(95)=3.64s   p(99)=3.81s    max=3.87s  count=1402
+     http_reqs..............................: 1402   42.108542/s
+     iteration_duration.....................: avg=2.47s    min=9.28ms   med=113.18ms p(90)=7.5s     p(95)=7.7s    p(99)=7.82s    max=7.87s  count=901 
+     iterations.............................: 901    27.061196/s
+     status_by_request......................: 901    27.061196/s
+     ✓ { name:hot_withdraw,status:200 }.....: 100    3.003462/s
+     ✓ { name:hot_withdraw,status:400 }.....: 200    6.006925/s
+     ✓ { name:hot_withdraw,status:401 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:409 }.....: 0      0/s
+     ✓ { name:hot_withdraw,status:500 }.....: 0      0/s
+     ✓ { name:other_read,status:200 }.......: 320    9.611079/s
+     ✓ { name:other_read,status:400 }.......: 0      0/s
+     ✓ { name:other_read,status:401 }.......: 0      0/s
+     ✓ { name:other_read,status:409 }.......: 0      0/s
+     ✓ { name:other_read,status:500 }.......: 0      0/s
+     ✓ { name:other_withdraw,status:200 }...: 281    8.439729/s
+     ✓ { name:other_withdraw,status:400 }...: 0      0/s
+     ✓ { name:other_withdraw,status:401 }...: 0      0/s
+     ✓ { name:other_withdraw,status:409 }...: 0      0/s
+     ✓ { name:other_withdraw,status:500 }...: 0      0/s
+     vus....................................: 1      min=0           max=316
+     vus_max................................: 400    min=400         max=400
+
+
+running (0m33.3s), 0000/0400 VUs, 901 complete and 0 interrupted iterations
+hot_withdraw ✓ [ 100% ] 300 VUs        0m07.9s/2m0s  300/300 iters, 1 per VU
+other        ✓ [ 100% ] 0000/0100 VUs  30s           20.00 iters/s
