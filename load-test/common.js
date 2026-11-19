@@ -1,5 +1,7 @@
 // 두 시나리오가 같이 쓰는 로그인·요청 도구
 import http from 'k6/http';
+import exec from 'k6/execution';
+import { sleep } from 'k6';
 
 export const BASE_URL = __ENV.BASE_URL || 'http://host.docker.internal:8080';
 export const PASSWORD = 'password123'; // seed.sql의 로그인 비밀번호
@@ -38,6 +40,18 @@ export function loginAll(phoneNumbers) {
 
 function idempotencyKey() {
   return `${__VU}-${__ITER}-${Date.now()}-${Math.random().toString(36).slice(2)}`.slice(0, 64);
+}
+
+// WARM=1이면 몰아넣는 요청을 보내기 전에 VU마다 연결을 미리 맺어 두고, 시나리오 시작 4초 뒤에 한꺼번에 보냄.
+// 수백 개 VU가 한 순간에 새 연결을 맺으면 Docker Desktop의 호스트 연결이 일부를 거절해(connection refused)
+// 그 요청은 앱에 닿지도 않은 채 응답 시간 0으로 집계됨. 취소 단계는 목록 조회로 이미 연결을 맺은 뒤 보내 이 문제가 없었음
+export const WARM = __ENV.WARM === '1';
+export function warmUp(token) {
+  if (!WARM) return;
+  sleep((__VU % 100) * 0.02); // 미리 맺는 연결도 한꺼번에 몰리지 않게 2초에 걸쳐 나눔
+  get(token, '/api/stocks/1', 'warmup');
+  const wait = (exec.scenario.startTime + 4000 - Date.now()) / 1000;
+  if (wait > 0) sleep(wait);
 }
 
 export function get(token, url, name) {

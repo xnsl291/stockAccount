@@ -3,7 +3,7 @@
 // 다른 계좌 요청: 회원 200명(계좌 1~200번)이 초당 20건(계좌 조회 10, 출금 1만 원 10)을 30초 동안 고르게 보냄
 // HOT=0이면 몰아넣기 없이 다른 계좌 요청만 보냄(평소 지연을 보는 대조군)
 import { Counter } from 'k6/metrics';
-import { ACCOUNT_PASSWORD, SUMMARY_TREND_STATS, breakdownThresholds, get, login, loginAll, send } from './common.js';
+import { ACCOUNT_PASSWORD, SUMMARY_TREND_STATS, breakdownThresholds, get, login, loginAll, send, warmUp } from './common.js';
 
 const CONCURRENCY = Number(__ENV.CONCURRENCY || 300);
 const HOT = __ENV.HOT !== '0';
@@ -48,6 +48,7 @@ function record(res, name) {
 }
 
 export function withdraw(data) {
+  warmUp(data.withdrawToken);
   record(send('POST', data.withdrawToken, '/api/transactions/withdrawal',
     { accountId: WITHDRAW_ACCOUNT, amount: 10000, accountPassword: ACCOUNT_PASSWORD }, 'hot_withdraw'), 'hot_withdraw');
 }
