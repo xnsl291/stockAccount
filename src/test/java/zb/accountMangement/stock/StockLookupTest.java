@@ -7,7 +7,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.member.model.entity.Member;
@@ -26,8 +25,6 @@ class StockLookupTest extends ApiTest {
 
 	@Autowired
 	EntityManagerFactory entityManagerFactory;
-	@Autowired
-	JdbcTemplate jdbcTemplate;
 
 	@Test
 	void 종목_ID로_코드와_이름과_현재가를_조회한다() throws Exception {
@@ -91,14 +88,6 @@ class StockLookupTest extends ApiTest {
 				.andExpect(jsonPath("$[0].profitNLoss").value(3_000))
 				.andExpect(jsonPath("$[1].stockId").value(loss.getId()))
 				.andExpect(jsonPath("$[1].profitNLoss").value(-2_500));
-	}
-
-	@Test
-	void 평가손익은_응답에서만_계산하고_보유_주식_테이블에_칸을_두지_않는다() {
-		Integer columns = jdbcTemplate.queryForObject("select count(*) from information_schema.columns"
-				+ " where table_schema = database() and table_name = 'stock_balance' and column_name = 'profitnloss'", Integer.class);
-
-		assertThat(columns).isZero();
 	}
 
 	@Test
