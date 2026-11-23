@@ -1,26 +1,20 @@
-package zb.accountMangement.member.dto;
+package zb.accountMangement.auth.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import zb.accountMangement.member.model.VerificationPurpose;
-
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
-public class SmsVerificationDto {
-
+public class SignInDto {
   @NotBlank
   @Pattern(regexp = "^01([0-9])[ -.]?([0-9]{3,4})[ -.]?([0-9]{4})$", message = "핸드폰 번호 포맷이 일치하지 않습니다")
   private String phoneNumber;
 
   @NotBlank
-  private String verificationCode;
+  private String password; //로그인 패스워드
 
-  @NotNull
-  private VerificationPurpose purpose;
+
 
 }

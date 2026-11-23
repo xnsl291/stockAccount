@@ -1,18 +1,17 @@
-package zb.accountMangement.common.service;
+package zb.accountMangement.account.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
-import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 
 @Service
 @RequiredArgsConstructor
 
-public class ValidationService {
+public class AccountValidationService {
     private final AccountService accountService;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -44,10 +43,5 @@ public class ValidationService {
             throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
         }
         account.resetPasswordFailure();
-    }
-
-    public void validMemberId(Long loginMemberId, Long memberId){
-        if (!loginMemberId.equals(memberId))
-            throw new CustomException(ErrorCode.MISMATCHED_USER_ID);
     }
 }

@@ -1,4 +1,4 @@
-package zb.accountMangement.member.controller;
+package zb.accountMangement.auth.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -6,8 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.common.auth.JwtToken;
-import zb.accountMangement.member.dto.*;
-import zb.accountMangement.member.service.AuthenticationService;
+import zb.accountMangement.auth.dto.*;
+import zb.accountMangement.auth.service.AuthenticationService;
 import zb.accountMangement.member.service.SendMessageService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;

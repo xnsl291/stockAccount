@@ -1,4 +1,4 @@
-package zb.accountMangement.member.service;
+package zb.accountMangement.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,23 +11,19 @@ import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.model.PhoneNumber;
-import zb.accountMangement.member.model.RoleType;
-import zb.accountMangement.member.model.VerificationPurpose;
 import zb.accountMangement.member.model.entity.Member;
-import zb.accountMangement.member.dto.*;
-import zb.accountMangement.member.repository.MemberRepository;
+import zb.accountMangement.auth.dto.*;
+import zb.accountMangement.member.service.MemberService;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthenticationService {
 
-	private final MemberRepository memberRepository;
 	private final BCryptPasswordEncoder passwordEncoder;
 	private final AccountService accountService;
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
-	private final SendMessageService sendMessageService;
 
 	/**
 	 * 회원 가입 - 가입 전에 핸드폰 인증을 마쳐야 함
@@ -35,25 +31,8 @@ public class AuthenticationService {
 	 */
 	@Transactional
 	public Boolean signUp(SignUpDto signUpDto) {
-		String phoneNumber = PhoneNumber.normalize(signUpDto.getPhoneNumber());
-
-		// 이름 유효성 검사
-		if (!signUpDto.getName().matches("[가-힣a-zA-Z0-9]{2,10}")) {
-			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
-		}
-
-		// 핸드폰번호 중복 검사
-		if (memberRepository.existsByPhoneNumber(phoneNumber))
-			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
-
-		sendMessageService.consumeVerifiedPhone(phoneNumber, VerificationPurpose.SIGN_UP);
-
-		Member member = memberRepository.save(Member.builder()
-				.name(signUpDto.getName())
-				.password(passwordEncoder.encode(signUpDto.getLoginPassword()))
-				.phoneNumber(phoneNumber)
-				.role(RoleType.USER)
-				.build());
+		Member member = memberService.createMember(
+				signUpDto.getName(), signUpDto.getPhoneNumber(), signUpDto.getLoginPassword());
 
 		// 초기 계좌 생성 - 계좌 비밀번호는 openAccount에서 암호화함
 		AccountManagementDto accountManagementDto = AccountManagementDto.builder()
@@ -71,7 +50,7 @@ public class AuthenticationService {
 	public Boolean deleteMember(Long loginMemberId, String accessToken) {
 		Member member = memberService.checkMemberPermission(loginMemberId, loginMemberId);
 		accountService.closeAllAccounts(loginMemberId);
-		member.delete();
+		memberService.withdraw(member);
 		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
 		return true;
 	}

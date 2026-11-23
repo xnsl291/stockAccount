@@ -70,10 +70,8 @@ public class OrderService {
 				.build();
 
 		if (type == TradeType.BUY) {
-			long hold = buyHold(order);
-			if (account.getAvailableBalance() < hold)
-				throw new CustomException(ErrorCode.EXCEED_BALANCE);
-			account.setHeldAmount(account.getHeldAmount() + hold);
+			// 묶을 금액이 쓸 수 있는 잔액보다 크면 EXCEED_BALANCE로 거절됨
+			account.hold(buyHold(order));
 		} else {
 			StockBalance stockBalance = getStockBalance(order);
 			if (stockBalance.getAvailableQuantity() < order.getQuantity())
@@ -103,7 +101,7 @@ public class OrderService {
 			throw new CustomException(ErrorCode.ORDER_NOT_PENDING);
 
 		if (order.getType() == TradeType.BUY) {
-			account.setHeldAmount(account.getHeldAmount() - buyHold(order));
+			account.releaseHold(buyHold(order));
 		} else {
 			StockBalance stockBalance = getStockBalance(order);
 			stockBalance.setHeldQuantity(stockBalance.getHeldQuantity() - order.getQuantity());
@@ -161,7 +159,7 @@ public class OrderService {
 		long amount = Math.multiplyExact(stock.getCurrentPrice(), order.getQuantity());
 
 		if (order.getType() == TradeType.BUY) {
-			account.setHeldAmount(account.getHeldAmount() - buyHold(order));
+			account.releaseHold(buyHold(order));
 			transactionService.changeBalance(account.getId(), TransactionType.STOCK_BUY, amount, stock.getName(), null);
 
 			StockBalance stockBalance = stockBalanceRepository.findByAccountIdAndStockId(account.getId(), stock.getId())
