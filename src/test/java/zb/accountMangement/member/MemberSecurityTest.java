@@ -1,5 +1,6 @@
 package zb.accountMangement.member;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -189,6 +190,22 @@ class MemberSecurityTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 
 		assertThat(passwordEncoder.matches("password123", memberRepository.findById(member.getId()).orElseThrow().getPassword())).isTrue();
+	}
+
+	@Test
+	void 회원정보_수정에도_가입과_같은_이름_규칙을_적용한다() throws Exception {
+		Member member = saveMember();
+
+		for (String name : List.of("가", "가".repeat(11), "tester!")) {
+			mockMvc.perform(as(member, patch("/api/member/" + member.getId()))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(Map.of("name", name,
+									"phoneNumber", member.getPhoneNumber(), "password", "password123", "currentPassword", "password123"))))
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.code").value("INVALID_NAME_FORMAT"));
+		}
+
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getName()).isEqualTo("tester");
 	}
 
 	@Test
