@@ -48,10 +48,7 @@ public class OrderService {
 	private final TransactionTemplate transactionTemplate;
 
 	/**
-	 * 주문 접수 - 시세가 이미 주문가를 만족하면 바로 체결하고, 아니면 미체결로 남김
-	 * @param type - 매수 또는 매도
-	 * @param tradeStockDto - 주문 dto (계좌 ID, 주식 ID, 주문가, 수량)
-	 * @return 주문 ID
+	 * 시세가 이미 주문가를 만족하면 바로 체결하고, 아니면 미체결로 남김
 	 */
 	@Transactional
 	public Long placeOrder(TradeType type, TradeStockDto tradeStockDto) {
@@ -92,8 +89,6 @@ public class OrderService {
 	 * 조건이 맞는데도 미체결로 남음. 커밋 뒤에 새 트랜잭션에서 주문과 시세를 다시 읽으면, 시세 갱신이 먼저 커밋됐을 때는 여기서
 	 * 새 시세를 보고, 접수가 먼저 커밋됐을 때는 시세 갱신이 이 주문을 봄.
 	 * 접수는 이미 끝났으므로 여기서 실패해도 예외를 넘기지 않고 로그만 남김. 남은 주문은 다음 시세 갱신 때 체결됨
-	 * @param accountId - 주문을 낸 계좌 ID
-	 * @param orderId - 주문 ID
 	 */
 	public void recheckFill(Long accountId, Long orderId) {
 		try {
@@ -104,10 +99,7 @@ public class OrderService {
 	}
 
 	/**
-	 * 주문 취소 - 미체결 주문만 취소할 수 있고, 묶어 둔 돈이나 주식을 풀어 줌
-	 * @param accountId - 주문을 낸 계좌 ID
-	 * @param orderId - 주문 ID
-	 * @return 취소된 주문
+	 * 미체결 주문만 취소할 수 있고, 묶어 둔 돈이나 주식을 풀어 줌
 	 */
 	@Transactional
 	public Trading cancelOrder(Long accountId, Long orderId) {
@@ -128,11 +120,6 @@ public class OrderService {
 		return order;
 	}
 
-	/**
-	 * 종목의 미체결 주문 중 지금 시세로 체결되는 주문을 먼저 들어온 순서대로 체결
-	 * @param stock - 시세가 바뀐 종목
-	 * @return 종목 정보와 체결·실패한 주문 ID, 체결하지 않고 남긴 주문 수
-	 */
 	public PriceUpdateResponse matchPendingOrders(Stock stock) {
 		List<Trading> pendings = tradingRepository.findByStockIdAndStatusOrderByIdAsc(stock.getId(), OrderStatus.PENDING);
 		List<Long> filled = new ArrayList<>();
@@ -170,9 +157,7 @@ public class OrderService {
 		return true;
 	}
 
-	/**
-	 * 주문가가 아닌 현재 시세로 체결하고, 묶어 둔 돈이나 주식을 풀어 실제 대금과 수수료를 반영
-	 */
+	// 주문가가 아닌 현재 시세로 체결하고, 묶어 둔 돈이나 주식을 풀어 실제 대금과 수수료를 반영함
 	private void fill(Trading order, Account account, Stock stock) {
 		long amount = Math.multiplyExact(stock.getCurrentPrice(), order.getQuantity());
 
@@ -213,22 +198,13 @@ public class OrderService {
 				.orElseThrow(() -> new CustomException(ErrorCode.NO_STOCK_BALANCE));
 	}
 
-	/**
-	 * 주문 조회
-	 * @param orderId - 주문 ID
-	 * @return 주문
-	 */
 	public Trading getOrder(Long orderId) {
 		return tradingRepository.findById(orderId)
 				.orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_EXIST));
 	}
 
 	/**
-	 * 주문·거래내역 조회 - 조건을 주지 않으면 전체를 최근 순으로 돌려줌
-	 * @param accountId - 계좌 ID
-	 * @param status - 주문 상태 (없으면 전체)
-	 * @param dateDto - 조회할 연도와 월 (연도만 주면 그 해 전체, 둘 다 없으면 전체 기간)
-	 * @return 거래내역
+	 * 조건을 주지 않으면 전체를 최근 순으로 돌려줌
 	 */
 	public List<Trading> getTradeHistory(Long accountId, OrderStatus status, DateDto dateDto) {
 		if (dateDto.getYear() == null) {

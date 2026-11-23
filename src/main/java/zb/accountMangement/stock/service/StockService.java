@@ -49,40 +49,22 @@ public class StockService {
     private final TradingRepository tradeHistoryRepository;
     private final OrderService orderService;
 
-    /**
-     * 주식 ID를 이용한 종목 조회
-     * @param stockId - 주식 ID
-     * @return Stock
-     */
     public Stock getStockById(Long stockId){
         return stockRepository.findById(stockId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_EXIST));
     }
 
-    /**
-     * 주식 현재 시세 조회
-     * @param stockId - 주식 ID
-     * @return 주식 가격
-     */
     public Long getCurrentStockPrice(Long stockId) {
         return getStockById(stockId).getCurrentPrice();
     }
 
     /**
-     * 관리자용 종목 목록 - 최근 등록 순
-     * @param page - 페이지 번호 (0부터)
-     * @param size - 페이지 크기
-     * @return 종목과 종목별 미체결 주문 수
+     * 최근 등록 순
      */
     public Page<AdminStockResponse> getAdminStocks(int page, int size) {
         return stockRepository.findAllWithPendingOrderCount(PageRequest.of(page, size));
     }
 
-    /**
-     * 관리자용 종목 한 건 조회
-     * @param stockId - 주식 ID
-     * @return 종목과 미체결 주문 수
-     */
     public AdminStockResponse getAdminStock(Long stockId) {
         Stock stock = getStockById(stockId);
         return new AdminStockResponse(stock.getId(), stock.getCode(), stock.getName(), stock.getCurrentPrice(),
@@ -90,10 +72,7 @@ public class StockService {
     }
 
     /**
-     * 종목에 걸린 주문 조회 - 먼저 들어온 순서(체결 순서와 같음)
-     * @param stockId - 주식 ID
-     * @param status - 주문 상태
-     * @return 주문 리스트
+     * 먼저 들어온 순서(체결 순서와 같음)
      */
     public List<TradingResponse> getOrdersOfStock(Long stockId, OrderStatus status) {
         Stock stock = getStockById(stockId);
@@ -102,20 +81,10 @@ public class StockService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 종목 검색
-     * @param keyword - 종목코드 또는 종목명의 일부
-     * @return 종목 리스트
-     */
     public List<Stock> searchStocks(String keyword) {
         return stockRepository.findByCodeContainingOrNameContaining(keyword, keyword);
     }
 
-    /**
-     * 종목 등록
-     * @param registerStockDto - 종목 dto (종목코드, 종목명, 현재가)
-     * @return 등록된 종목
-     */
     @Transactional
     public Stock registerStock(RegisterStockDto registerStockDto) {
         if (stockRepository.existsByCode(registerStockDto.getCode()))
@@ -136,10 +105,7 @@ public class StockService {
     }
 
     /**
-     * 시세 갱신 - 새 시세로 체결되는 미체결 주문을 함께 체결함
-     * @param stockId - 주식 ID
-     * @param price - 새 시세
-     * @return 시세가 바뀐 종목과 체결 결과
+     * 새 시세로 체결되는 미체결 주문을 함께 체결함
      */
     // 시세를 먼저 커밋해야 주문마다 따로 여는 체결 트랜잭션이 새 시세를 읽으므로, 전체를 한 트랜잭션으로 묶지 않음
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -151,9 +117,7 @@ public class StockService {
     }
 
     /**
-     * 주식 잔고 이체 - 받는 쪽은 보내는 쪽의 평균단가를 그대로 이어받음
-     * @param transferStockDto - 주식 잔고 이체 dto (발신자 계좌 ID, 수신자 계좌 ID, 주식 ID, 수량)
-     * @return "이체완료"
+     * 받는 쪽은 보내는 쪽의 평균단가를 그대로 이어받음
      */
     @Transactional
     public String transferStock(TransferStockDto transferStockDto){
@@ -215,9 +179,7 @@ public class StockService {
     }
 
     /**
-     * 계좌 잔고 조회 - 평가손익순으로 정렬
-     * @param accountId - 계좌  ID
-     * @return 현재 보유중인 주식 종목 리스트 (종목 정보와 현재가 기준 평가금액·평가손익 포함)
+     * 평가손익순으로 정렬
      */
     public List<StockBalanceResponse> getStockBalance(Long accountId) {
         List<StockBalance> stockBalances = stockBalanceRepository.findByAccountId(accountId);
@@ -229,11 +191,6 @@ public class StockService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 여러 종목을 쿼리 한 번으로 읽음
-     * @param stockIds - 주식 ID 목록
-     * @return 주식 ID별 종목
-     */
     public Map<Long, Stock> getStocksById(Set<Long> stockIds) {
         return stockRepository.findAllById(stockIds).stream()
                 .collect(Collectors.toMap(Stock::getId, Function.identity()));
