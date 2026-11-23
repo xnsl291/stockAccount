@@ -92,13 +92,15 @@ class JwtAuthenticationTest extends IntegrationTest {
 	}
 
 	@Test
-	void 권한이_다르면_403() throws Exception {
+	void 관리자는_회원용_경로에서_403이고_탈퇴_경로도_막힌다() throws Exception {
 		Member admin = saveMember(RoleType.ADMIN);
 		String accessToken = login(admin).get("accessToken").asText();
 
 		getMember(admin.getId(), accessToken)
 				.andExpect(status().isForbidden())
 				.andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
+		mockMvc.perform(delete("/api/auth/sign-out").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -128,15 +130,6 @@ class JwtAuthenticationTest extends IntegrationTest {
 		mockMvc.perform(get("/admin/stocks").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
 				.andExpect(status().isUnauthorized())
 				.andExpect(jsonPath("$.code").value("INVALID_TOKEN"));
-	}
-
-	@Test
-	void 관리자는_로그아웃만_열리고_탈퇴_경로는_막힌다() throws Exception {
-		Member admin = saveMember(RoleType.ADMIN);
-		String accessToken = login(admin).get("accessToken").asText();
-
-		mockMvc.perform(delete("/api/auth/sign-out").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
-				.andExpect(status().isForbidden());
 	}
 
 	@Test
