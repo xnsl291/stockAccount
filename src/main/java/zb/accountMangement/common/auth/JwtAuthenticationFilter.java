@@ -2,8 +2,6 @@ package zb.accountMangement.common.auth;
 
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -11,9 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import zb.accountMangement.member.type.RoleType;
+import zb.accountMangement.common.exception.CustomException;
 
 import java.io.IOException;
 
@@ -29,17 +26,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws IOException, ServletException {
 
         String token = jwtTokenProvider.resolveToken(request);
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            Authentication authentication = getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (token != null) {
+            try {
+                SecurityContextHolder.getContext().setAuthentication(jwtTokenProvider.authenticate(token));
+            } catch (CustomException e) {
+                // 여기서 응답을 쓰지 않고 넘기면, 인증이 필요한 경로일 때 EntryPoint가 이 사유로 401을 만든다
+                request.setAttribute(JwtAuthenticationEntryPoint.ERROR_CODE_ATTRIBUTE, e.getErrorCode());
+            }
         }
         chain.doFilter(request, response);
-    }
-
-    private Authentication getAuthentication(String token) {
-        Long userId = jwtTokenProvider.getId(token);
-        String phoneNumber = jwtTokenProvider.getPhoneNumber(token);
-        RoleType roleType = RoleType.valueOf(jwtTokenProvider.getRoles(token));
-        return new UsernamePasswordAuthenticationToken(userId, phoneNumber, roleType.getAuthorities());
     }
 }

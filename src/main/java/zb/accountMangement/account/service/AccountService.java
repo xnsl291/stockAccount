@@ -2,21 +2,26 @@ package zb.accountMangement.account.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zb.accountMangement.account.domain.Account;
+import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.SearchAccountDto;
+import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.repository.AccountRepository;
-import zb.accountMangement.account.type.AccountStatus;
-import zb.accountMangement.common.error.exception.NotFoundAccountException;
+import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
+import zb.accountMangement.member.model.VerificationPurpose;
+import zb.accountMangement.member.model.entity.Member;
+import zb.accountMangement.member.repository.MemberRepository;
 import zb.accountMangement.member.service.MemberService;
+import zb.accountMangement.member.service.SendMessageService;
+import zb.accountMangement.stock.repository.StockBalanceRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +31,9 @@ public class AccountService {
     private final int ACCOUNT_NUMBER_LENGTH = 14;
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final MemberRepository memberRepository;
+    private final StockBalanceRepository stockBalanceRepository;
+    private final SendMessageService sendMessageService;
     private final MemberService memberService;
     /**
      * 계좌번호 생성
@@ -42,7 +50,17 @@ public class AccountService {
      */
     public Account getAccountById(Long accountId){
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundAccountException(ErrorCode.ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
+    }
+
+    /**
+     * 다른 요청이 같은 계좌를 동시에 바꾸지 못하게 잠그고 계좌정보 열람 - 트랜잭션 안에서 호출해야 함
+     * @param accountId - 계좌 ID
+     * @return Account
+     */
+    public Account getAccountForUpdate(Long accountId){
+        return accountRepository.findByIdForUpdate(accountId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
@@ -52,17 +70,19 @@ public class AccountService {
      */
     public Account getAccountByNumber(String accountNumber){
         return accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new NotFoundAccountException(ErrorCode.ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
-     * 계좌 개설
-     * @param userId - 사용자 ID
+     * 계좌 개설 - 탈퇴·정지 회원은 개설할 수 없음
+     * @param memberId - 사용자 ID
      * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
      * @return Account
      */
     @Transactional
-    public Account openAccount(Long userId, AccountManagementDto accountManagementDto) {
+    public Account openAccount(Long memberId, AccountManagementDto accountManagementDto) {
+        memberService.checkActive(memberService.getMemberById(memberId));
+
         // 계좌번호 랜덤생성 - 중복 생성 x
         String accountNumber = createAccountNumber();
 
@@ -72,7 +92,7 @@ public class AccountService {
 
         Account account = Account.builder()
               .accountNumber(accountNumber)
-              .userId(userId)
+              .memberId(memberId)
               .nickname(accountManagementDto.getNickname())
               .password(passwordEncoder.encode(accountManagementDto.getPassword()))
               .status(AccountStatus.EXISTS)
@@ -90,71 +110,117 @@ public class AccountService {
     public Account getAccountInfo(Long accountId) {
         Account account = getAccountById(accountId);
         if (account.isDeletedAccount())
-            throw new NotFoundAccountException(ErrorCode.DELETED_ACCOUNT);
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         return account;
     }
 
     /**
-     * 계좌 정보 수정
+     * 계좌 정보 수정 - 현재 비밀번호 확인은 호출하는 쪽에서 먼저 해야 함
      * @param accountId - 계좌 ID
-     * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
+     * @param updateAccountDto - 계좌 수정 dto (계좌별명, 새 계좌 PW). 비어 있는 항목은 그대로 둠
      * @return Account
      */
     @Transactional
-    public Account updateAccount(Long accountId, AccountManagementDto accountManagementDto) {
+    public Account updateAccount(Long accountId, UpdateAccountDto updateAccountDto) {
         Account account = getAccountById(accountId);
 
         if (account.isExistsAccount()) {
-            account.setNickname(accountManagementDto.getNickname());
-            account.setPassword(accountManagementDto.getPassword());
+            if (updateAccountDto.getNickname() != null)
+                account.setNickname(updateAccountDto.getNickname());
+            if (updateAccountDto.getNewPassword() != null)
+                account.setPassword(passwordEncoder.encode(updateAccountDto.getNewPassword()));
         }
         else if (account.isDeletedAccount())
-            throw new NotFoundAccountException(ErrorCode.DELETED_ACCOUNT);
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
         else
-            throw new NotFoundAccountException(ErrorCode.PENDING_ACCOUNT);
+            throw new CustomException(ErrorCode.PENDING_ACCOUNT);
 
         return account;
     }
 
     /**
-     * 계좌 해지
+     * 비밀번호를 연속으로 틀려 거래정지된 계좌의 잠금 해제.
+     * 회원에 등록된 핸드폰번호로 문자 인증(/api/auth/send-code, /api/auth/verify-phone)을 마친 뒤에만 풀 수 있음
+     * @param accountId - 계좌 ID
+     * @return Account
+     */
+    @Transactional
+    public Account unlockAccount(Long accountId) {
+        Account account = getAccountForUpdate(accountId);
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.DELETED_ACCOUNT);
+
+        Member owner = memberRepository.findById(account.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
+        sendMessageService.consumeVerifiedPhone(owner.getPhoneNumber(), VerificationPurpose.ACCOUNT_UNLOCK);
+        account.unlock();
+        return account;
+    }
+
+    /**
+     * 계좌 해지 - 잔액이나 보유 주식이 남아 있으면 해지할 수 없음
      * @param accountId - 계좌 ID
      * @return 성공여부
      */
     @Transactional
     public Boolean deleteAccount(Long accountId) {
         boolean result = false;
-        Account account = getAccountById(accountId);
+        Account account = getAccountForUpdate(accountId);
 
-        List<Account> userAccounts = getAllAccounts(account.getUserId());
+        List<Account> memberAccounts = getAllAccounts(account.getMemberId());
 
         // 사용자가 2개 이상의 계좌를 가지고 있어야 삭제 가능
-        if( account.isExistsAccount() && userAccounts.size() >= 2 ) {
-            account.setStatus(AccountStatus.DELETED);
-            account.setDeletedAt(LocalDateTime.now());
+        if( account.isExistsAccount() && memberAccounts.size() >= 2 ) {
+            checkNoAssets(account);
+            account.close();
             result = true;
         }
 
         return result;
     }
 
+    /**
+     * 회원의 모든 계좌 해지 - 잔액이나 보유 주식이 남은 계좌가 하나라도 있으면 해지하지 않음
+     * @param memberId - 사용자 ID
+     */
+    @Transactional
+    public void closeAllAccounts(Long memberId) {
+        // 송금과 같은 순서(ID 오름차순)로 잠가야 동시에 실행돼도 교착 상태에 빠지지 않음
+        for (Long accountId : accountRepository.findIdsByMemberId(memberId)) {
+            Account account = getAccountForUpdate(accountId);
+            if (account.isDeletedAccount())
+                continue;
+            checkNoAssets(account);
+            account.close();
+        }
+    }
+
+    private void checkNoAssets(Account account) {
+        if (account.getBalance() != 0 || !stockBalanceRepository.findByAccountIdForUpdate(account.getId()).isEmpty())
+            throw new CustomException(ErrorCode.REMAINING_ASSET);
+    }
+
     // 전체 계좌 조회
-    public List<Account> getAllAccounts(Long userId){
-        return accountRepository.findByUserId(userId);
+    public List<Account> getAllAccounts(Long memberId){
+        return accountRepository.findByMemberId(memberId);
     }
 
     /**
-     * 계좌 검색
-     * @param accountId - 계좌 Id
+     * 계좌번호로 계좌 검색 - 해지된 계좌는 없는 계좌로 봄
+     * @param accountNumber - 계좌번호
      * @param requesterId - 요구자 ID
-     * @return 계좌정보
+     * @return 계좌정보. 남의 계좌면 계좌 ID·계좌번호·소유주 이름만
      */
-    public SearchAccountDto searchAccount(Long accountId, Long requesterId) {
-        Account account = getAccountById(accountId);
-        String username = memberService.getUserById(account.getUserId()).getName();
+    public SearchAccountDto searchAccount(String accountNumber, Long requesterId) {
+        Account account = getAccountByNumber(accountNumber);
+        if (account.isDeletedAccount())
+            throw new CustomException(ErrorCode.ACCOUNT_NOT_EXIST);
+        String username = memberRepository.findById(account.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST))
+                .getName();
 
-        // 본인의 계좌
-        if (account.getUserId().equals(requesterId)) {
+        // 본인 계좌
+        if (account.getMemberId().equals(requesterId)) {
             return SearchAccountDto.builder()
                     .accountId(account.getId())
                     .accountNumber(account.getAccountNumber())

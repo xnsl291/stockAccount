@@ -4,10 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
-import zb.accountMangement.account.type.AccountStatus;
-
-import javax.validation.constraints.NotBlank;
+import zb.accountMangement.account.model.AccountStatus;
 
 @Getter
 @Setter
@@ -15,20 +12,15 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class SearchAccountDto {
 
-    @NotNull
     private Long accountId;
 
-    @NotBlank
     private String accountNumber;
 
-    @NotBlank
     private String ownerName;
 
     private String accountNickname;
 
-    @NotBlank
-    private Double balance = 0.0;
+    private Long balance;
 
-    @NotBlank
     private AccountStatus status;
 }

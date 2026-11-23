@@ -1,10 +1,9 @@
 package zb.accountMangement;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import zb.accountMangement.support.IntegrationTest;
 
-@SpringBootTest
-class AccountMangementApplicationTests {
+class AccountMangementApplicationTests extends IntegrationTest {
 
 	@Test
 	void contextLoads() {

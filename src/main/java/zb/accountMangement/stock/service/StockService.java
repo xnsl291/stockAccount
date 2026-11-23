@@ -2,29 +2,26 @@ package zb.accountMangement.stock.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import zb.accountMangement.account.domain.Account;
-import zb.accountMangement.account.dto.TransactionDto;
+import zb.accountMangement.account.model.entity.Account;
+import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
-import zb.accountMangement.common.error.exception.*;
+import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
-import zb.accountMangement.stock.domain.Stock;
-import zb.accountMangement.stock.domain.StockBalance;
-import zb.accountMangement.stock.domain.Trading;
-import zb.accountMangement.stock.dto.DateDto;
-import zb.accountMangement.stock.dto.TradeStockDto;
+import zb.accountMangement.stock.model.entity.Stock;
+import zb.accountMangement.stock.model.entity.StockBalance;
+import zb.accountMangement.stock.model.entity.Trading;
+import zb.accountMangement.stock.dto.RegisterStockDto;
 import zb.accountMangement.stock.dto.TransferStockDto;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.stock.repository.TradingRepository;
-import zb.accountMangement.stock.type.TradeType;
+import zb.accountMangement.stock.model.TradeType;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import static zb.accountMangement.common.type.FeeRate.TRANSFER_FEE_RATE;
 
@@ -37,26 +34,16 @@ public class StockService {
     private final StockRepository stockRepository;
     private final StockBalanceRepository stockBalanceRepository;
     private final TradingRepository tradeHistoryRepository;
+    private final OrderService orderService;
 
     /**
-     * 주식 ID를 이용한 잔고조회
+     * 주식 ID를 이용한 종목 조회
      * @param stockId - 주식 ID
-     * @return StockBalance
+     * @return Stock
      */
     public Stock getStockById(Long stockId){
         return stockRepository.findById(stockId)
-                .orElseThrow(() -> new InsufficientStockException(ErrorCode.INSUFFICIENT_STOCK));
-    }
-
-    /**
-     * 계좌 ID와 주식 ID를 이용한 잔고조회
-     * @param accountId - 계좌 ID
-     * @param stockId - 주식 ID
-     * @return StockBalance
-     */
-    public StockBalance getStockBalanceByAccountIdAndStockId(Long accountId, Long stockId){
-        return stockBalanceRepository.findByAccountIdAndStockId(accountId, stockId)
-                .orElseThrow(() -> new InsufficientStockException(ErrorCode.NO_STOCK_BALANCE));
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_EXIST));
     }
 
     /**
@@ -64,245 +51,111 @@ public class StockService {
      * @param stockId - 주식 ID
      * @return 주식 가격
      */
-    public Double getCurrentStockPrice(Long stockId) {
+    public Long getCurrentStockPrice(Long stockId) {
         return getStockById(stockId).getCurrentPrice();
     }
 
     /**
-     * 주식 수량이 0이면 StockBalance에서 해당 주식 종목 삭제
-     * @param stockBalance - 잔고
+     * 종목 검색
+     * @param keyword - 종목코드 또는 종목명의 일부
+     * @return 종목 리스트
      */
-    private void quantityCheck(StockBalance stockBalance){
-        if (stockBalance.getQuantity() == 0) {
-            stockBalanceRepository.delete(stockBalance);
-        }
+    public List<Stock> searchStocks(String keyword) {
+        return stockRepository.findByCodeContainingOrNameContaining(keyword, keyword);
     }
 
     /**
-     * 총금액 계산
-     * @param dto - TradeStockDto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
-     * @return 총금액
-     */
-    private double calculateTotalPrice(TradeStockDto dto){
-        return dto.getQuantity() * dto.getPrice();
-    }
-
-    /**
-    * 주식 매수
-    * @param buyStockDto - 매수 dto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
-    * @return 주문 체결 여부
-    */
-    @Transactional
-    public Boolean buyStock(TradeStockDto buyStockDto) {
-        Account account = accountService.getAccountById(buyStockDto.getAccountId());
-        Stock stock = getStockById(buyStockDto.getStockId());
-
-        double totalCost = calculateTotalPrice(buyStockDto);
-
-        if (account.getBalance() < totalCost)
-            throw new InsufficientBalanceException(ErrorCode.EXCEED_BALANCE);
-
-        Trading tradeHistory = Trading.builder()
-                .stockId(buyStockDto.getStockId())
-                .accountId(buyStockDto.getAccountId())
-                .price(buyStockDto.getPrice())
-                .quantity(buyStockDto.getQuantity())
-                .type(TradeType.BUY)
-                .tradeAt(LocalDateTime.now())
-                .isConcluded(false)
-                .build();
-        tradeHistoryRepository.save(tradeHistory);
-
-        // 신청한 매수가가 현재가보다 같거나 높으면 체결
-        if (stock.getCurrentPrice() <= buyStockDto.getPrice()) {
-            account.setBalance(account.getBalance() - totalCost);
-            Optional<StockBalance> optionalStockBalance =
-                stockBalanceRepository.findByAccountIdAndStockId(buyStockDto.getAccountId(), buyStockDto.getStockId());
-            StockBalance stockBalance;
-
-            if (optionalStockBalance.isPresent()) {
-                stockBalance = optionalStockBalance.get();
-
-                // 평단가 변경
-                stockBalance.setAvgPrice((stockBalance.getAvgPrice() * stockBalance.getQuantity() + totalCost) /
-                                            (stockBalance.getQuantity() + buyStockDto.getQuantity()));
-                stockBalance.setQuantity(stockBalance.getQuantity() + buyStockDto.getQuantity());
-
-            } else {
-                stockBalance = StockBalance.builder()
-                    .accountId(buyStockDto.getAccountId())
-                    .stockId(buyStockDto.getStockId())
-                    .avgPrice(buyStockDto.getPrice())
-                    .quantity(buyStockDto.getQuantity())
-                    .build();
-                stockBalanceRepository.save(stockBalance);
-            }
-            tradeHistory.setConcluded(true);
-        }
-        return tradeHistory.isConcluded();
-    }
-
-    /**
-     * 주식 매도
-     * @param sellStockDto - 매도 dto (계좌 ID, 주식 ID, 매수희망가, 매수수량)
-     * @return 주문 체결 여부
+     * 종목 등록
+     * @param registerStockDto - 종목 dto (종목코드, 종목명, 현재가)
+     * @return 등록된 종목
      */
     @Transactional
-    public Boolean sellStock(TradeStockDto sellStockDto) {
-        Account account = accountService.getAccountById(sellStockDto.getAccountId());
-        Stock stock = getStockById(sellStockDto.getStockId());
-        StockBalance stockBalance = getStockBalanceByAccountIdAndStockId(sellStockDto.getAccountId(),sellStockDto.getStockId());
-
-        if (stockBalance.getQuantity() < sellStockDto.getQuantity())
-            throw new InsufficientStockException(ErrorCode.INSUFFICIENT_STOCK);
-
-        Trading tradeHistory = Trading.builder()
-                .stockId(sellStockDto.getStockId())
-                .accountId(sellStockDto.getAccountId())
-                .price(sellStockDto.getPrice())
-                .quantity(sellStockDto.getQuantity())
-                .type(TradeType.SELL)
-                .tradeAt(LocalDateTime.now())
-                .isConcluded(false)
-                .build();
-        tradeHistoryRepository.save(tradeHistory);
-
-        // 판매하고자 하는 금액이 현재가보다 같거나 낮으면 판매완료
-        if (stock.getCurrentPrice() >= sellStockDto.getPrice()) {
-            account.setBalance(account.getBalance() + calculateTotalPrice(sellStockDto) );  // 잔액 증액
-            stockBalance.setQuantity(stockBalance.getQuantity() - sellStockDto.getQuantity());  // 주식 수량 증가
-            tradeHistory.setConcluded(true); // 주문 체결
-        }
-
-        quantityCheck(stockBalance);
-        return tradeHistory.isConcluded();
+    public Stock registerStock(RegisterStockDto registerStockDto) {
+        if (stockRepository.existsByCode(registerStockDto.getCode()))
+            throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
+        return stockRepository.save(Stock.builder()
+                .code(registerStockDto.getCode())
+                .name(registerStockDto.getName())
+                .currentPrice(registerStockDto.getCurrentPrice())
+                .build());
     }
 
     /**
-     * 주식 잔고 이체
-     * @param transferStockDto - 주식 잔고 이체 dto(발신자 계좌 ID,수신자 계좌 ID 주식 ID, 매수희망가, 매수수량, 거래일시)
-     * @return 이체 결과
-     */
-    @Transactional
-    public Boolean transferStock(TransferStockDto transferStockDto){
-        StockBalance senderStockBalance = getStockBalanceByAccountIdAndStockId(transferStockDto.getSenderAccountId(), transferStockDto.getStockId());
-        Account senderAccount = accountService.getAccountById(transferStockDto.getSenderAccountId());
-
-        Long senderId = senderAccount.getId();
-        Long receiverId = accountService.getAccountById(transferStockDto.getReceiverAccountId()).getUserId();
-
-        // 본인 계좌에 이체할 경우 수수료 X
-        double transferFee = senderId.equals(receiverId) ?
-                calculateTransferFee(transferStockDto.getStockId() , transferStockDto.getQuantity()) : 0 ;
-
-        if (senderAccount.getBalance() < transferFee)
-            throw new InsufficientBalanceException(ErrorCode.EXCEED_BALANCE);
-
-        if (senderStockBalance.getQuantity() < transferStockDto.getQuantity()) {
-            throw new InsufficientStockException(ErrorCode.INSUFFICIENT_STOCK);
-        }
-
-        senderStockBalance.setQuantity(senderStockBalance.getQuantity() - transferStockDto.getQuantity());
-
-        // 수수료 차감
-        TransactionDto withdrawalDto = TransactionDto.builder()
-                .accountId(transferStockDto.getSenderAccountId())
-                .amount(transferFee)
-                .name("System")
-                .memo("주식 이체 수수료 출금")
-                .transactedAt(LocalDateTime.now())
-                .build();
-        transactionService.withdrawal(withdrawalDto);
-
-        quantityCheck(senderStockBalance);
-
-        // 수신계좌
-        Optional<StockBalance> optionalReceiverStockBalance =
-                stockBalanceRepository.findByAccountIdAndStockId(transferStockDto.getReceiverAccountId(), transferStockDto.getStockId());
-        StockBalance receiverStockBalance;
-
-        if (optionalReceiverStockBalance.isPresent()) {
-            receiverStockBalance = optionalReceiverStockBalance.get();
-
-            double totalCost = transferStockDto.getPrice() * transferStockDto.getQuantity();
-
-            // 평단가 변경
-            receiverStockBalance.setAvgPrice((receiverStockBalance.getAvgPrice() * receiverStockBalance.getQuantity() + totalCost) /
-                    (receiverStockBalance.getQuantity() + transferStockDto.getQuantity()));
-            receiverStockBalance.setQuantity(receiverStockBalance.getQuantity() + transferStockDto.getQuantity());
-
-        } else {
-            receiverStockBalance = StockBalance.builder()
-                    .stockId(transferStockDto.getStockId())
-                    .avgPrice(transferStockDto.getPrice())
-                    .quantity(transferStockDto.getQuantity())
-                    .build();
-            stockBalanceRepository.save(receiverStockBalance);
-        }
-
-        Trading senderTradeHistory = Trading.builder()
-                .stockId(transferStockDto.getStockId())
-                .accountId(transferStockDto.getSenderAccountId())
-                .price(transferStockDto.getPrice())
-                .quantity(-transferStockDto.getQuantity())
-                .type(TradeType.TRANSFER)
-                .tradeAt(LocalDateTime.now())
-                .isConcluded(true)
-                .build();
-
-        Trading receiverTradeHistory = Trading.builder()
-                .stockId(transferStockDto.getStockId())
-                .accountId(transferStockDto.getReceiverAccountId())
-                .price(transferStockDto.getPrice())
-                .quantity(transferStockDto.getQuantity())
-                .type(TradeType.TRANSFER)
-                .tradeAt(LocalDateTime.now())
-                .isConcluded(true)
-                .build();
-
-        tradeHistoryRepository.save(senderTradeHistory);
-        tradeHistoryRepository.save(receiverTradeHistory);
-        return true;
-    }
-
-    /**
-     * 이체 수수료 계산
+     * 시세 갱신 - 새 시세로 체결되는 미체결 주문을 함께 체결함
      * @param stockId - 주식 ID
-     * @param quantity - 수량
-     * @return 수수료
+     * @param price - 새 시세
+     * @return 시세가 바뀐 종목
      */
-    private double calculateTransferFee(Long stockId , int quantity){
+    // 시세를 먼저 커밋해야 주문마다 따로 여는 체결 트랜잭션이 새 시세를 읽으므로, 전체를 한 트랜잭션으로 묶지 않음
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Stock updatePrice(Long stockId, long price) {
         Stock stock = getStockById(stockId);
-
-        return stock.getCurrentPrice() * quantity * TRANSFER_FEE_RATE.getRate();
+        stock.setCurrentPrice(price);
+        stockRepository.save(stock);
+        orderService.matchPendingOrders(stockId);
+        return stock;
     }
 
     /**
-     * 거래내역 조회
-     * @param accountId - 계좌 ID
-     * @return 거래내역
+     * 주식 잔고 이체 - 받는 쪽은 보내는 쪽의 평균단가를 그대로 이어받음
+     * @param transferStockDto - 주식 잔고 이체 dto (발신자 계좌 ID, 수신자 계좌 ID, 주식 ID, 수량)
+     * @return "이체완료"
      */
-    public List<Trading> getTradeHistory(Long accountId) {
-        return tradeHistoryRepository.findByAccountIdOrderByTradeAtDesc(accountId);
+    @Transactional
+    public String transferStock(TransferStockDto transferStockDto){
+        Long senderAccountId = transferStockDto.getSenderAccountId();
+        Long receiverAccountId = transferStockDto.getReceiverAccountId();
+        int quantity = transferStockDto.getQuantity();
+        if (senderAccountId.equals(receiverAccountId))
+            throw new CustomException(ErrorCode.SAME_ACCOUNT_TRANSFER);
+
+        // 송금과 같은 순서(ID 오름차순)로 잠가야 동시에 실행돼도 교착 상태에 빠지지 않음.
+        // 보유 주식은 계좌를 잠근 뒤에 읽어야 앞선 거래가 바꾼 수량이 보임
+        Account first = accountService.getAccountForUpdate(Math.min(senderAccountId, receiverAccountId));
+        Account second = accountService.getAccountForUpdate(Math.max(senderAccountId, receiverAccountId));
+        Account sender = first.getId().equals(senderAccountId) ? first : second;
+        Account receiver = first.getId().equals(senderAccountId) ? second : first;
+        if (!sender.isExistsAccount() || !receiver.isExistsAccount())
+            throw new CustomException(ErrorCode.INVALID_ACCOUNT);
+
+        Stock stock = getStockById(transferStockDto.getStockId());
+        StockBalance senderStockBalance = stockBalanceRepository.findByAccountIdAndStockId(senderAccountId, stock.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.NO_STOCK_BALANCE));
+        if (senderStockBalance.getAvailableQuantity() < quantity)
+            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
+
+        // 수수료는 다른 회원에게 보낼 때만 받음. 같은 회원의 계좌끼리 옮기는 것은 무료
+        if (!sender.getMemberId().equals(receiver.getMemberId())) {
+            long transferFee = TRANSFER_FEE_RATE.of(Math.multiplyExact(stock.getCurrentPrice(), quantity));
+            if (transferFee > 0)
+                transactionService.changeBalance(senderAccountId, TransactionType.FEE, transferFee, "주식 이체 수수료", stock.getName());
+        }
+
+        long avgPrice = senderStockBalance.getAvgPrice();
+        senderStockBalance.setQuantity(senderStockBalance.getQuantity() - quantity);
+        if (senderStockBalance.getQuantity() == 0)
+            stockBalanceRepository.delete(senderStockBalance);
+
+        StockBalance receiverStockBalance = stockBalanceRepository.findByAccountIdAndStockId(receiverAccountId, stock.getId())
+                .orElseGet(() -> StockBalance.builder().accountId(receiverAccountId).stockId(stock.getId()).build());
+        receiverStockBalance.add(quantity, avgPrice);
+        stockBalanceRepository.save(receiverStockBalance);
+
+        tradeHistoryRepository.save(transferRecord(senderAccountId, stock.getId(), avgPrice, -quantity));
+        tradeHistoryRepository.save(transferRecord(receiverAccountId, stock.getId(), avgPrice, quantity));
+        return "이체완료";
     }
 
-    /**
-     * 거래내역 조회 + 날짜 필터링
-     * @param accountId - 계좌 ID
-     * @param dateDto - 조회할 날짜, 월
-     * @return 거래내역
-     */
-    public List<Trading> getTradeHistory(DateDto dateDto, Long accountId) {
-        LocalDate requestedDate = LocalDate.of(dateDto.getYear(), dateDto.getMonth(), 1);
-
-        // 요청된 날짜가 오늘 이후인지
-        if (requestedDate.isAfter(LocalDate.now()))
-            throw new InvalidInputException(ErrorCode.INVALID_REQUEST_DATE);
-
-        LocalDateTime startDate = LocalDateTime.of(dateDto.getYear(), dateDto.getMonth(), 1, 0, 0);
-        LocalDateTime endDate = startDate.plusMonths(1).minusNanos(1); // 월의 마지막 일시
-
-        return tradeHistoryRepository.findByAccountIdAndTradeAtBetweenOrderByTradeAtDesc(accountId, startDate, endDate);
+    private Trading transferRecord(Long accountId, Long stockId, long avgPrice, int signedQuantity) {
+        Trading record = Trading.builder()
+                .accountId(accountId)
+                .stockId(stockId)
+                .price(avgPrice)
+                .quantity(signedQuantity)
+                .type(TradeType.TRANSFER)
+                .build();
+        record.fill(avgPrice);
+        return record;
     }
 
     /**
@@ -319,7 +172,7 @@ public class StockService {
                 stockBalance.setProfitNLoss(calculateProfitLoss(stockBalance));  // 평가손익 업데이트
 
         //평가손익순으로 정렬
-        stockBalances.sort(Comparator.comparingDouble(StockBalance::getProfitNLoss).reversed());
+        stockBalances.sort(Comparator.comparingLong(StockBalance::getProfitNLoss).reversed());
         return stockBalances;
     }
 
@@ -328,8 +181,8 @@ public class StockService {
      * @param stockBalance - 주식 잔고
      * @return 평가손익
      */
-    private Double calculateProfitLoss(StockBalance stockBalance){
+    private long calculateProfitLoss(StockBalance stockBalance){
         Stock stock = getStockById(stockBalance.getStockId());
-        return (stock.getCurrentPrice() - stockBalance.getAvgPrice()) * stockBalance.getQuantity();
+        return Math.multiplyExact(Math.subtractExact(stock.getCurrentPrice(), stockBalance.getAvgPrice()), (long) stockBalance.getQuantity());
     }
 }

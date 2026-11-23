@@ -2,105 +2,120 @@ package zb.accountMangement.account.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import zb.accountMangement.account.domain.Account;
 import zb.accountMangement.account.dto.AccountManagementDto;
+import zb.accountMangement.account.dto.AccountResponse;
 import zb.accountMangement.account.dto.SearchAccountDto;
+import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.service.AccountService;
-import zb.accountMangement.common.auth.JwtTokenProvider;
-import zb.accountMangement.common.util.ValidationService;
+import zb.accountMangement.common.service.ValidationService;
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/accounts")
 public class AccountController {
   private final AccountService accountService;
-  private final JwtTokenProvider tokenProvider;
   private final ValidationService validationService;
 
   /**
    * 계좌개설
-   * @param token - 토큰
+   * @param loginMemberId - 로그인한 사용자 ID
    * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
-   * @return Account
+   * @return 개설된 계좌
    */
   @PostMapping("/open")
-  public ResponseEntity<Account> openAccount(
-          @RequestHeader(value = "Authorization") String token,
-          @RequestBody AccountManagementDto accountManagementDto){
-    return ResponseEntity.ok().body(accountService.openAccount(tokenProvider.getId(token), accountManagementDto));
+  public ResponseEntity<AccountResponse> openAccount(
+          @AuthenticationPrincipal Long loginMemberId,
+          @Valid @RequestBody AccountManagementDto accountManagementDto){
+    return ResponseEntity.ok().body(AccountResponse.from(accountService.openAccount(loginMemberId, accountManagementDto)));
   }
 
   /**
    * 계좌 정보 조회
-   * @param token - 토큰
+   * @param loginMemberId - 로그인한 사용자 ID
    * @param accountId - 계좌 ID
-   * @return Account
+   * @return 계좌
    */
   @GetMapping("/{account_id}")
-  public ResponseEntity<Account> getAccountInfo(
-          @RequestHeader(value = "Authorization") String token,
+  public ResponseEntity<AccountResponse> getAccountInfo(
+          @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id") Long accountId){
-    validationService.validTokenNAccountOwner(token,accountId);
-    return ResponseEntity.ok().body(accountService.getAccountInfo(accountId));
+    validationService.validAccountOwner(loginMemberId,accountId);
+    return ResponseEntity.ok().body(AccountResponse.from(accountService.getAccountInfo(accountId)));
   }
 
   /**
-   * 계좌 수정
-   * @param token - 토큰
+   * 계좌 수정 - 현재 계좌 비밀번호가 맞아야 하고, 틀리면 틀린 횟수에 더해짐
+   * @param loginMemberId - 로그인한 사용자 ID
    * @param accountId - 계좌 ID
-   * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
-   * @return Account
+   * @param updateAccountDto - 계좌 수정 dto (계좌별명, 현재 계좌 PW, 새 계좌 PW)
+   * @return 수정된 계좌
    */
-    @PatchMapping("/{account_id}")
-    public ResponseEntity<Account> updateAccountInfo(
-              @RequestHeader(value = "Authorization") String token,
-              @PathVariable("account_id") Long accountId,
-              @RequestBody AccountManagementDto accountManagementDto){
-      validationService.validTokenNAccountOwner(token,accountId);
-      return ResponseEntity.ok().body(accountService.updateAccount(accountId,accountManagementDto));
-    }
+  @PatchMapping("/{account_id}")
+  public ResponseEntity<AccountResponse> updateAccountInfo(
+          @AuthenticationPrincipal Long loginMemberId,
+          @PathVariable("account_id") Long accountId,
+          @Valid @RequestBody UpdateAccountDto updateAccountDto){
+    validationService.validAccountPassword(loginMemberId, accountId, updateAccountDto.getCurrentPassword());
+    return ResponseEntity.ok().body(AccountResponse.from(accountService.updateAccount(accountId, updateAccountDto)));
+  }
+
+  /**
+   * 거래정지 계좌 잠금 해제 - 등록된 핸드폰번호로 문자 인증을 먼저 마쳐야 함
+   * @param loginMemberId - 로그인한 사용자 ID
+   * @param accountId - 계좌 ID
+   * @return 잠금이 풀린 계좌
+   */
+  @PostMapping("/{account_id}/unlock")
+  public ResponseEntity<AccountResponse> unlockAccount(
+          @AuthenticationPrincipal Long loginMemberId,
+          @PathVariable("account_id") Long accountId){
+    validationService.validAccountOwner(loginMemberId, accountId);
+    return ResponseEntity.ok().body(AccountResponse.from(accountService.unlockAccount(accountId)));
+  }
 
   /**
    * 계좌 해지
-   * @param token - 토큰
+   * @param loginMemberId - 로그인한 사용자 ID
    * @param accountId - 계좌 ID
    * @return 성공여부
    */
   @DeleteMapping("/{account_id}")
   public ResponseEntity<Boolean> deleteAccountInfo(
-          @RequestHeader(value = "Authorization") String token,
+          @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id")Long accountId){
-    validationService.validTokenNAccountOwner(token,accountId);
+    validationService.validAccountOwner(loginMemberId,accountId);
     return ResponseEntity.ok().body(accountService.deleteAccount(accountId));
   }
 
   /**
-   * 사용자가 소유한 전체계좌조회
-   * @param token - 토큰
-   * @param userId - 사용자 ID
+   * 로그인한 사용자가 소유한 전체계좌조회
+   * @param loginMemberId - 로그인한 사용자 ID
    * @return 사용자가 소유한 계좌 리스트
    */
-  @GetMapping("/{user_id}")
-  public ResponseEntity<List<Account>> getAllAccounts(
-          @RequestHeader(value = "Authorization") String token,
-          @PathVariable("user_id")Long userId){
-    validationService.validTokenNUserId(token,userId);
-    return ResponseEntity.ok().body(accountService.getAllAccounts(userId));
+  @GetMapping
+  public ResponseEntity<List<AccountResponse>> getAllAccounts(
+          @AuthenticationPrincipal Long loginMemberId){
+    return ResponseEntity.ok().body(accountService.getAllAccounts(loginMemberId).stream()
+            .map(AccountResponse::from)
+            .collect(Collectors.toList()));
   }
 
   /**
-   * 계좌 검색
-   * @param token - 토큰
-   * @param accountId - 검색하고자 하는 계좌 ID
+   * 계좌번호로 계좌 검색 - 해지된 계좌는 찾지 않음
+   * @param loginMemberId - 로그인한 사용자 ID
+   * @param accountNumber - 검색하고자 하는 계좌번호
    * @return 계좌정보
    */
-  @GetMapping("/search/{account_id}")
+  @GetMapping("/search/{account_number}")
   public ResponseEntity<SearchAccountDto> searchAccounts(
-          @RequestHeader(value = "Authorization") String token,
-          @PathVariable("account_id")Long accountId){
-    return ResponseEntity.ok().body(accountService.searchAccount(accountId,tokenProvider.getId(token)));
+          @AuthenticationPrincipal Long loginMemberId,
+          @PathVariable("account_number") String accountNumber){
+    return ResponseEntity.ok().body(accountService.searchAccount(accountNumber, loginMemberId));
   }
 }

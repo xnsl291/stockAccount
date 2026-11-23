@@ -4,26 +4,25 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Getter
 @Setter
 public class TransferStockDto {
 
-    @NotBlank
+    @NotNull
     private Long senderAccountId;
 
-    @NotBlank
+    @NotNull
     private Long receiverAccountId;
 
-    @NotBlank
+    @NotNull
     private Long stockId;
 
-    @NotBlank
-    private Double price;
-
-    @NotBlank
+    @Positive
     private int quantity;
 
-    private LocalDateTime transferAt;
+    @NotBlank
+    private String accountPassword; // 보내는 계좌의 비밀번호
 }
