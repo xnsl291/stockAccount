@@ -33,9 +33,7 @@ public class StockBalance {
   }
 
   /**
-   * 수량을 더하고 평균단가를 다시 계산. 수량이나 매수 총액이 넘치면 ArithmeticException
-   * @param addedQuantity - 늘어난 수량
-   * @param unitPrice - 늘어난 수량의 단가
+   * 수량을 더하고 평균단가를 다시 계산함. 수량이나 매수 총액이 넘치면 ArithmeticException
    */
   public void add(int addedQuantity, long unitPrice) {
     int newQuantity = Math.addExact(quantity, addedQuantity);
