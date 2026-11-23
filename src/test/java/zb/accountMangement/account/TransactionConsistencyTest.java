@@ -2,7 +2,6 @@ package zb.accountMangement.account;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransferDto;
-import zb.accountMangement.account.dto.WithdrawalDto;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.entity.Transaction;
@@ -40,22 +38,6 @@ class TransactionConsistencyTest extends ApiTest {
 	TransactionRepository transactionRepository;
 	@Autowired
 	JdbcTemplate jdbcTemplate;
-
-	@Test
-	void 같은_계좌에서_동시에_출금해도_잔액만큼만_출금된다() throws Exception {
-		Account account = saveAccount(saveMember(), 50_000);
-
-		List<String> results = runConcurrently(10, i -> () -> {
-			WithdrawalDto withdrawalDto = new WithdrawalDto();
-			withdrawalDto.setAccountId(account.getId());
-			withdrawalDto.setAmount(10_000L);
-			return transactionService.withdrawal(withdrawalDto);
-		});
-
-		assertThat(results.stream().filter(Objects::nonNull)).hasSize(5);
-		assertThat(balanceOf(account)).isZero();
-		assertThat(ledgerSum(account)).isZero();
-	}
 
 	@Test
 	void API로_동시에_출금을_요청해도_잔액만큼만_출금된다() throws Exception {
