@@ -48,10 +48,7 @@ public class MemberService {
 	public Member createMember(String name, String phoneNumber, String loginPassword) {
 		String normalized = PhoneNumber.normalize(phoneNumber);
 
-		if (!name.matches("[가-힣a-zA-Z0-9]{2,10}")) {
-			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
-		}
-
+		checkNameFormat(name);
 		if (memberRepository.existsByPhoneNumber(normalized))
 			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
 
@@ -84,6 +81,8 @@ public class MemberService {
 		checkActive(member);
 		if (!passwordEncoder.matches(updateMemberDto.getCurrentPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
+		// 문자 인증을 쓰기 전에 막아야, 이름이 틀린 요청이 새 번호의 인증을 써 버리지 않음
+		checkNameFormat(updateMemberDto.getName());
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
 
 		if (!phoneNumber.equals(member.getPhoneNumber())) {
@@ -136,6 +135,12 @@ public class MemberService {
 		return "비밀번호 재설정 완료";
 	}
 
+
+	// 가입과 회원정보 수정이 같은 규칙을 써야 수정으로 가입 규칙을 우회하지 못함
+	private void checkNameFormat(String name) {
+		if (!name.matches("[가-힣a-zA-Z0-9]{2,10}"))
+			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
+	}
 
 	public void checkActive(Member member) {
 		if (member.getRole().equals(RoleType.WITHDRAWN))
