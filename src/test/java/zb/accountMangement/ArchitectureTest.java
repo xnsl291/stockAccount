@@ -65,9 +65,10 @@ class ArchitectureTest {
 				.check(CLASSES);
 	}
 
-	// 테이블의 주인 모듈만 그 저장소를 씀
+	// 테이블의 주인 모듈만 그 저장소를 씀.
+	// member·idempotency·common은 계층 규칙이 다른 기능 모듈 접근을 아예 막아 여기서 따로 보지 않음
 	@ParameterizedTest
-	@ValueSource(strings = {"auth", "account", "member", "stock", "idempotency", "common"})
+	@ValueSource(strings = {"auth", "account", "stock"})
 	void 다른_모듈의_저장소를_쓰지_않는다(String module) {
 		DescribedPredicate<JavaClass> otherRepository = resideInAPackage(BASE + "..repository..")
 				.and(not(resideInAPackage(BASE + "." + module + "..")));
@@ -86,9 +87,9 @@ class ArchitectureTest {
 				.check(CLASSES);
 	}
 
-	// 엔티티 값을 바꿀 때는 주인 모듈이 연 메서드(예: Account.hold)를 씀
+	// 엔티티 값을 바꿀 때는 주인 모듈이 연 메서드(예: Account.hold)를 씀. 따로 보지 않는 모듈은 위와 같은 이유임
 	@ParameterizedTest
-	@ValueSource(strings = {"auth", "account", "member", "stock", "idempotency", "common"})
+	@ValueSource(strings = {"auth", "account", "stock"})
 	void 다른_모듈의_엔티티_setter를_부르지_않는다(String module) {
 		String ownPackage = BASE + "." + module + ".";
 		DescribedPredicate<JavaMethodCall> otherEntitySetter = new DescribedPredicate<JavaMethodCall>("다른 모듈 엔티티의 setter 호출") {
