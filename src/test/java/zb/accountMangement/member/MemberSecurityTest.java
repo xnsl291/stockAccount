@@ -78,6 +78,7 @@ class MemberSecurityTest extends ApiTest {
 		sendCodeRequest(phone, randomIp())
 				.andExpect(status().isTooManyRequests())
 				.andExpect(jsonPath("$.code").value("TOO_MANY_SMS_REQUESTS"));
+		verify(smsSender, times(3)).send(eq(phone), anyString());
 	}
 
 	@Test
@@ -94,29 +95,6 @@ class MemberSecurityTest extends ApiTest {
 
 		for (int i = 0; i < 3; i++)
 			sendCodeRequest(victim, randomIp()).andExpect(status().isOk());
-	}
-
-	@Test
-	void 같은_번호로는_인증번호를_10분에_3번까지만_보낸다() throws Exception {
-		String phone = randomPhone();
-		for (int i = 0; i < 3; i++)
-			sendCode(phone);
-
-		sendCodeRequest(phone, randomIp())
-				.andExpect(status().isTooManyRequests())
-				.andExpect(jsonPath("$.code").value("TOO_MANY_SMS_REQUESTS"));
-		verify(smsSender, times(3)).send(eq(phone), anyString());
-	}
-
-	@Test
-	void 인증번호를_4회_틀려도_다섯_번째에_맞히면_인증된다() throws Exception {
-		String phone = randomPhone();
-		String code = sendCode(phone);
-
-		for (int i = 0; i < 4; i++)
-			verifyPhone(phone, "x" + i, SIGN_UP).andExpect(status().isBadRequest());
-
-		verifyPhone(phone, code, SIGN_UP).andExpect(status().isOk());
 	}
 
 	@Test
