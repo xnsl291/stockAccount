@@ -20,7 +20,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
-import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 /**
  * 모듈(최상위 패키지) 사이에 누가 누구를 import해도 되는지 고정하는 테스트.
@@ -62,14 +61,6 @@ class ArchitectureTest {
 				.whereLayer("idempotency").mayOnlyAccessLayers("common")
 				// 공통이 기능 모듈을 알면 의존 방향이 거꾸로 됨
 				.whereLayer("common").mayNotAccessAnyLayer()
-				.ignoreDependency(ACCOUNT_TO_STOCK_ORIGIN, ACCOUNT_TO_STOCK_EXCEPTION)
-				.check(CLASSES);
-	}
-
-	@Test
-	void 모듈_사이_순환은_계좌와_주식의_예외_하나뿐이다() {
-		slices().matching(BASE + ".(*)..")
-				.should().beFreeOfCycles()
 				.ignoreDependency(ACCOUNT_TO_STOCK_ORIGIN, ACCOUNT_TO_STOCK_EXCEPTION)
 				.check(CLASSES);
 	}
