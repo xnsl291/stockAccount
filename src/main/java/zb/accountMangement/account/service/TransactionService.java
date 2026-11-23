@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.entity.Transaction;
@@ -50,7 +51,7 @@ public class TransactionService {
 	 */
 	@Transactional
 	public String deposit(DepositDto depositDto) {
-		changeBalance(depositDto.getAccountId(), TransactionType.DEPOSIT, depositDto.getAmount(),
+		changeBalance(accountService.getAccountForUpdate(depositDto.getAccountId()), TransactionType.DEPOSIT, depositDto.getAmount(),
 				"전자입금", depositDto.getMemo());
 		return "입금완료";
 	}
@@ -64,7 +65,7 @@ public class TransactionService {
 	public String withdrawal(WithdrawalDto withdrawalDto) {
 		Account account = accountService.getAccountForUpdate(withdrawalDto.getAccountId());
 		accountService.checkNotSuspended(account);
-		apply(account, TransactionType.WITHDRAW, withdrawalDto.getAmount(), "전자출금", withdrawalDto.getMemo());
+		changeBalance(account, TransactionType.WITHDRAW, withdrawalDto.getAmount(), "전자출금", withdrawalDto.getMemo());
 		return "출금완료";
 	}
 
@@ -89,25 +90,18 @@ public class TransactionService {
 		Member sender = memberService.getMemberById(senderAccount.getMemberId());
 		Member receiver = memberService.getMemberById(receiverAccount.getMemberId());
 
-		apply(senderAccount, TransactionType.TRANSFER_OUT, transferDto.getAmount(), receiver.getName(), transferDto.getMemo());
-		apply(receiverAccount, TransactionType.TRANSFER_IN, transferDto.getAmount(), sender.getName(), transferDto.getMemo());
+		changeBalance(senderAccount, TransactionType.TRANSFER_OUT, transferDto.getAmount(), receiver.getName(), transferDto.getMemo());
+		changeBalance(receiverAccount, TransactionType.TRANSFER_IN, transferDto.getAmount(), sender.getName(), transferDto.getMemo());
 		return "송금완료";
 	}
 
 	/**
-	 * 계좌를 잠그고 잔액을 바꾼 뒤 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드나 출금·송금을 거쳐야 함
-	 * @param accountId - 계좌 ID
+	 * 잔액을 바꾸고 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드를 거쳐야 함.
+	 * 계좌는 이 트랜잭션에서 이미 잠가 둔 것을 받음. 잠금 순서를 부르는 쪽이 정하고, 같은 계좌를 다시 잠가 읽지 않기 위함
 	 * @param type - 거래 종류. 잔액이 늘어나는지 줄어드는지는 거래 종류가 정함
-	 * @param amount - 금액 (0보다 커야 함)
-	 * @param name - 거래 대상
-	 * @param memo - 메모
 	 */
-	@Transactional
-	public void changeBalance(Long accountId, TransactionType type, long amount, String name, String memo) {
-		apply(accountService.getAccountForUpdate(accountId), type, amount, name, memo);
-	}
-
-	private void apply(Account lockedAccount, TransactionType type, long amount, String name, String memo) {
+	@Transactional(propagation = Propagation.MANDATORY)
+	public void changeBalance(Account lockedAccount, TransactionType type, long amount, String name, String memo) {
 		if (amount <= 0)
 			throw new IllegalArgumentException("거래 금액은 0보다 커야 함: " + amount);
 		if (!lockedAccount.isExistsAccount())

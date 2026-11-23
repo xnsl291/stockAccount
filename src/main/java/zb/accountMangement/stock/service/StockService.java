@@ -184,7 +184,7 @@ public class StockService {
         if (!sender.getMemberId().equals(receiver.getMemberId())) {
             long transferFee = TRANSFER_FEE_RATE.of(Math.multiplyExact(stock.getCurrentPrice(), quantity));
             if (transferFee > 0)
-                transactionService.changeBalance(senderAccountId, TransactionType.FEE, transferFee, "주식 이체 수수료", stock.getName());
+                transactionService.changeBalance(sender, TransactionType.FEE, transferFee, "주식 이체 수수료", stock.getName());
         }
 
         long avgPrice = senderStockBalance.getAvgPrice();

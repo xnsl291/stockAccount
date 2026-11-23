@@ -178,7 +178,7 @@ public class OrderService {
 
 		if (order.getType() == TradeType.BUY) {
 			account.releaseHold(buyHold(order));
-			transactionService.changeBalance(account.getId(), TransactionType.STOCK_BUY, amount, stock.getName(), null);
+			transactionService.changeBalance(account, TransactionType.STOCK_BUY, amount, stock.getName(), null);
 
 			StockBalance stockBalance = stockBalanceRepository.findByAccountIdAndStockId(account.getId(), stock.getId())
 					.orElseGet(() -> StockBalance.builder().accountId(account.getId()).stockId(stock.getId()).build());
@@ -190,12 +190,12 @@ public class OrderService {
 			stockBalance.setQuantity(stockBalance.getQuantity() - order.getQuantity());
 			if (stockBalance.getQuantity() == 0)
 				stockBalanceRepository.delete(stockBalance);
-			transactionService.changeBalance(account.getId(), TransactionType.STOCK_SELL, amount, stock.getName(), null);
+			transactionService.changeBalance(account, TransactionType.STOCK_SELL, amount, stock.getName(), null);
 		}
 
 		long fee = TRADE_FEE_RATE.of(amount);
 		if (fee > 0)
-			transactionService.changeBalance(account.getId(), TransactionType.FEE, fee, "주식 매매 수수료", stock.getName());
+			transactionService.changeBalance(account, TransactionType.FEE, fee, "주식 매매 수수료", stock.getName());
 		order.fill(stock.getCurrentPrice());
 	}
 

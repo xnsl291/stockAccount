@@ -387,7 +387,7 @@ class AccountManagementTest extends ApiTest {
 		// 계좌 비밀번호 확인은 수정보다 앞서 끝나는 별도 트랜잭션이라 이 겹침과 무관해 서비스를 바로 부름
 		TransactionStatus deposit = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			transactionService.changeBalance(account.getId(), TransactionType.DEPOSIT, 10_000, "입금", null);
+			transactionService.changeBalance(accountService.getAccountForUpdate(account.getId()), TransactionType.DEPOSIT, 10_000, "입금", null);
 			update = executor.submit(() -> accountService.updateAccount(account.getId(), rename));
 			awaitLockWaits(1);
 		} finally {
