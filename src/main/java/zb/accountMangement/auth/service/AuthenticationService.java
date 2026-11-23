@@ -26,8 +26,7 @@ public class AuthenticationService {
 	private final JwtTokenProvider jwtTokenProvider;
 
 	/**
-	 * 회원 가입 - 가입 전에 핸드폰 인증을 마쳐야 함
-	 * @param signUpDto - 회원 가입 dto (이름, 핸드폰 번호, 로그인 비밀번호, 초기 계좌 비밀번호)
+	 * 가입 전에 핸드폰 인증을 마쳐야 함
 	 */
 	@Transactional
 	public void signUp(SignUpDto signUpDto) {
@@ -43,7 +42,7 @@ public class AuthenticationService {
 	}
 
 	/**
-	 * 회원탈퇴 - 계좌를 모두 해지하고 탈퇴 처리 후 현재 토큰을 무효화함. 잔액이나 보유 주식이 남아 있으면 탈퇴할 수 없음
+	 * 계좌를 모두 해지하고 탈퇴 처리 후 현재 토큰을 무효화함. 잔액이나 보유 주식이 남아 있으면 탈퇴할 수 없음
 	 */
 	@Transactional
 	public void deleteMember(Long loginMemberId, String accessToken) {
@@ -56,10 +55,7 @@ public class AuthenticationService {
 	}
 
 	/**
-	 * 로그인 기능 - 탈퇴·정지 회원은 로그인할 수 없음
-	 *
-	 * @param signInDto - 로그인 dto (핸드폰번호, 로그인 PW)
-	 * @return token - 토큰
+	 * 탈퇴·정지 회원은 로그인할 수 없음
 	 */
 	public JwtToken signIn(SignInDto signInDto) {
 		Member member = memberService.getMemberByPhoneNumber(PhoneNumber.normalize(signInDto.getPhoneNumber()));
@@ -73,10 +69,7 @@ public class AuthenticationService {
 	}
 
 	/**
-	 * 토큰 재발급 - 사용한 리프레시 토큰은 새 토큰으로 교체되어 다시 쓸 수 없음
-	 *
-	 * @param refreshToken - 리프레시 토큰
-	 * @return token - 새 토큰
+	 * 사용한 리프레시 토큰은 새 토큰으로 교체되어 다시 쓸 수 없음
 	 */
 	public JwtToken reissue(String refreshToken) {
 		Member member = memberService.getMemberById(jwtTokenProvider.consumeRefreshToken(refreshToken));
