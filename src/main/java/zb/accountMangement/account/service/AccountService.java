@@ -241,10 +241,9 @@ public class AccountService {
      * 계좌 해지 - 거래정지된 계좌, 마지막 남은 계좌, 잔액이나 보유 주식이 남은 계좌는 해지할 수 없음
      * @param memberId - 계좌 소유자 ID. 호출하는 쪽에서 소유자인지 먼저 확인해야 함
      * @param accountId - 계좌 ID
-     * @return true
      */
     @Transactional
-    public Boolean deleteAccount(Long memberId, Long accountId) {
+    public void deleteAccount(Long memberId, Long accountId) {
         // 같은 회원의 계좌 두 개를 동시에 해지하면 둘 다 "2개 이상"을 보고 해지할 수 있어, 회원 행을 먼저 잠가 한 줄로 세움.
         // 잠금 순서는 탈퇴·계좌 개설과 같은 회원 → 계좌이고, 계좌 수는 회원 잠금을 얻은 뒤에 세어야 앞선 해지가 보임
         memberService.getMemberForUpdate(memberId);
@@ -261,7 +260,6 @@ public class AccountService {
 
         checkNoAssets(account);
         account.close();
-        return true;
     }
 
     /**

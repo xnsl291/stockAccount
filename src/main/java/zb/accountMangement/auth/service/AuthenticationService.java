@@ -30,7 +30,7 @@ public class AuthenticationService {
 	 * @param signUpDto - 회원 가입 dto (이름, 핸드폰 번호, 로그인 비밀번호, 초기 계좌 비밀번호)
 	 */
 	@Transactional
-	public Boolean signUp(SignUpDto signUpDto) {
+	public void signUp(SignUpDto signUpDto) {
 		Member member = memberService.createMember(
 				signUpDto.getName(), signUpDto.getPhoneNumber(), signUpDto.getLoginPassword());
 
@@ -40,21 +40,19 @@ public class AuthenticationService {
 				.password(signUpDto.getInitialAccountPassword())
 				.build();
 		accountService.openAccount(member.getId(), accountManagementDto);
-		return true;
 	}
 
 	/**
 	 * 회원탈퇴 - 계좌를 모두 해지하고 탈퇴 처리 후 현재 토큰을 무효화함. 잔액이나 보유 주식이 남아 있으면 탈퇴할 수 없음
 	 */
 	@Transactional
-	public Boolean deleteMember(Long loginMemberId, String accessToken) {
+	public void deleteMember(Long loginMemberId, String accessToken) {
 		// 회원 행을 먼저 잠가, 계좌 목록을 읽은 뒤에 같은 회원의 계좌 개설이 끼어들지 못하게 함
 		Member member = memberService.getMemberForUpdate(loginMemberId);
 		memberService.checkActive(member);
 		accountService.closeAllAccounts(loginMemberId);
 		member.delete();
 		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
-		return true;
 	}
 
 	/**

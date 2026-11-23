@@ -83,13 +83,11 @@ public class SendMessageService {
      * @param phoneNumber - 핸드폰번호
      * @param verificationCode - 입력한 인증번호
      * @param purpose - 인증을 쓸 곳
-     * @return true
      */
-    public boolean verifyPhone(String phoneNumber, String verificationCode, VerificationPurpose purpose) {
+    public void verifyPhone(String phoneNumber, String verificationCode, VerificationPurpose purpose) {
         confirmCode(phoneNumber, verificationCode);
         redisService.setData(verifiedKey(PhoneNumber.normalize(phoneNumber), purpose), VERIFIED,
                 Duration.ofMinutes(PHONE_VERIFIED.getTime()));
-        return true;
     }
 
     /**

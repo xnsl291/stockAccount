@@ -41,8 +41,9 @@ public class AuthenticationController {
     @PostMapping("/verify-phone")
     public ResponseEntity<Boolean> verifySMS(
             @Valid @RequestBody SmsVerificationDto smsVerificationDto) {
-        return ResponseEntity.ok().body(sendMessageService.verifyPhone(
-                smsVerificationDto.getPhoneNumber(), smsVerificationDto.getVerificationCode(), smsVerificationDto.getPurpose()));
+        sendMessageService.verifyPhone(
+                smsVerificationDto.getPhoneNumber(), smsVerificationDto.getVerificationCode(), smsVerificationDto.getPurpose());
+        return ResponseEntity.ok().body(true);
     }
 
     /**
@@ -53,7 +54,8 @@ public class AuthenticationController {
     @PostMapping("/sign-up")
     public ResponseEntity<Boolean> signUp(
             @Valid @RequestBody SignUpDto signUpDto){
-        return ResponseEntity.ok().body(authenticationService.signUp(signUpDto));
+        authenticationService.signUp(signUpDto);
+        return ResponseEntity.ok().body(true);
     }
 
     /**
@@ -63,8 +65,8 @@ public class AuthenticationController {
      */
     @DeleteMapping("/sign-out")
     public ResponseEntity<Boolean> deleteMemberInfo(Authentication authentication){
-        return ResponseEntity.ok().body(authenticationService.deleteMember(
-                (Long) authentication.getPrincipal(), (String) authentication.getCredentials()));
+        authenticationService.deleteMember((Long) authentication.getPrincipal(), (String) authentication.getCredentials());
+        return ResponseEntity.ok().body(true);
     }
 
     /**

@@ -89,7 +89,8 @@ public class AccountController {
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id")Long accountId){
     accountValidationService.validAccountOwner(loginMemberId,accountId);
-    return ResponseEntity.ok().body(accountService.deleteAccount(loginMemberId, accountId));
+    accountService.deleteAccount(loginMemberId, accountId);
+    return ResponseEntity.ok().body(true);
   }
 
   /**
