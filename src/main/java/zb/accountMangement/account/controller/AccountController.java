@@ -45,8 +45,7 @@ public class AccountController {
   public ResponseEntity<AccountResponse> getAccountInfo(
           @AuthenticationPrincipal Long loginMemberId,
           @PathVariable("account_id") Long accountId){
-    accountValidationService.validAccountOwner(loginMemberId,accountId);
-    return ResponseEntity.ok().body(AccountResponse.from(accountService.getAccountInfo(accountId)));
+    return ResponseEntity.ok().body(AccountResponse.from(accountValidationService.validAccountOwner(loginMemberId, accountId)));
   }
 
   /**

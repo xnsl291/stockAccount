@@ -14,10 +14,11 @@ public class AccountValidationService {
     private final AccountService accountService;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public void validAccountOwner(Long loginMemberId, Long accountId){
+    public Account validAccountOwner(Long loginMemberId, Long accountId){
         Account account = accountService.getAccountInfo(accountId);
         if (!account.getMemberId().equals(loginMemberId))
             throw new CustomException(ErrorCode.MISMATCH_ACCOUNT_OWNER);
+        return account;
     }
 
     /**
