@@ -78,11 +78,9 @@ public class TransactionController {
             @RequestHeader(IDEMPOTENCY_KEY) @NotBlank @Size(max = IdempotencyRecord.KEY_MAX_LENGTH) String idempotencyKey,
             @Valid @RequestBody WithdrawalDto withdrawalDto) {
         String request = "WITHDRAW " + withdrawalDto.getAccountId() + " " + withdrawalDto.getAmount();
-        // 이미 성공한 요청을 다시 보낸 것이면 비밀번호를 보지 않고 처음 응답을 돌려줌. 틀린 횟수도 오르지 않음
-        return ResponseEntity.ok().body(idempotencyService.findResponse(loginMemberId, idempotencyKey, request).orElseGet(() -> {
-            accountValidationService.validAccountPassword(loginMemberId, withdrawalDto.getAccountId(), withdrawalDto.getAccountPassword());
-            return idempotencyService.execute(loginMemberId, idempotencyKey, request, () -> transactionService.withdrawal(withdrawalDto));
-        }));
+        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey, request,
+                () -> accountValidationService.validAccountPassword(loginMemberId, withdrawalDto.getAccountId(), withdrawalDto.getAccountPassword()),
+                () -> transactionService.withdrawal(withdrawalDto)));
     }
 
     /**
@@ -102,11 +100,9 @@ public class TransactionController {
             @PathVariable("receiver_account_id") @Min(1) Long receiverAccountId,
             @Valid @RequestBody TransferDto transferDto) {
         String request = "TRANSFER " + senderAccountId + " " + receiverAccountId + " " + transferDto.getAmount();
-        return ResponseEntity.ok().body(idempotencyService.findResponse(loginMemberId, idempotencyKey, request).orElseGet(() -> {
-            accountValidationService.validAccountPassword(loginMemberId, senderAccountId, transferDto.getAccountPassword());
-            return idempotencyService.execute(loginMemberId, idempotencyKey, request,
-                    () -> transactionService.transfer(senderAccountId, receiverAccountId, transferDto));
-        }));
+        return ResponseEntity.ok().body(idempotencyService.execute(loginMemberId, idempotencyKey, request,
+                () -> accountValidationService.validAccountPassword(loginMemberId, senderAccountId, transferDto.getAccountPassword()),
+                () -> transactionService.transfer(senderAccountId, receiverAccountId, transferDto)));
     }
     /**
      * 거래내역 조회 - 최근 거래부터 페이지 단위로

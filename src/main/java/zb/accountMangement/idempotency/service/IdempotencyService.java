@@ -19,17 +19,15 @@ public class IdempotencyService {
 	private final TransactionTemplate transactionTemplate;
 
 	/**
-	 * 같은 회원이 같은 키로 이미 처리한 요청이면 그때의 응답을 돌려줌.
-	 * 계좌 비밀번호처럼 실행 전에 확인할 것이 있는 요청은 이것을 먼저 불러, 이미 성공한 요청을 다시 보낸 것이면
-	 * 확인 없이 처음 응답을 돌려줌. 그사이 비밀번호가 바뀌었어도 이미 일어난 일의 응답이라 돈이 다시 움직이지 않음
-	 * @param memberId - 요청한 사용자 ID
-	 * @param idempotencyKey - 요청마다 클라이언트가 정해 보내는 키
-	 * @param request - 요청 내용. 같은 키를 다른 내용의 요청에 다시 쓰면 거절함
-	 * @return 처음 응답. 처리한 적 없는 키면 비어 있음
+	 * 계좌 비밀번호처럼 실행 전에 확인할 것이 있는 요청용. 이미 처리한 요청을 다시 보낸 것이면 확인 없이 처음 응답을 돌려줌.
+	 * 그사이 비밀번호가 바뀌었어도 이미 일어난 일의 응답이라 돈이 다시 움직이지 않고, 틀린 횟수도 오르지 않음
 	 */
-	public Optional<String> findResponse(Long memberId, String idempotencyKey, String request) {
-		return idempotencyRecordRepository.findByMemberIdAndIdempotencyKey(memberId, idempotencyKey)
-				.map(record -> replay(record, request));
+	public String execute(Long memberId, String idempotencyKey, String request, Runnable precheck, Supplier<String> action) {
+		Optional<String> processed = findResponse(memberId, idempotencyKey, request);
+		if (processed.isPresent())
+			return processed.get();
+		precheck.run();
+		return execute(memberId, idempotencyKey, request, action);
 	}
 
 	/**
@@ -42,7 +40,7 @@ public class IdempotencyService {
 	 * @return 작업 결과
 	 */
 	public String execute(Long memberId, String idempotencyKey, String request, Supplier<String> action) {
-		// findResponse를 먼저 부른 요청도 다시 찾음. 그 뒤 실행 전 확인을 하는 사이에 같은 키의 요청이 끝났을 수 있음
+		// 실행 전 확인을 거친 요청도 다시 찾음. 확인하는 사이에 같은 키의 요청이 끝났을 수 있음
 		Optional<String> processed = findResponse(memberId, idempotencyKey, request);
 		if (processed.isPresent())
 			return processed.get();
@@ -65,6 +63,11 @@ public class IdempotencyService {
 					.map(record -> replay(record, request))
 					.orElseThrow(() -> e);
 		}
+	}
+
+	private Optional<String> findResponse(Long memberId, String idempotencyKey, String request) {
+		return idempotencyRecordRepository.findByMemberIdAndIdempotencyKey(memberId, idempotencyKey)
+				.map(record -> replay(record, request));
 	}
 
 	private String replay(IdempotencyRecord processed, String request) {
