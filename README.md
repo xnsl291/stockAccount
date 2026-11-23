@@ -41,11 +41,19 @@ openssl rand -base64 48   # 출력값을 application-secret.yml의 jwt.secret에
 | `SMS_PROVIDER` | `log` | `log`는 문자를 보내지 않고 로그만 남김, `coolsms`는 실제 발송 |
 | `COOLSMS_API_KEY`, `COOLSMS_SECRET_KEY`, `SMS_SENDER_PHONE_NUMBER` | 없음 | `coolsms`일 때만 필요 |
 
-이전 버전으로 만든 로컬 DB가 있으면 지우고 새로 만들어야 함. 금액이 실수에서 정수(long)로, 종목코드가 숫자에서 문자열로, 매매 유형·주문 상태가 문자열 enum으로 바뀌었고 주식 보유 내역에 유니크 제약이 생겼는데, `ddl-auto: update`는 이미 있는 컬럼의 타입을 바꾸지 않음
+스키마는 Flyway가 `src/main/resources/db/migration`의 SQL 파일로 만들고, Hibernate는 엔티티와 스키마가 맞는지만 확인함(`ddl-auto: validate`). 스키마를 바꿀 때는 기존 파일을 고치지 않고 다음 번호의 파일(`V2__...sql`)을 추가함
+
+Flyway 도입 전(`ddl-auto: update`)에 만든 로컬 DB가 있으면 지우고 새로 만들어야 함. 지킬 운영 데이터가 없어 기존 DB를 첫 버전으로 표시(baseline)하지 않고 빈 DB에서 첫 파일부터 적용하는 방식으로 정했음. 기존 DB에는 `flyway_schema_history`가 없어 Flyway가 테이블이 이미 있다며 기동을 멈춤
 
 ```bash
 docker compose down -v && docker compose up -d
 ```
+
+### 모니터링
+
+`docker compose up -d`가 Prometheus(`127.0.0.1:9090`)와 Grafana(`127.0.0.1:3000`, 기본 계정 admin/admin, `GRAFANA_ADMIN_PASSWORD`로 바꿈)도 띄움. Grafana에 `StockAccount 기본` 대시보드(경로별 응답 시간 p95, 처리량, 응답 상태, DB 커넥션 풀 대기, JVM 메모리·GC, CPU)가 들어 있음
+
+앱은 지표를 업무 포트(8080)가 아니라 관리 포트 `127.0.0.1:9081`의 `/actuator/prometheus`, `/actuator/health`로만 내보냄. 이 두 경로는 토큰 없이 열리지만 이 PC 밖에서는 닿지 않음. 다른 장비의 Prometheus가 긁어 가게 하려면 `MANAGEMENT_ADDRESS`, `MANAGEMENT_PORT`를 바꿈
 
 ### 관리자 계정
 
@@ -150,7 +158,7 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 
 ## 테스트
 
-`./gradlew test`로 97개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
+`./gradlew test`로 99개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
 
 - `TransactionConsistencyTest`: 동시 출금·맞송금, Idempotency-Key 재전송·동시 전송, 거래 기록 합계와 잔액 일치, 금액·계좌 상태 검증
 - `TransactionHistoryTest`: 거래내역 페이지 나눔, 정렬, 기간·종류 필터
