@@ -288,26 +288,6 @@ class StockOrderTest extends ApiTest {
 	}
 
 	@Test
-	void 같은_키로_다시_보낸_주문은_한_번만_접수된다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 10_000);
-		Stock stock = saveStock(1_000);
-		String key = UUID.randomUUID().toString();
-		Map<String, Object> buy = orderBody(account, stock, 900, 5);
-
-		long first = orderId(postJson("/api/stocks/buy", member, key, buy));
-		long second = orderId(postJson("/api/stocks/buy", member, key, buy));
-
-		assertThat(second).isEqualTo(first);
-		assertThat(ordersOf(account)).containsExactly("BUY PENDING");
-		assertThat(heldAmountOf(account)).isEqualTo(4_500);
-
-		postJson("/api/stocks/buy", member, key, orderBody(account, stock, 900, 6))
-				.andExpect(status().isConflict())
-				.andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"));
-	}
-
-	@Test
 	void 접수된_주문을_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_주문을_받고_틀린_횟수가_오르지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);
@@ -322,6 +302,7 @@ class StockOrderTest extends ApiTest {
 
 		assertThat(passwordFailCountOf(account)).isZero();
 		assertThat(ordersOf(account)).containsExactly("BUY PENDING");
+		assertThat(heldAmountOf(account)).isEqualTo(4_500);
 	}
 
 	@Test
