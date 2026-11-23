@@ -35,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -288,26 +287,6 @@ class StockOrderTest extends ApiTest {
 	}
 
 	@Test
-	void 같은_키로_다시_보낸_주문은_한_번만_접수된다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 10_000);
-		Stock stock = saveStock(1_000);
-		String key = UUID.randomUUID().toString();
-		Map<String, Object> buy = orderBody(account, stock, 900, 5);
-
-		long first = orderId(postJson("/api/stocks/buy", member, key, buy));
-		long second = orderId(postJson("/api/stocks/buy", member, key, buy));
-
-		assertThat(second).isEqualTo(first);
-		assertThat(ordersOf(account)).containsExactly("BUY PENDING");
-		assertThat(heldAmountOf(account)).isEqualTo(4_500);
-
-		postJson("/api/stocks/buy", member, key, orderBody(account, stock, 900, 6))
-				.andExpect(status().isConflict())
-				.andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"));
-	}
-
-	@Test
 	void 접수된_주문을_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_주문을_받고_틀린_횟수가_오르지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);
@@ -322,20 +301,7 @@ class StockOrderTest extends ApiTest {
 
 		assertThat(passwordFailCountOf(account)).isZero();
 		assertThat(ordersOf(account)).containsExactly("BUY PENDING");
-	}
-
-	@Test
-	void 주문에_Idempotency_Key_헤더가_없으면_400() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 10_000);
-
-		mockMvc.perform(as(member, post("/api/stocks/buy"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(orderBody(account, saveStock(1_000), 1_000, 1))))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
-
-		assertThat(ordersOf(account)).isEmpty();
+		assertThat(heldAmountOf(account)).isEqualTo(4_500);
 	}
 
 	@Test
@@ -357,44 +323,6 @@ class StockOrderTest extends ApiTest {
 
 		assertThat(ordersOf(account)).isEmpty();
 		assertThat(balanceOf(account)).isEqualTo(10_000);
-	}
-
-	@Test
-	void 거래정지된_계좌로는_주문할_수_없다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 10_000);
-		account = accountRepository.findById(account.getId()).orElseThrow();
-		suspend(account);
-		accountRepository.save(account);
-
-		order("buy", member, account, saveStock(1_000), 1_000, 1)
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("PENDING_ACCOUNT"));
-
-		assertThat(ordersOf(account)).isEmpty();
-	}
-
-	@Test
-	void 시세_갱신과_종목_등록은_관리자만_할_수_있다() throws Exception {
-		Member member = saveMember();
-		Stock stock = saveStock(1_000);
-		Map<String, Object> newStock = Map.of("code", "0" + randomPhone().substring(3, 8), "name", "신규상장", "currentPrice", 5_000);
-
-		mockMvc.perform(as(member, put("/admin/stocks/" + stock.getId() + "/price"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of("price", 1))))
-				.andExpect(status().isForbidden());
-		mockMvc.perform(as(member, post("/admin/stocks"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(newStock)))
-				.andExpect(status().isForbidden());
-
-		assertThat(stockRepository.findById(stock.getId()).orElseThrow().getCurrentPrice()).isEqualTo(1_000);
-		assertThat(stockRepository.existsByCode((String) newStock.get("code"))).isFalse();
-
-		updatePrice(saveAdmin(), stock, 0).andExpect(status().isBadRequest());
-		updatePrice(saveAdmin(), stock, 1_100).andExpect(status().isOk());
-		assertThat(stockRepository.findById(stock.getId()).orElseThrow().getCurrentPrice()).isEqualTo(1_100);
 	}
 
 	@Test

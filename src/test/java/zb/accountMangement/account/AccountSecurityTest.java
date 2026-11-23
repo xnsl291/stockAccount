@@ -304,25 +304,6 @@ class AccountSecurityTest extends ApiTest {
 		assertThat(balanceOf(account)).isEqualTo(40_000);
 	}
 
-	@Test
-	void 계좌_한_건과_내_계좌_목록을_각각_조회할_수_있고_비밀번호는_응답에_없다() throws Exception {
-		Member member = saveMember();
-		Account first = saveAccount(member);
-		Account second = saveAccount(member);
-		saveAccount(saveMember());
-
-		mockMvc.perform(as(member, get("/api/accounts/" + first.getId())))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value(first.getId()))
-				.andExpect(jsonPath("$.password").doesNotExist());
-		mockMvc.perform(as(member, get("/api/accounts")))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.length()").value(2))
-				.andExpect(jsonPath("$[0].id").value(first.getId()))
-				.andExpect(jsonPath("$[1].id").value(second.getId()))
-				.andExpect(jsonPath("$[0].password").doesNotExist());
-	}
-
 	private ResultActions withdraw(Member member, Account account, String password) throws Exception {
 		return postJson("/api/transactions/withdrawal", member,
 				Map.of("accountId", account.getId(), "amount", 10_000, "accountPassword", password));

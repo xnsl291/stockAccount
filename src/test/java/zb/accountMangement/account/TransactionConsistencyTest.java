@@ -2,7 +2,6 @@ package zb.accountMangement.account;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransferDto;
-import zb.accountMangement.account.dto.WithdrawalDto;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.model.entity.Transaction;
@@ -40,22 +38,6 @@ class TransactionConsistencyTest extends ApiTest {
 	TransactionRepository transactionRepository;
 	@Autowired
 	JdbcTemplate jdbcTemplate;
-
-	@Test
-	void 같은_계좌에서_동시에_출금해도_잔액만큼만_출금된다() throws Exception {
-		Account account = saveAccount(saveMember(), 50_000);
-
-		List<String> results = runConcurrently(10, i -> () -> {
-			WithdrawalDto withdrawalDto = new WithdrawalDto();
-			withdrawalDto.setAccountId(account.getId());
-			withdrawalDto.setAmount(10_000L);
-			return transactionService.withdrawal(withdrawalDto);
-		});
-
-		assertThat(results.stream().filter(Objects::nonNull)).hasSize(5);
-		assertThat(balanceOf(account)).isZero();
-		assertThat(ledgerSum(account)).isZero();
-	}
 
 	@Test
 	void API로_동시에_출금을_요청해도_잔액만큼만_출금된다() throws Exception {
@@ -92,22 +74,6 @@ class TransactionConsistencyTest extends ApiTest {
 	}
 
 	@Test
-	void 같은_키로_다시_보낸_요청은_처음_결과만_돌려주고_다시_실행하지_않는다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 50_000);
-		String key = UUID.randomUUID().toString();
-		Map<String, Object> withdrawal = Map.of("accountId", account.getId(), "amount", 10_000, "accountPassword", ACCOUNT_PASSWORD);
-
-		postJson("/api/transactions/withdrawal", member, key, withdrawal)
-				.andExpect(status().isOk()).andExpect(content().string("출금완료"));
-		postJson("/api/transactions/withdrawal", member, key, withdrawal)
-				.andExpect(status().isOk()).andExpect(content().string("출금완료"));
-
-		assertThat(balanceOf(account)).isEqualTo(40_000);
-		assertThat(ledgerOf(account)).hasSize(2);
-	}
-
-	@Test
 	void 성공한_출금과_송금을_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_응답을_받고_틀린_횟수가_오르지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 50_000);
@@ -132,6 +98,7 @@ class TransactionConsistencyTest extends ApiTest {
 		assertThat(passwordFailCountOf(account)).isZero();
 		assertThat(balanceOf(account)).isEqualTo(30_000);
 		assertThat(balanceOf(receiver)).isEqualTo(10_000);
+		assertThat(ledgerOf(account)).containsExactly("DEPOSIT 50000 50000", "WITHDRAW -10000 40000", "TRANSFER_OUT -10000 30000");
 	}
 
 	@Test
@@ -143,9 +110,14 @@ class TransactionConsistencyTest extends ApiTest {
 		depositDto.setAccountId(account.getId());
 		depositDto.setAmount(10_000L);
 
+		// 먼저 키를 저장한 요청이 커밋하기 전에 나머지 4개가 같은 키 저장에서 기다리게 해, 실제로 겹친 경우만 확인함
 		List<String> results = runConcurrently(5, i -> () -> idempotencyService.execute(member.getId(), key, "DEPOSIT", () -> {
 			String result = transactionService.deposit(depositDto);
-			sleep(300);
+			try {
+				awaitLockWaits(4);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 			return result;
 		}));
 
@@ -199,17 +171,33 @@ class TransactionConsistencyTest extends ApiTest {
 	}
 
 	@Test
-	void Idempotency_Key_헤더가_없으면_400() throws Exception {
+	void 돈이나_주식을_옮기는_요청은_Idempotency_Key_헤더가_없으면_400() throws Exception {
 		Member member = saveMember();
-		Account account = saveAccount(member);
+		Account account = saveAccount(member, 10_000);
+		Account receiver = saveAccount(saveMember());
+		Stock stock = saveStock(1_000);
+		Map<String, Object> order = Map.of("accountId", account.getId(), "stockId", stock.getId(), "price", 1_000,
+				"quantity", 1, "accountPassword", ACCOUNT_PASSWORD);
+		Map<String, Map<String, Object>> requests = Map.of(
+				"/api/transactions/deposit", Map.of("accountId", account.getId(), "amount", 1_000),
+				"/api/transactions/withdrawal", Map.of("accountId", account.getId(), "amount", 1_000, "accountPassword", ACCOUNT_PASSWORD),
+				"/api/transactions/" + account.getId() + "/transfer/" + receiver.getId(), Map.of("amount", 1_000, "accountPassword", ACCOUNT_PASSWORD),
+				"/api/stocks/buy", order,
+				"/api/stocks/sell", order,
+				"/api/stocks/transfer", Map.of("senderAccountId", account.getId(), "receiverAccountId", receiver.getId(),
+						"stockId", stock.getId(), "quantity", 1, "accountPassword", ACCOUNT_PASSWORD));
 
-		mockMvc.perform(as(member, post("/api/transactions/deposit"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of("accountId", account.getId(), "amount", 10_000))))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
+		for (Map.Entry<String, Map<String, Object>> request : requests.entrySet()) {
+			mockMvc.perform(as(member, post(request.getKey()))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request.getValue())))
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
+		}
 
-		assertThat(balanceOf(account)).isZero();
+		assertThat(ledgerOf(account)).containsExactly("DEPOSIT 10000 10000");
+		assertThat(balanceOf(receiver)).isZero();
+		assertThat(accountRepository.findById(account.getId()).orElseThrow().getHeldAmount()).isZero();
 	}
 
 	@Test
@@ -360,13 +348,5 @@ class TransactionConsistencyTest extends ApiTest {
 				.sorted((x, y) -> x.getId().compareTo(y.getId()))
 				.map(transaction -> transaction.getType() + " " + transaction.getAmount() + " " + transaction.getBalanceAfter())
 				.collect(Collectors.toList());
-	}
-
-	private void sleep(long millis) {
-		try {
-			Thread.sleep(millis);
-		} catch (InterruptedException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 }

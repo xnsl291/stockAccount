@@ -35,8 +35,7 @@ public class RedisService {
   }
 
   /**
-   * 저장된 값이 expected와 같을 때만 지움. 비교와 삭제를 Redis 안에서 한 번에 처리해 동시에 불러도 한 번만 성공함
-   * @return 지웠으면 true
+   * 비교와 삭제를 Redis 안에서 한 번에 처리해 동시에 불러도 한 번만 성공함
    */
   public boolean deleteIfEquals(String key, String expected) {
     Long deleted = stringRedisTemplate.execute(DELETE_IF_EQUALS, List.of(key), expected);

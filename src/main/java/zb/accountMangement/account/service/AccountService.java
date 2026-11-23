@@ -35,20 +35,13 @@ public class AccountService {
     private final MemberService memberService;
     private final AccountNumberGenerator accountNumberGenerator;
 
-    /**
-     * id를 이용한 계좌정보 열람
-     * @param accountId - 계좌 ID
-     * @return Account
-     */
     public Account getAccountById(Long accountId){
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
-     * 다른 요청이 같은 계좌를 동시에 바꾸지 못하게 잠그고 계좌정보 열람 - 트랜잭션 안에서 호출해야 함
-     * @param accountId - 계좌 ID
-     * @return Account
+     * 트랜잭션 안에서 호출해야 함
      */
     public Account getAccountForUpdate(Long accountId){
         return accountRepository.findByIdForUpdate(accountId)
@@ -56,11 +49,8 @@ public class AccountService {
     }
 
     /**
-     * 잠금 밖에서 틀렸다고 비교된 계좌 비밀번호를 기록함 - 계좌를 잠근 뒤 상태를 다시 봄.
+     * 계좌를 잠근 뒤 상태를 다시 봄.
      * 이미 거래정지면 횟수를 올리지 않고 거래정지로 거절하므로, 틀린 요청이 동시에 몇 건 몰려도 "틀림" 응답은 한도만큼만 나감
-     * @param accountId - 계좌 ID
-     * @param comparedHash - 잠금 밖에서 비교에 쓴 비밀번호 해시
-     * @param password - 입력한 계좌 비밀번호
      */
     // 틀린 횟수는 예외로 끝나도 저장되어야 하므로 롤백하지 않음
     @Transactional(noRollbackFor = CustomException.class)
@@ -77,17 +67,15 @@ public class AccountService {
     }
 
     /**
-     * 잠금 밖에서 맞았다고 비교된 계좌 비밀번호를 확정함 - 잠그지 않고 다시 읽어, 비교에 쓴 값에서 바뀐 것이 없는지 봄
-     * @param accountId - 계좌 ID
-     * @param compared - 비교할 때 읽은 계좌
-     * @return 바뀐 것이 없어 통과면 true. 그사이 틀린 요청·거래정지·비밀번호 변경이 있었으면 false이고, 잠금 안에서 다시 확인해야 함
+     * 잠금 밖에서 맞았다고 비교된 계좌 비밀번호를 확정함.
+     * 그사이 비밀번호가 바뀌었거나 남은 틀린 횟수를 0으로 되돌리지 못했으면 false이고, 잠금 안에서 다시 확인해야 함.
+     * 그사이 오른 틀린 횟수나 거래정지는 여기서 보지 않음. 이 요청을 그보다 먼저 처리한 것과 결과가 같고,
+     * 거래정지는 실행 단계가 계좌를 잠근 뒤 틀린 요청과 같은 오류 코드로 막음
      */
     @Transactional
     public boolean confirmPasswordMatch(Long accountId, Account compared) {
-        Account account = getAccountById(accountId);
-        if (account.getStatus() != compared.getStatus()
-                || account.getPasswordFailCount() != compared.getPasswordFailCount()
-                || !account.getPassword().equals(compared.getPassword()))
+        // 비밀번호 변경이 커밋된 뒤에 옛 비밀번호로 비교를 마친 요청을 통과시키지 않기 위함
+        if (!getAccountById(accountId).getPassword().equals(compared.getPassword()))
             return false;
         // 평소(횟수 0)에는 쓰지 않음. 0으로 되돌리지 못했으면 다시 읽은 뒤에 틀린 요청이 커밋된 것이라 잠금 안에서 다시 확인함.
         // 그냥 통과시키면 틀린 횟수가 남아, 어느 순서로 처리해도 나올 수 없는 값이 됨
@@ -97,9 +85,7 @@ public class AccountService {
     }
 
     /**
-     * 계좌를 잠근 채로 계좌 비밀번호를 비교함 - 잠금 밖 비교 뒤에 계좌 값이 바뀌었을 때만 씀
-     * @param accountId - 계좌 ID
-     * @param password - 입력한 계좌 비밀번호
+     * 잠금 밖 비교 뒤에 계좌 값이 바뀌었을 때만 씀
      */
     // 틀린 횟수는 예외로 끝나도 저장되어야 하므로 롤백하지 않음
     @Transactional(noRollbackFor = CustomException.class)
@@ -113,10 +99,6 @@ public class AccountService {
         account.resetPasswordFailure();
     }
 
-    /**
-     * 해지·거래정지 계좌면 거절함
-     * @param account - 계좌
-     */
     public void checkTradable(Account account) {
         if (account.isDeletedAccount())
             throw new CustomException(ErrorCode.DELETED_ACCOUNT);
@@ -125,38 +107,28 @@ public class AccountService {
     }
 
     /**
-     * 비밀번호를 확인한 계좌가 그사이 거래정지됐으면 거절함 - 실행 단계에서 계좌를 잠근 뒤 부름.
+     * 실행 단계에서 계좌를 잠근 뒤 부름.
      * 틀린 요청과 같은 오류 코드로 거절해야, 동시에 여러 비밀번호를 넣어 본 쪽이 정답 요청만 다른 응답을 받아 비밀번호를 알아내지 못함.
      * 해지 등 다른 상태는 부르는 쪽의 기존 오류 코드를 그대로 씀
-     * @param lockedAccount - 잠근 계좌
      */
     public void checkNotSuspended(Account lockedAccount) {
         if (lockedAccount.isSuspendedAccount())
             throw new CustomException(ErrorCode.PENDING_ACCOUNT);
     }
 
-    /**
-     * 계좌번호를 이용한 계좌정보 열람
-     * @param accountNumber - 계좌번호
-     * @return Account
-     */
     public Account getAccountByNumber(String accountNumber){
         return accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_EXIST));
     }
 
     /**
-     * 계좌 개설 - 탈퇴·정지 회원은 개설할 수 없음
-     * @param memberId - 사용자 ID
-     * @param accountManagementDto - 계좌 정보 dto (계좌별명, 계좌 PW)
-     * @return Account
+     * 탈퇴·정지 회원은 개설할 수 없음
      */
     @Transactional
     public Account openAccount(Long memberId, AccountManagementDto accountManagementDto) {
         // 탈퇴와 겹치면 탈퇴가 읽은 계좌 목록에 새 계좌가 빠져 살아 남으므로, 탈퇴와 같은 회원 행 잠금을 먼저 잡음
         memberService.checkActive(memberService.getMemberForUpdate(memberId));
 
-        // 계좌번호 랜덤생성 - 중복 생성 x
         String accountNumber = accountNumberGenerator.generate();
 
         while(accountRepository.findByAccountNumber(accountNumber).isPresent()) {
@@ -184,11 +156,6 @@ public class AccountService {
         return account;
     }
 
-    /**
-     * 계좌 정보 조회 - accountStatus가 EXISTS, PENDING인 계좌 조회 가능
-     * @param accountId - 계좌 ID
-     * @return Account
-     */
     public Account getAccountInfo(Long accountId) {
         Account account = getAccountById(accountId);
         if (account.isDeletedAccount())
@@ -197,10 +164,7 @@ public class AccountService {
     }
 
     /**
-     * 계좌 정보 수정 - 현재 비밀번호 확인은 호출하는 쪽에서 먼저 해야 함
-     * @param accountId - 계좌 ID
-     * @param updateAccountDto - 계좌 수정 dto (계좌별명, 새 계좌 PW). 비어 있는 항목은 그대로 둠
-     * @return Account
+     * 현재 비밀번호 확인은 호출하는 쪽에서 먼저 해야 함
      */
     @Transactional
     public Account updateAccount(Long accountId, UpdateAccountDto updateAccountDto) {
@@ -224,8 +188,6 @@ public class AccountService {
     /**
      * 비밀번호를 연속으로 틀려 거래정지된 계좌의 잠금 해제.
      * 회원에 등록된 핸드폰번호로 문자 인증(/api/auth/send-code, /api/auth/verify-phone)을 마친 뒤에만 풀 수 있음
-     * @param accountId - 계좌 ID
-     * @return Account
      */
     @Transactional
     public Account unlockAccount(Long accountId) {
@@ -240,13 +202,10 @@ public class AccountService {
     }
 
     /**
-     * 계좌 해지 - 거래정지된 계좌, 마지막 남은 계좌, 잔액이나 보유 주식이 남은 계좌는 해지할 수 없음
-     * @param memberId - 계좌 소유자 ID. 호출하는 쪽에서 소유자인지 먼저 확인해야 함
-     * @param accountId - 계좌 ID
-     * @return true
+     * 거래정지된 계좌, 마지막 남은 계좌, 잔액이나 보유 주식이 남은 계좌는 해지할 수 없음
      */
     @Transactional
-    public Boolean deleteAccount(Long memberId, Long accountId) {
+    public void deleteAccount(Long memberId, Long accountId) {
         // 같은 회원의 계좌 두 개를 동시에 해지하면 둘 다 "2개 이상"을 보고 해지할 수 있어, 회원 행을 먼저 잠가 한 줄로 세움.
         // 잠금 순서는 탈퇴·계좌 개설과 같은 회원 → 계좌이고, 계좌 수는 회원 잠금을 얻은 뒤에 세어야 앞선 해지가 보임
         memberService.getMemberForUpdate(memberId);
@@ -263,12 +222,10 @@ public class AccountService {
 
         checkNoAssets(account);
         account.close();
-        return true;
     }
 
     /**
-     * 회원의 모든 계좌 해지 - 잔액이나 보유 주식이 남은 계좌가 하나라도 있으면 해지하지 않음
-     * @param memberId - 사용자 ID
+     * 잔액이나 보유 주식이 남은 계좌가 하나라도 있으면 해지하지 않음
      */
     @Transactional
     public void closeAllAccounts(Long memberId) {
@@ -282,30 +239,18 @@ public class AccountService {
         }
     }
 
-    // 계좌 모듈이 주식 모듈의 저장소를 직접 부르는 유일한 자리임
-    // StockService·OrderService가 이미 AccountService를 주입받고 있어, 여기서 주식 서비스를 주입받으면 빈이 서로 물림
-    // 해지·탈퇴는 계좌를 잠근 같은 트랜잭션 안에서 보유 주식 행까지 잠가 확인해야 하므로 위 모듈로 올리지도 않음
-    // 저장소 호출 한 줄을 감싸는 조회 전용 서비스는 경계 방향을 바꾸지 못해 두지 않음
-    // 계좌 모듈이 주식 모듈을 부르는 곳이 하나 더 생기면 이 구조를 다시 정해야 함
+    // 주식 서비스가 이미 이 서비스를 주입받고 있어 주식 저장소를 직접 부름. 계좌 모듈이 주식 모듈을 부르는 유일한 자리임
     private void checkNoAssets(Account account) {
         if (account.getBalance() != 0 || !stockBalanceRepository.findByAccountIdForUpdate(account.getId()).isEmpty())
             throw new CustomException(ErrorCode.REMAINING_ASSET);
     }
 
-    /**
-     * 회원의 계좌 목록 - 해지된 계좌는 뺌
-     * @param memberId - 사용자 ID
-     * @return 계좌 목록
-     */
     public List<Account> getAllAccounts(Long memberId){
         return accountRepository.findByMemberIdAndStatusNot(memberId, AccountStatus.DELETED);
     }
 
     /**
-     * 계좌번호로 계좌 검색 - 해지된 계좌는 없는 계좌로 봄
-     * @param accountNumber - 계좌번호
-     * @param requesterId - 요구자 ID
-     * @return 계좌정보. 남의 계좌면 계좌 ID·계좌번호·소유주 이름만
+     * 해지된 계좌는 없는 계좌로 봄
      */
     public SearchAccountDto searchAccount(String accountNumber, Long requesterId) {
         Account account = getAccountByNumber(accountNumber);
@@ -313,7 +258,6 @@ public class AccountService {
             throw new CustomException(ErrorCode.ACCOUNT_NOT_EXIST);
         String username = memberService.getMemberById(account.getMemberId()).getName();
 
-        // 본인 계좌
         if (account.getMemberId().equals(requesterId)) {
             return SearchAccountDto.builder()
                     .accountId(account.getId())
@@ -324,7 +268,6 @@ public class AccountService {
                     .status(account.getStatus())
                     .build();
         }
-        // 타인의 계좌
         else {
             return SearchAccountDto.builder()
                     .accountId(account.getId())

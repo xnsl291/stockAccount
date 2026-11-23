@@ -83,9 +83,7 @@ public class JwtTokenProvider {
 	}
 
 	/**
-	 * 액세스 토큰 검증 - 서명, 만료, 토큰 종류, 로그아웃 여부를 확인
-	 * @param token - 액세스 토큰
-	 * @return principal은 사용자 ID, credentials는 액세스 토큰인 인증 정보
+	 * 서명, 만료, 토큰 종류, 로그아웃 여부를 확인
 	 */
 	public Authentication authenticate(String token) {
 		Claims claims = parse(token, ACCESS_TYPE);
@@ -96,9 +94,7 @@ public class JwtTokenProvider {
 	}
 
 	/**
-	 * 리프레시 토큰을 검증하고 지움 - 마지막으로 발급한 리프레시 토큰과 같아야 하고, 같은 토큰으로 동시에 요청해도 한 번만 통과함
-	 * @param token - 리프레시 토큰
-	 * @return 사용자 ID
+	 * 마지막으로 발급한 리프레시 토큰과 같아야 하고, 같은 토큰으로 동시에 요청해도 한 번만 통과함
 	 */
 	public Long consumeRefreshToken(String token) {
 		Long memberId = Long.valueOf(parse(token, REFRESH_TYPE).getSubject());
@@ -111,11 +107,6 @@ public class JwtTokenProvider {
 		redisService.deleteData(refreshTokenKey(memberId));
 	}
 
-	/**
-	 * 액세스 토큰을 남은 유효시간 동안 차단하고 리프레시 토큰을 삭제
-	 * @param memberId - 사용자 ID
-	 * @param accessToken - 액세스 토큰
-	 */
 	public void invalidateTokens(Long memberId, String accessToken) {
 		long remainingMillis = parse(accessToken, ACCESS_TYPE).getExpiration().getTime() - System.currentTimeMillis();
 		if (remainingMillis > 0)

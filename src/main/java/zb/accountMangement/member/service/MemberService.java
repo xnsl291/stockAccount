@@ -25,12 +25,6 @@ public class MemberService {
 	private final BCryptPasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
 
-	/**
-	 * id를 이용한 회원 정보 열람
-	 *
-	 * @param memberId - id
-	 * @return Member
-	 */
 	public Member getMemberById(long memberId) {
 		return memberRepository.findById(memberId).orElseThrow(
 				() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));
@@ -41,9 +35,6 @@ public class MemberService {
 	/**
 	 * 다른 요청이 같은 회원의 탈퇴·계좌 개설·계좌 해지를 동시에 하지 못하게 회원 행을 잠그고 읽음.
 	 * 트랜잭션 안에서, 그 트랜잭션의 첫 조회로 불러야 함. 잠금 순서는 회원 → 계좌임
-	 *
-	 * @param memberId - id
-	 * @return Member
 	 */
 	public Member getMemberForUpdate(long memberId) {
 		return memberRepository.findByIdForUpdate(memberId).orElseThrow(
@@ -51,23 +42,13 @@ public class MemberService {
 	}
 
 	/**
-	 * 가입용 회원 생성 - 가입 용도의 핸드폰 인증을 마친 번호여야 하고, 인증 표시는 이때 지움
-	 *
-	 * @param name          - 이름 (한글·영문·숫자 2~10자)
-	 * @param phoneNumber   - 핸드폰번호 (하이픈 등이 섞여 있어도 됨)
-	 * @param loginPassword - 로그인 비밀번호 (암호화 전)
-	 * @return 저장한 회원
+	 * 가입 용도의 핸드폰 인증을 마친 번호여야 하고, 인증 표시는 이때 지움
 	 */
 	@Transactional
 	public Member createMember(String name, String phoneNumber, String loginPassword) {
 		String normalized = PhoneNumber.normalize(phoneNumber);
 
-		// 이름 유효성 검사
-		if (!name.matches("[가-힣a-zA-Z0-9]{2,10}")) {
-			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
-		}
-
-		// 핸드폰번호 중복 검사
+		checkNameFormat(name);
 		if (memberRepository.existsByPhoneNumber(normalized))
 			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
 
@@ -90,28 +71,18 @@ public class MemberService {
 	}
 
 	/**
-	 * 탈퇴 처리 - 회원 행은 지우지 않고 상태만 탈퇴로 바꿈. 계좌 해지는 호출하는 쪽에서 먼저 해야 함
-	 *
-	 * @param member - 탈퇴할 회원
-	 */
-	@Transactional
-	public void withdraw(Member member) {
-		member.delete();
-	}
-
-	/**
-	 * 회원 정보 수정 - 현재 로그인 비밀번호가 맞아야 함. 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 하고,
+	 * 현재 로그인 비밀번호가 맞아야 함. 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 하고,
 	 * 비밀번호를 바꾸면 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
-	 *
-	 * @param updateMemberDto - 사용자 정보수정 dto (이름, 핸드폰번호, 새 로그인 비밀번호, 현재 로그인 비밀번호)
-	 * @return Member
 	 */
 	@Transactional
-	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
+	public Member updateMemberInfo(long memberId, UpdateMemberDto updateMemberDto) {
 		// 저장할 때 역할까지 모든 칸을 다시 쓰므로, 잠그지 않고 읽으면 그사이 커밋된 탈퇴를 읽은 시점 값으로 되돌림
-		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
+		Member member = getMemberForUpdate(memberId);
+		checkActive(member);
 		if (!passwordEncoder.matches(updateMemberDto.getCurrentPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
+		// 문자 인증을 쓰기 전에 막아야, 이름이 틀린 요청이 새 번호의 인증을 써 버리지 않음
+		checkNameFormat(updateMemberDto.getName());
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
 
 		if (!phoneNumber.equals(member.getPhoneNumber())) {
@@ -137,15 +108,11 @@ public class MemberService {
 	}
 
 	/**
-	 * 비밀번호 재설정 요청 - 입력한 이름·핸드폰번호가 회원 정보와 같으면 등록된 번호로 인증번호 발송
-	 *
-	 * @param loginMemberId     - 로그인한 사용자 ID
-	 * @param findMemberInfoDto - 회원정보 조회 dto (이름, 핸드폰번호)
-	 * @param clientIp          - 요청한 IP
-	 * @return "인증 메세지 발송 완료"
+	 * 입력한 이름·핸드폰번호가 회원 정보와 같으면 등록된 번호로 인증번호 발송
 	 */
-	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
-		Member member = checkMemberPermission(loginMemberId, getMemberById(memberId));
+	public String requestResetPw(Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
+		Member member = getMemberById(memberId);
+		checkActive(member);
 
 		if (!member.getName().equals(findMemberInfoDto.getName())
 				|| !member.getPhoneNumber().equals(PhoneNumber.normalize(findMemberInfoDto.getPhoneNumber())))
@@ -155,15 +122,13 @@ public class MemberService {
 	}
 
 	/**
-	 * 비밀번호 재설정 - 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
-	 *
-	 * @param resetPwDto - 비밀번호 재설정 dto (인증번호, 새로운 PW)
-	 * @return "비밀번호 재설정 완료"
+	 * 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
 	 */
 	@Transactional
-	public String verifyResetPw(Long loginMemberId, Long memberId, ResetPwDto resetPwDto) {
+	public String verifyResetPw(Long memberId, ResetPwDto resetPwDto) {
 		// 회원정보 수정과 같은 이유로 잠그고 읽음
-		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
+		Member member = getMemberForUpdate(memberId);
+		checkActive(member);
 		sendMessageService.confirmCode(member.getPhoneNumber(), resetPwDto.getInputCode());
 		member.setPassword(passwordEncoder.encode(resetPwDto.getNewPassword()));
 		jwtTokenProvider.deleteRefreshToken(member.getId());
@@ -171,19 +136,12 @@ public class MemberService {
 	}
 
 
-	public Member checkMemberPermission(Long loginMemberId, Member member){
-		if(!member.getId().equals(loginMemberId))
-			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
-
-		checkActive(member);
-		return member;
+	// 가입과 회원정보 수정이 같은 규칙을 써야 수정으로 가입 규칙을 우회하지 못함
+	private void checkNameFormat(String name) {
+		if (!name.matches("[가-힣a-zA-Z0-9]{2,10}"))
+			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
 	}
 
-	/**
-	 * 탈퇴·정지 회원이면 예외
-	 *
-	 * @param member - 회원
-	 */
 	public void checkActive(Member member) {
 		if (member.getRole().equals(RoleType.WITHDRAWN))
 			throw new CustomException(ErrorCode.WITHDRAWN_MEMBER);
@@ -194,12 +152,6 @@ public class MemberService {
 
 
 
-	/**
-	 * 핸드폰번호를 이용한 회원 정보 열람
-	 *
-	 * @param phoneNumber - 핸드폰번호
-	 * @return Member
-	 */
 	public Member getMemberByPhoneNumber(String phoneNumber) {
 		return memberRepository.findByPhoneNumber(phoneNumber).orElseThrow(
 				() -> new CustomException(ErrorCode.MEMBER_NOT_EXIST));

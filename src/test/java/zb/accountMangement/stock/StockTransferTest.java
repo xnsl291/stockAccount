@@ -103,34 +103,26 @@ class StockTransferTest extends ApiTest {
 	}
 
 	@Test
-	void 받는_쪽_수량이_int_범위를_넘으면_400이고_아무것도_바뀌지_않는다() throws Exception {
+	void 받는_쪽_수량이_int_범위를_넘거나_매수_총액이_long_범위를_넘으면_400이고_아무것도_바뀌지_않는다() throws Exception {
 		Member member = saveMember();
 		Account from = saveAccount(member);
 		Account to = saveAccount(member);
-		Stock stock = saveStock(1_000);
-		stockBalanceRepository.save(StockBalance.builder().accountId(from.getId()).stockId(stock.getId()).quantity(1).avgPrice(1_000).build());
-		stockBalanceRepository.save(StockBalance.builder().accountId(to.getId()).stockId(stock.getId()).quantity(Integer.MAX_VALUE).avgPrice(1_000).build());
+		Stock quantityOverflow = saveStock(1_000);
+		Stock totalOverflow = saveStock(1_000);
+		stockBalanceRepository.save(StockBalance.builder().accountId(to.getId()).stockId(quantityOverflow.getId()).quantity(Integer.MAX_VALUE).avgPrice(1_000).build());
+		stockBalanceRepository.save(StockBalance.builder().accountId(to.getId()).stockId(totalOverflow.getId()).quantity(2).avgPrice(Long.MAX_VALUE / 2 + 1).build());
 
-		transfer(member, from, to, stock, 1)
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("AMOUNT_OUT_OF_RANGE"));
+		for (Stock stock : List.of(quantityOverflow, totalOverflow)) {
+			stockBalanceRepository.save(StockBalance.builder().accountId(from.getId()).stockId(stock.getId()).quantity(1).avgPrice(1_000).build());
 
-		assertThat(holding(from, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(1);
-		assertThat(holding(to, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(Integer.MAX_VALUE);
-	}
+			transfer(member, from, to, stock, 1)
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.code").value("AMOUNT_OUT_OF_RANGE"));
 
-	@Test
-	void 받는_쪽_매수_총액이_long_범위를_넘으면_400이다() throws Exception {
-		Member member = saveMember();
-		Account from = saveAccount(member);
-		Account to = saveAccount(member);
-		Stock stock = saveStock(1_000);
-		stockBalanceRepository.save(StockBalance.builder().accountId(from.getId()).stockId(stock.getId()).quantity(1).avgPrice(1_000).build());
-		stockBalanceRepository.save(StockBalance.builder().accountId(to.getId()).stockId(stock.getId()).quantity(2).avgPrice(Long.MAX_VALUE / 2 + 1).build());
-
-		transfer(member, from, to, stock, 1)
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("AMOUNT_OUT_OF_RANGE"));
+			assertThat(holding(from, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(1);
+		}
+		assertThat(holding(to, quantityOverflow)).get().extracting(StockBalance::getQuantity).isEqualTo(Integer.MAX_VALUE);
+		assertThat(holding(to, totalOverflow)).get().extracting(StockBalance::getQuantity).isEqualTo(2);
 	}
 
 	@Test
@@ -198,24 +190,6 @@ class StockTransferTest extends ApiTest {
 	}
 
 	@Test
-	void 같은_키로_다시_보낸_이체는_한_번만_실행된다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 100_000);
-		Account receiverAccount = saveAccount(saveMember());
-		Stock stock = saveStock(1_000);
-		buy(member, account, stock, 1_000, 10);
-		String key = UUID.randomUUID().toString();
-		Map<String, Object> body = transferBody(account, receiverAccount, stock, 3);
-
-		postJson("/api/stocks/transfer", member, key, body).andExpect(status().isOk()).andExpect(content().string("이체완료"));
-		postJson("/api/stocks/transfer", member, key, body).andExpect(status().isOk()).andExpect(content().string("이체완료"));
-
-		assertThat(holding(account, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(7);
-		assertThat(holding(receiverAccount, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(3);
-		assertThat(balanceOf(account)).isEqualTo(100_000 - 10_001 - 30);
-	}
-
-	@Test
 	void 성공한_이체를_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_응답을_받고_틀린_횟수가_오르지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 100_000);
@@ -233,6 +207,9 @@ class StockTransferTest extends ApiTest {
 
 		assertThat(passwordFailCountOf(account)).isZero();
 		assertThat(holding(account, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(7);
+		assertThat(holding(receiverAccount, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(3);
+		// 매수 대금·수수료 10,001원과 이체 수수료 30원이 한 번씩만 빠짐
+		assertThat(balanceOf(account)).isEqualTo(100_000 - 10_001 - 30);
 	}
 
 	@Test

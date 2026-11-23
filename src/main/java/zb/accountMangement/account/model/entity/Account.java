@@ -58,8 +58,7 @@ public class Account {
     }
 
     /**
-     * 미체결 매수 주문에 돈을 묶음 - 묶인 금액이 잔액을 넘으면 거절함
-     * @param amount - 묶을 금액
+     * 묶인 금액이 잔액을 넘으면 거절함
      */
     public void hold(long amount) {
         requirePositive(amount);
@@ -69,10 +68,6 @@ public class Account {
         changeHeldAmount(heldAmount + amount);
     }
 
-    /**
-     * 체결되거나 취소된 매수 주문이 묶어 둔 돈을 풂
-     * @param amount - 풀 금액
-     */
     public void releaseHold(long amount) {
         requirePositive(amount);
         changeHeldAmount(Math.subtractExact(heldAmount, amount));

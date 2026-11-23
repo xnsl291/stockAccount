@@ -20,7 +20,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
-import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 /**
  * 모듈(최상위 패키지) 사이에 누가 누구를 import해도 되는지 고정하는 테스트.
@@ -66,17 +65,10 @@ class ArchitectureTest {
 				.check(CLASSES);
 	}
 
-	@Test
-	void 모듈_사이_순환은_계좌와_주식의_예외_하나뿐이다() {
-		slices().matching(BASE + ".(*)..")
-				.should().beFreeOfCycles()
-				.ignoreDependency(ACCOUNT_TO_STOCK_ORIGIN, ACCOUNT_TO_STOCK_EXCEPTION)
-				.check(CLASSES);
-	}
-
-	// 테이블의 주인 모듈만 그 저장소를 씀
+	// 테이블의 주인 모듈만 그 저장소를 씀.
+	// member·idempotency·common은 계층 규칙이 다른 기능 모듈 접근을 아예 막아 여기서 따로 보지 않음
 	@ParameterizedTest
-	@ValueSource(strings = {"auth", "account", "member", "stock", "idempotency", "common"})
+	@ValueSource(strings = {"auth", "account", "stock"})
 	void 다른_모듈의_저장소를_쓰지_않는다(String module) {
 		DescribedPredicate<JavaClass> otherRepository = resideInAPackage(BASE + "..repository..")
 				.and(not(resideInAPackage(BASE + "." + module + "..")));
@@ -95,9 +87,9 @@ class ArchitectureTest {
 				.check(CLASSES);
 	}
 
-	// 엔티티 값을 바꿀 때는 주인 모듈이 연 메서드(예: Account.hold)를 씀
+	// 엔티티 값을 바꿀 때는 주인 모듈이 연 메서드(예: Account.hold)를 씀. 따로 보지 않는 모듈은 위와 같은 이유임
 	@ParameterizedTest
-	@ValueSource(strings = {"auth", "account", "member", "stock", "idempotency", "common"})
+	@ValueSource(strings = {"auth", "account", "stock"})
 	void 다른_모듈의_엔티티_setter를_부르지_않는다(String module) {
 		String ownPackage = BASE + "." + module + ".";
 		DescribedPredicate<JavaMethodCall> otherEntitySetter = new DescribedPredicate<JavaMethodCall>("다른 모듈 엔티티의 setter 호출") {

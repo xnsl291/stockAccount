@@ -1,7 +1,6 @@
 package zb.accountMangement.member;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -13,21 +12,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
-import zb.accountMangement.member.repository.MemberRepository;
-import zb.accountMangement.support.IntegrationTest;
+import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,30 +32,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class JwtAuthenticationTest extends IntegrationTest {
+class JwtAuthenticationTest extends ApiTest {
 
 	private static final String PASSWORD = "password123";
 
-	@Autowired
-	MockMvc mockMvc;
-	@Autowired
-	ObjectMapper objectMapper;
-	@Autowired
-	MemberRepository memberRepository;
-	@Autowired
-	BCryptPasswordEncoder passwordEncoder;
 	@Value("${jwt.secret}")
 	String jwtSecret;
-
-	@Test
-	void 로그인한_토큰으로_인증이_필요한_API를_호출할_수_있다() throws Exception {
-		Member member = saveMember(RoleType.USER);
-		String accessToken = login(member).get("accessToken").asText();
-
-		getMember(member.getId(), accessToken)
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value(member.getId()));
-	}
 
 	@Test
 	void 토큰이_없으면_401() throws Exception {
@@ -102,13 +79,15 @@ class JwtAuthenticationTest extends IntegrationTest {
 	}
 
 	@Test
-	void 권한이_다르면_403() throws Exception {
+	void 관리자는_회원용_경로에서_403이고_탈퇴_경로도_막힌다() throws Exception {
 		Member admin = saveMember(RoleType.ADMIN);
 		String accessToken = login(admin).get("accessToken").asText();
 
 		getMember(admin.getId(), accessToken)
 				.andExpect(status().isForbidden())
 				.andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
+		mockMvc.perform(delete("/api/auth/sign-out").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -138,15 +117,6 @@ class JwtAuthenticationTest extends IntegrationTest {
 		mockMvc.perform(get("/admin/stocks").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
 				.andExpect(status().isUnauthorized())
 				.andExpect(jsonPath("$.code").value("INVALID_TOKEN"));
-	}
-
-	@Test
-	void 관리자는_로그아웃만_열리고_탈퇴_경로는_막힌다() throws Exception {
-		Member admin = saveMember(RoleType.ADMIN);
-		String accessToken = login(admin).get("accessToken").asText();
-
-		mockMvc.perform(delete("/api/auth/sign-out").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
-				.andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -195,7 +165,7 @@ class JwtAuthenticationTest extends IntegrationTest {
 	private Member saveMember(RoleType role) {
 		return memberRepository.save(Member.builder()
 				.name("tester")
-				.phoneNumber("010" + ThreadLocalRandom.current().nextInt(10_000_000, 100_000_000))
+				.phoneNumber(randomPhone())
 				.password(passwordEncoder.encode(PASSWORD))
 				.role(role)
 				.build());

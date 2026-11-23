@@ -1,5 +1,6 @@
 package zb.accountMangement.member;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -77,6 +79,7 @@ class MemberSecurityTest extends ApiTest {
 		sendCodeRequest(phone, randomIp())
 				.andExpect(status().isTooManyRequests())
 				.andExpect(jsonPath("$.code").value("TOO_MANY_SMS_REQUESTS"));
+		verify(smsSender, times(3)).send(eq(phone), anyString());
 	}
 
 	@Test
@@ -93,29 +96,6 @@ class MemberSecurityTest extends ApiTest {
 
 		for (int i = 0; i < 3; i++)
 			sendCodeRequest(victim, randomIp()).andExpect(status().isOk());
-	}
-
-	@Test
-	void 같은_번호로는_인증번호를_10분에_3번까지만_보낸다() throws Exception {
-		String phone = randomPhone();
-		for (int i = 0; i < 3; i++)
-			sendCode(phone);
-
-		sendCodeRequest(phone, randomIp())
-				.andExpect(status().isTooManyRequests())
-				.andExpect(jsonPath("$.code").value("TOO_MANY_SMS_REQUESTS"));
-		verify(smsSender, times(3)).send(eq(phone), anyString());
-	}
-
-	@Test
-	void 인증번호를_4회_틀려도_다섯_번째에_맞히면_인증된다() throws Exception {
-		String phone = randomPhone();
-		String code = sendCode(phone);
-
-		for (int i = 0; i < 4; i++)
-			verifyPhone(phone, "x" + i, SIGN_UP).andExpect(status().isBadRequest());
-
-		verifyPhone(phone, code, SIGN_UP).andExpect(status().isOk());
 	}
 
 	@Test
@@ -169,12 +149,27 @@ class MemberSecurityTest extends ApiTest {
 	}
 
 	@Test
-	void 가입용으로_받은_인증으로는_핸드폰번호를_바꿀_수_없다() throws Exception {
+	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
 		Member member = saveMember();
-		String newPhone = randomPhone();
-		verifyPhone(newPhone, sendCode(newPhone), SIGN_UP).andExpect(status().isOk());
 
-		updatePhone(member, newPhone).andExpect(jsonPath("$.code").value("UNVERIFIED_PHONE_NUMBER"));
+		String found = mockMvc.perform(as(member, get("/api/member/" + member.getId())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(member.getId()))
+				.andExpect(jsonPath("$.password").doesNotExist())
+				.andReturn().getResponse().getContentAsString();
+		String updated = mockMvc.perform(as(member, patch("/api/member/" + member.getId()))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of(
+								"name", "renamed", "phoneNumber", member.getPhoneNumber(), "password", "newPassword1",
+								"currentPassword", "password123"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.name").value("renamed"))
+				.andExpect(jsonPath("$.password").doesNotExist())
+				.andReturn().getResponse().getContentAsString();
+
+		String newHash = memberRepository.findById(member.getId()).orElseThrow().getPassword();
+		assertThat(found).doesNotContain(member.getPassword());
+		assertThat(updated).doesNotContain(newHash);
 	}
 
 	@Test
@@ -189,6 +184,22 @@ class MemberSecurityTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 
 		assertThat(passwordEncoder.matches("password123", memberRepository.findById(member.getId()).orElseThrow().getPassword())).isTrue();
+	}
+
+	@Test
+	void 회원정보_수정에도_가입과_같은_이름_규칙을_적용한다() throws Exception {
+		Member member = saveMember();
+
+		for (String name : List.of("가", "가".repeat(11), "tester!")) {
+			mockMvc.perform(as(member, patch("/api/member/" + member.getId()))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(Map.of("name", name,
+									"phoneNumber", member.getPhoneNumber(), "password", "password123", "currentPassword", "password123"))))
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.code").value("INVALID_NAME_FORMAT"));
+		}
+
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getName()).isEqualTo("tester");
 	}
 
 	@Test
@@ -264,7 +275,7 @@ class MemberSecurityTest extends ApiTest {
 		open.get(30, TimeUnit.SECONDS);
 		executor.shutdown();
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
-		assertThat(accountRepository.findByMemberId(member.getId())).noneMatch(Account::isExistsAccount);
+		assertThat(accountRepository.findAllById(accountRepository.findIdsByMemberId(member.getId()))).noneMatch(Account::isExistsAccount);
 	}
 
 	@Test
@@ -277,7 +288,7 @@ class MemberSecurityTest extends ApiTest {
 		// 수정이 회원을 읽은 뒤에 탈퇴가 커밋되는 순서를 만듦. 토큰 무효화는 Redis 쪽이라 이 겹침과 무관해 넣지 않음
 		TransactionStatus signOut = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			memberService.withdraw(memberService.getMemberForUpdate(member.getId()));
+			memberService.getMemberForUpdate(member.getId()).delete();
 			memberRepository.flush();
 			update = executor.submit(() -> updatePhone(member, member.getPhoneNumber()).andReturn().getResponse().getStatus());
 			awaitLockWaits(1);

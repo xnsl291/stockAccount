@@ -3,6 +3,8 @@ package zb.accountMangement.account;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
@@ -35,6 +38,7 @@ import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -59,41 +63,33 @@ class AccountManagementTest extends ApiTest {
 	TransactionService transactionService;
 
 	@Test
-	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
+	void 계좌를_개설하고_한_건과_내_계좌_목록을_조회할_수_있고_응답에_비밀번호와_틀린_횟수가_없다() throws Exception {
 		Member member = saveMember();
+		Account first = saveAccount(member);
+		saveAccount(saveMember());
 
-		String found = mockMvc.perform(as(member, get("/api/member/" + member.getId())))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value(member.getId()))
-				.andExpect(jsonPath("$.password").doesNotExist())
-				.andReturn().getResponse().getContentAsString();
-		String updated = mockMvc.perform(as(member, patch("/api/member/" + member.getId()))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of(
-								"name", "renamed", "phoneNumber", member.getPhoneNumber(), "password", "newPassword1",
-								"currentPassword", "password123"))))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.name").value("renamed"))
-				.andExpect(jsonPath("$.password").doesNotExist())
-				.andReturn().getResponse().getContentAsString();
-
-		String newHash = memberRepository.findById(member.getId()).orElseThrow().getPassword();
-		assertThat(found).doesNotContain(member.getPassword());
-		assertThat(updated).doesNotContain(newHash);
-	}
-
-	@Test
-	void 계좌_응답에_비밀번호와_틀린_횟수가_없다() throws Exception {
-		Member member = saveMember();
-
-		mockMvc.perform(as(member, post("/api/accounts/open"))
+		String opened = mockMvc.perform(as(member, post("/api/accounts/open"))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(Map.of("nickname", "생활비", "password", ACCOUNT_PASSWORD))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.nickname").value("생활비"))
 				.andExpect(jsonPath("$.status").value("EXISTS"))
 				.andExpect(jsonPath("$.password").doesNotExist())
+				.andExpect(jsonPath("$.passwordFailCount").doesNotExist())
+				.andReturn().getResponse().getContentAsString();
+		long openedId = objectMapper.readTree(opened).get("id").asLong();
+
+		mockMvc.perform(as(member, get("/api/accounts/" + first.getId())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(first.getId()))
+				.andExpect(jsonPath("$.password").doesNotExist())
 				.andExpect(jsonPath("$.passwordFailCount").doesNotExist());
+		mockMvc.perform(as(member, get("/api/accounts")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].id").value(first.getId()))
+				.andExpect(jsonPath("$[1].id").value(openedId))
+				.andExpect(jsonPath("$[0].password").doesNotExist());
 	}
 
 	@Test
@@ -107,7 +103,7 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
 				.andExpect(jsonPath("$.errors.password").exists());
 
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -121,7 +117,7 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
 				.andExpect(jsonPath("$.errors.nickname").exists());
 
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -146,7 +142,7 @@ class AccountManagementTest extends ApiTest {
 		mockMvc.perform(openWithTokenIssuedBeforeWithdrawal)
 				.andExpect(jsonPath("$.code").value("WITHDRAWN_MEMBER"));
 
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -177,7 +173,7 @@ class AccountManagementTest extends ApiTest {
 		assertThat(result.getResponse().getStatus()).isEqualTo(409);
 		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
 				.isEqualTo("DUPLICATED_ACCOUNT_NUMBER");
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -199,6 +195,8 @@ class AccountManagementTest extends ApiTest {
 		updateAccount(member, account, "0000", "5678")
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
+		// 출금과 같은 틀린 횟수에 더해짐. 한도에 이르면 거래정지되는 것은 계좌 보안 테스트가 확인함
+		assertThat(passwordFailCountOf(account)).isEqualTo(1);
 		withdraw(member, account, "5678").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 
 		updateAccount(member, account, ACCOUNT_PASSWORD, "5678")
@@ -207,19 +205,6 @@ class AccountManagementTest extends ApiTest {
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 		withdraw(member, account, "5678").andExpect(status().isOk());
 		assertThat(balanceOf(account)).isEqualTo(40_000);
-	}
-
-	@Test
-	void 계좌_수정에서_현재_비밀번호를_연속_5회_틀려도_거래정지된다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 50_000);
-
-		for (int i = 0; i < 5; i++)
-			updateAccount(member, account, "0000", "5678").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
-
-		withdraw(member, account, ACCOUNT_PASSWORD)
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("PENDING_ACCOUNT"));
 	}
 
 	@Test
@@ -250,7 +235,6 @@ class AccountManagementTest extends ApiTest {
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(status().isOk());
 	}
 
-	// 수정 뒤 코드는 getData를 부르지 않아 아래 끼워넣기 장치가 걸리지 않음. 다른 비원자 방식(예: 확인 후 삭제)으로 바뀌면 이 테스트가 우연히 통과할 수 있음
 	@Test
 	void 문자_인증_한_번으로는_거래정지된_계좌_하나만_풀린다() throws Exception {
 		Member member = saveMember();
@@ -259,14 +243,17 @@ class AccountManagementTest extends ApiTest {
 		lock(member, first);
 		lock(member, second);
 		verifyPhone(member.getPhoneNumber(), sendCode(member.getPhoneNumber()), ACCOUNT_UNLOCK).andExpect(status().isOk());
-		// 두 요청이 모두 인증 표시를 읽은 뒤에야 지우러 가게 해, 읽기와 지우기 사이에 다른 요청이 끼어드는 순서를 매번 만듦.
-		// 그냥 동시에 보내면 한 요청이 지운 뒤에 다른 요청이 읽어 우연히 하나만 풀릴 수 있음
-		CyclicBarrier bothRead = new CyclicBarrier(2);
-		doAnswer(invocation -> {
-			Object value = invocation.callRealMethod();
-			bothRead.await(10, TimeUnit.SECONDS);
-			return value;
-		}).when(redisService).getData(argThat(key -> key.startsWith("SMS_VERIFIED:")));
+		// 두 요청이 모두 인증 표시에 처음 손대기 직전까지 온 뒤에 함께 출발시킴. 그냥 동시에 보내면 한 요청이 끝난 뒤에
+		// 다른 요청이 시작돼 우연히 하나만 풀릴 수 있음. 읽은 뒤 지우는 방식이면 둘 다 읽고 나서 지워 둘 다 풀려 실패함
+		CyclicBarrier bothArrived = new CyclicBarrier(2);
+		Set<Long> arrived = ConcurrentHashMap.newKeySet();
+		Answer<Object> waitForOtherOnce = invocation -> {
+			if (arrived.add(Thread.currentThread().getId()))
+				bothArrived.await(10, TimeUnit.SECONDS);
+			return invocation.callRealMethod();
+		};
+		doAnswer(waitForOtherOnce).when(redisService).getData(argThat(key -> key.startsWith("SMS_VERIFIED:")));
+		doAnswer(waitForOtherOnce).when(redisService).deleteIfEquals(argThat(key -> key.startsWith("SMS_VERIFIED:")), anyString());
 
 		List<Integer> statuses = runConcurrently(2, i -> () ->
 				unlock(member, i == 0 ? first : second).andReturn().getResponse().getStatus());
@@ -387,7 +374,7 @@ class AccountManagementTest extends ApiTest {
 		// 계좌 비밀번호 확인은 수정보다 앞서 끝나는 별도 트랜잭션이라 이 겹침과 무관해 서비스를 바로 부름
 		TransactionStatus deposit = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			transactionService.changeBalance(account.getId(), TransactionType.DEPOSIT, 10_000, "입금", null);
+			transactionService.changeBalance(accountService.getAccountForUpdate(account.getId()), TransactionType.DEPOSIT, 10_000, "입금", null);
 			update = executor.submit(() -> accountService.updateAccount(account.getId(), rename));
 			awaitLockWaits(1);
 		} finally {

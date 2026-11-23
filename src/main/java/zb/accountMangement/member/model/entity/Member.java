@@ -55,7 +55,6 @@ public class Member {
     this.name = name;
     this.password = encodedPassword;
     this.phoneNumber = phoneNumber;
-    this.modifiedAt = LocalDateTime.now();
   }
 
   public void delete() {
