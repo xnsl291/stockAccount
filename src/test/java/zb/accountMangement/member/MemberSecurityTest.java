@@ -264,7 +264,7 @@ class MemberSecurityTest extends ApiTest {
 		open.get(30, TimeUnit.SECONDS);
 		executor.shutdown();
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
-		assertThat(accountRepository.findByMemberId(member.getId())).noneMatch(Account::isExistsAccount);
+		assertThat(accountRepository.findAllById(accountRepository.findIdsByMemberId(member.getId()))).noneMatch(Account::isExistsAccount);
 	}
 
 	@Test

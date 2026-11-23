@@ -107,7 +107,7 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
 				.andExpect(jsonPath("$.errors.password").exists());
 
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -121,7 +121,7 @@ class AccountManagementTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
 				.andExpect(jsonPath("$.errors.nickname").exists());
 
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -146,7 +146,7 @@ class AccountManagementTest extends ApiTest {
 		mockMvc.perform(openWithTokenIssuedBeforeWithdrawal)
 				.andExpect(jsonPath("$.code").value("WITHDRAWN_MEMBER"));
 
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test
@@ -177,7 +177,7 @@ class AccountManagementTest extends ApiTest {
 		assertThat(result.getResponse().getStatus()).isEqualTo(409);
 		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
 				.isEqualTo("DUPLICATED_ACCOUNT_NUMBER");
-		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+		assertThat(accountRepository.findIdsByMemberId(member.getId())).isEmpty();
 	}
 
 	@Test

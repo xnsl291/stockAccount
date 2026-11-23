@@ -17,8 +17,6 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByAccountNumber(String accountNumber);
 
-    List<Account> findByMemberId(Long userId);
-
     List<Account> findByMemberIdAndStatusNot(Long memberId, AccountStatus status);
 
     @Query("select a.id from Account a where a.memberId = :memberId order by a.id")

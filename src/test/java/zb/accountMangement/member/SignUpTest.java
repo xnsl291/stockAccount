@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.member.model.entity.Member;
@@ -70,7 +71,7 @@ class SignUpTest extends IntegrationTest {
 		assertThat(member.getPassword()).isNotEqualTo(PASSWORD);
 		assertThat(passwordEncoder.matches(PASSWORD, member.getPassword())).isTrue();
 
-		List<Account> accounts = accountRepository.findByMemberId(member.getId());
+		List<Account> accounts = accountRepository.findByMemberIdAndStatusNot(member.getId(), AccountStatus.DELETED);
 		assertThat(accounts).hasSize(1);
 		assertThat(passwordEncoder.matches(ACCOUNT_PASSWORD, accounts.get(0).getPassword())).isTrue();
 
