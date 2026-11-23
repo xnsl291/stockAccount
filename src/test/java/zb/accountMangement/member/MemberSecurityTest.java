@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -145,6 +146,30 @@ class MemberSecurityTest extends ApiTest {
 		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
 				.isEqualTo("DUPLICATED_PHONE_NUMBER");
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getPhoneNumber()).isEqualTo(oldPhone);
+	}
+
+	@Test
+	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
+		Member member = saveMember();
+
+		String found = mockMvc.perform(as(member, get("/api/member/" + member.getId())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(member.getId()))
+				.andExpect(jsonPath("$.password").doesNotExist())
+				.andReturn().getResponse().getContentAsString();
+		String updated = mockMvc.perform(as(member, patch("/api/member/" + member.getId()))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of(
+								"name", "renamed", "phoneNumber", member.getPhoneNumber(), "password", "newPassword1",
+								"currentPassword", "password123"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.name").value("renamed"))
+				.andExpect(jsonPath("$.password").doesNotExist())
+				.andReturn().getResponse().getContentAsString();
+
+		String newHash = memberRepository.findById(member.getId()).orElseThrow().getPassword();
+		assertThat(found).doesNotContain(member.getPassword());
+		assertThat(updated).doesNotContain(newHash);
 	}
 
 	@Test

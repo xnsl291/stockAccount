@@ -63,30 +63,6 @@ class AccountManagementTest extends ApiTest {
 	TransactionService transactionService;
 
 	@Test
-	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
-		Member member = saveMember();
-
-		String found = mockMvc.perform(as(member, get("/api/member/" + member.getId())))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value(member.getId()))
-				.andExpect(jsonPath("$.password").doesNotExist())
-				.andReturn().getResponse().getContentAsString();
-		String updated = mockMvc.perform(as(member, patch("/api/member/" + member.getId()))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of(
-								"name", "renamed", "phoneNumber", member.getPhoneNumber(), "password", "newPassword1",
-								"currentPassword", "password123"))))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.name").value("renamed"))
-				.andExpect(jsonPath("$.password").doesNotExist())
-				.andReturn().getResponse().getContentAsString();
-
-		String newHash = memberRepository.findById(member.getId()).orElseThrow().getPassword();
-		assertThat(found).doesNotContain(member.getPassword());
-		assertThat(updated).doesNotContain(newHash);
-	}
-
-	@Test
 	void 계좌를_개설하고_한_건과_내_계좌_목록을_조회할_수_있고_응답에_비밀번호와_틀린_횟수가_없다() throws Exception {
 		Member member = saveMember();
 		Account first = saveAccount(member);
