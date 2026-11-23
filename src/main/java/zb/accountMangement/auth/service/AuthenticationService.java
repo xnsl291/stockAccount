@@ -75,18 +75,6 @@ public class AuthenticationService {
 	}
 
 	/**
-	 * 로그아웃
-	 *
-	 * @param loginMemberId - 로그인한 사용자 ID
-	 * @param accessToken - 액세스 토큰
-	 * @return true
-	 */
-	public Boolean signOut(Long loginMemberId, String accessToken) {
-		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
-		return true;
-	}
-
-	/**
 	 * 토큰 재발급 - 사용한 리프레시 토큰은 새 토큰으로 교체되어 다시 쓸 수 없음
 	 *
 	 * @param refreshToken - 리프레시 토큰

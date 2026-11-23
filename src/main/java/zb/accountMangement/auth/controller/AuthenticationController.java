@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import zb.accountMangement.common.auth.JwtToken;
+import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.auth.dto.*;
 import zb.accountMangement.auth.service.AuthenticationService;
 import zb.accountMangement.member.service.SendMessageService;
@@ -19,6 +20,7 @@ import javax.validation.Valid;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final SendMessageService sendMessageService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 핸드폰 인증번호 발송
@@ -82,8 +84,8 @@ public class AuthenticationController {
      */
     @PostMapping("/logout")
     public ResponseEntity<Boolean> signOut(Authentication authentication){
-        return ResponseEntity.ok().body(authenticationService.signOut(
-                (Long) authentication.getPrincipal(), (String) authentication.getCredentials()));
+        jwtTokenProvider.invalidateTokens((Long) authentication.getPrincipal(), (String) authentication.getCredentials());
+        return ResponseEntity.ok().body(true);
     }
 
     /**
