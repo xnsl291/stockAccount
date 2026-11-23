@@ -36,24 +36,12 @@ public class TransactionController {
     private final AccountValidationService accountValidationService;
     private final IdempotencyService idempotencyService;
 
-    /**
-    * 계좌 소유주 확인
-    * @param accountNumber - 계좌번호
-    * @return 사용자이름
-    */
     @GetMapping("/validation/{account_number}")
     public ResponseEntity<String> validateRecipient(
           @PathVariable("account_number")String accountNumber) {
     return ResponseEntity.ok().body(transactionService.validateRecipient(accountNumber));
     }
 
-    /**
-    * 입금
-    * @param loginMemberId - 로그인한 사용자 ID
-    * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
-    * @param depositDto - 입금 dto (계좌ID, 금액, 메모)
-    * @return "입금완료"
-    */
     @PostMapping("/deposit")
     public ResponseEntity<String> deposit(
             @AuthenticationPrincipal Long loginMemberId,
@@ -65,13 +53,6 @@ public class TransactionController {
                 () -> transactionService.deposit(depositDto)));
     }
 
-    /**
-    * 출금
-    * @param loginMemberId - 로그인한 사용자 ID
-    * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
-    * @param withdrawalDto - 출금 dto (계좌ID, 금액, 메모, 계좌 PW)
-    * @return "출금완료"
-    */
     @PostMapping("/withdrawal")
     public ResponseEntity<String> withdrawal(
             @AuthenticationPrincipal Long loginMemberId,
@@ -83,15 +64,6 @@ public class TransactionController {
                 () -> transactionService.withdrawal(withdrawalDto)));
     }
 
-    /**
-    * 송금
-    * @param loginMemberId - 로그인한 사용자 ID
-    * @param idempotencyKey - 요청마다 새로 만든 키. 같은 키로 다시 보내면 처음 결과만 돌려줌
-    * @param senderAccountId - 발신인 계좌 ID
-    * @param receiverAccountId - 수신인 계좌 ID
-    * @param transferDto - 송금 dto (금액, 메모, 발신인 계좌 PW)
-    * @return "송금완료"
-    */
     @PostMapping("{sender_account_id}/transfer/{receiver_account_id}")
     public ResponseEntity<String> transfer(
             @AuthenticationPrincipal Long loginMemberId,
@@ -105,15 +77,7 @@ public class TransactionController {
                 () -> transactionService.transfer(senderAccountId, receiverAccountId, transferDto)));
     }
     /**
-     * 거래내역 조회 - 최근 거래부터 페이지 단위로
-     * @param loginMemberId - 로그인한 사용자 ID
-     * @param accountId - 계좌 ID
-     * @param type - 거래 종류 (없으면 전체)
-     * @param from - 시작일 yyyy-MM-dd, 그날 포함 (없으면 처음부터)
-     * @param to - 종료일 yyyy-MM-dd, 그날 포함 (없으면 지금까지)
-     * @param page - 페이지 번호 (0부터)
-     * @param size - 페이지 크기 (최대 100)
-     * @return 거래내역 한 페이지
+     * from·to는 그날을 포함하고, 비우면 기간을 제한하지 않음
      */
     @GetMapping("/{accountId}/history")
     public ResponseEntity<Page<TransactionDto>> getTransactionsByAccountId(

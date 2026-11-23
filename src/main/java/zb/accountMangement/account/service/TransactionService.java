@@ -32,11 +32,6 @@ public class TransactionService {
 	private final MemberService memberService;
 	private final TransactionRepository transactionRepository;
 
-	/**
-	 * 계좌 소유주 확인
-	 * @param accountNumber - 계좌번호
-	 * @return 사용자 이름
-	 */
 	public String validateRecipient(String accountNumber) {
 		Account account = accountService.getAccountByNumber(accountNumber);
 		if (!account.isDeletedAccount())
@@ -44,11 +39,6 @@ public class TransactionService {
 		throw new CustomException(ErrorCode.DELETED_ACCOUNT);
 	}
 
-	/**
-	 * 입금
-	 * @param depositDto - 입금 dto (계좌 ID, 금액, 메모)
-	 * @return "입금완료"
-	 */
 	@Transactional
 	public String deposit(DepositDto depositDto) {
 		changeBalance(accountService.getAccountForUpdate(depositDto.getAccountId()), TransactionType.DEPOSIT, depositDto.getAmount(),
@@ -56,11 +46,6 @@ public class TransactionService {
 		return "입금완료";
 	}
 
-	/**
-	 * 출금
-	 * @param withdrawalDto - 출금 dto (계좌 ID, 금액, 메모, 계좌 PW)
-	 * @return "출금완료"
-	 */
 	@Transactional
 	public String withdrawal(WithdrawalDto withdrawalDto) {
 		Account account = accountService.getAccountForUpdate(withdrawalDto.getAccountId());
@@ -69,11 +54,6 @@ public class TransactionService {
 		return "출금완료";
 	}
 
-	/**
-	 * 송금
-	 * @param transferDto - 송금 dto (금액, 메모, 발신인 계좌 PW)
-	 * @return "송금완료"
-	 */
 	@Transactional
 	public String transfer(Long senderAccountId, Long receiverAccountId, TransferDto transferDto) {
 		if (senderAccountId.equals(receiverAccountId))
@@ -98,7 +78,6 @@ public class TransactionService {
 	/**
 	 * 잔액을 바꾸고 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드를 거쳐야 함.
 	 * 계좌는 이 트랜잭션에서 이미 잠가 둔 것을 받음. 잠금 순서를 부르는 쪽이 정하고, 같은 계좌를 다시 잠가 읽지 않기 위함
-	 * @param type - 거래 종류. 잔액이 늘어나는지 줄어드는지는 거래 종류가 정함
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	public void changeBalance(Account lockedAccount, TransactionType type, long amount, String name, String memo) {
@@ -125,14 +104,7 @@ public class TransactionService {
 	}
 
 	/**
-	 * 거래내역 조회 - 최근 거래부터. 같은 시각의 거래는 나중에 기록된 것부터 보여 페이지를 넘겨도 순서가 흔들리지 않음
-	 * @param accountId - 계좌 ID
-	 * @param type - 거래 종류 (없으면 전체)
-	 * @param from - 시작일, 그날 포함 (없으면 처음부터)
-	 * @param to - 종료일, 그날 포함 (없으면 지금까지)
-	 * @param page - 페이지 번호 (0부터)
-	 * @param size - 페이지 크기
-	 * @return 거래내역 한 페이지
+	 * 최근 거래부터. 같은 시각의 거래는 나중에 기록된 것부터 보여 페이지를 넘겨도 순서가 흔들리지 않음
 	 */
 	public Page<TransactionDto> getTransactionsByAccountId(Long accountId, TransactionType type,
 			LocalDate from, LocalDate to, int page, int size) {
@@ -146,11 +118,6 @@ public class TransactionService {
 				.map(this::mapToTransactionDto);
 	}
 
-	/**
-	 * transaction 을 transactionDto로 매핑
-	 * @param transaction - 거래
-	 * @return TransactionDto
-	 */
 	private TransactionDto mapToTransactionDto(Transaction transaction) {
 		return TransactionDto.builder()
 				.accountId(transaction.getAccountId())
