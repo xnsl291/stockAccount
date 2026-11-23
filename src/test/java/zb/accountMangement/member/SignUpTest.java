@@ -1,13 +1,11 @@
 package zb.accountMangement.member;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -25,10 +21,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
-import zb.accountMangement.account.repository.AccountRepository;
 import zb.accountMangement.member.model.entity.Member;
-import zb.accountMangement.member.repository.MemberRepository;
-import zb.accountMangement.support.IntegrationTest;
+import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,22 +35,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class SignUpTest extends IntegrationTest {
+class SignUpTest extends ApiTest {
 
 	private static final String PASSWORD = "password123";
-	private static final String ACCOUNT_PASSWORD = "1234";
 	private static final Pattern CODE = Pattern.compile("\\[(\\d+)]");
 
-	@Autowired
-	MockMvc mockMvc;
-	@Autowired
-	ObjectMapper objectMapper;
-	@Autowired
-	MemberRepository memberRepository;
-	@Autowired
-	AccountRepository accountRepository;
-	@Autowired
-	BCryptPasswordEncoder passwordEncoder;
 	@Autowired
 	PlatformTransactionManager transactionManager;
 
@@ -241,9 +224,5 @@ class SignUpTest extends IntegrationTest {
 
 	private String bearer(String accessToken) {
 		return "Bearer " + accessToken;
-	}
-
-	private String randomPhone() {
-		return "010" + ThreadLocalRandom.current().nextInt(10_000_000, 100_000_000);
 	}
 }
