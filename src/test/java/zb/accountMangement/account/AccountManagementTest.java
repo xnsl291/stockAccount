@@ -83,17 +83,33 @@ class AccountManagementTest extends ApiTest {
 	}
 
 	@Test
-	void 계좌_응답에_비밀번호와_틀린_횟수가_없다() throws Exception {
+	void 계좌를_개설하고_한_건과_내_계좌_목록을_조회할_수_있고_응답에_비밀번호와_틀린_횟수가_없다() throws Exception {
 		Member member = saveMember();
+		Account first = saveAccount(member);
+		saveAccount(saveMember());
 
-		mockMvc.perform(as(member, post("/api/accounts/open"))
+		String opened = mockMvc.perform(as(member, post("/api/accounts/open"))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(Map.of("nickname", "생활비", "password", ACCOUNT_PASSWORD))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.nickname").value("생활비"))
 				.andExpect(jsonPath("$.status").value("EXISTS"))
 				.andExpect(jsonPath("$.password").doesNotExist())
+				.andExpect(jsonPath("$.passwordFailCount").doesNotExist())
+				.andReturn().getResponse().getContentAsString();
+		long openedId = objectMapper.readTree(opened).get("id").asLong();
+
+		mockMvc.perform(as(member, get("/api/accounts/" + first.getId())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(first.getId()))
+				.andExpect(jsonPath("$.password").doesNotExist())
 				.andExpect(jsonPath("$.passwordFailCount").doesNotExist());
+		mockMvc.perform(as(member, get("/api/accounts")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].id").value(first.getId()))
+				.andExpect(jsonPath("$[1].id").value(openedId))
+				.andExpect(jsonPath("$[0].password").doesNotExist());
 	}
 
 	@Test
