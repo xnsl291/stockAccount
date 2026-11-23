@@ -32,12 +32,7 @@ public class IdempotencyService {
 
 	/**
 	 * 같은 회원이 같은 키로 보낸 요청은 한 번만 실행하고, 다시 오면 처음 결과를 그대로 돌려줌.
-	 * 실행이 실패하면 키도 함께 롤백되므로 같은 키로 다시 시도할 수 있음
-	 * @param memberId - 요청한 사용자 ID
-	 * @param idempotencyKey - 요청마다 클라이언트가 정해 보내는 키
-	 * @param request - 요청 내용. 같은 키를 다른 내용의 요청에 다시 쓰면 거절함
-	 * @param action - 실제로 실행할 작업
-	 * @return 작업 결과
+	 * 실행이 실패하면 키도 함께 롤백되므로 같은 키로 다시 시도할 수 있음. 같은 키를 다른 내용의 요청에 다시 쓰면 거절함
 	 */
 	public String execute(Long memberId, String idempotencyKey, String request, Supplier<String> action) {
 		// 실행 전 확인을 거친 요청도 다시 찾음. 확인하는 사이에 같은 키의 요청이 끝났을 수 있음
