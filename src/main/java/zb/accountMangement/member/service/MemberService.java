@@ -48,12 +48,10 @@ public class MemberService {
 	public Member createMember(String name, String phoneNumber, String loginPassword) {
 		String normalized = PhoneNumber.normalize(phoneNumber);
 
-		// 이름 유효성 검사
 		if (!name.matches("[가-힣a-zA-Z0-9]{2,10}")) {
 			throw new CustomException(ErrorCode.INVALID_NAME_FORMAT);
 		}
 
-		// 핸드폰번호 중복 검사
 		if (memberRepository.existsByPhoneNumber(normalized))
 			throw new CustomException(ErrorCode.DUPLICATED_PHONE_NUMBER);
 

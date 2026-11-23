@@ -60,7 +60,6 @@ public class AuthenticationService {
 	public JwtToken signIn(SignInDto signInDto) {
 		Member member = memberService.getMemberByPhoneNumber(PhoneNumber.normalize(signInDto.getPhoneNumber()));
 
-		// 비밀번호 일치여부 확인
 		if (!passwordEncoder.matches(signInDto.getPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 
