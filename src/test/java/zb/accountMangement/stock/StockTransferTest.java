@@ -190,24 +190,6 @@ class StockTransferTest extends ApiTest {
 	}
 
 	@Test
-	void 같은_키로_다시_보낸_이체는_한_번만_실행된다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 100_000);
-		Account receiverAccount = saveAccount(saveMember());
-		Stock stock = saveStock(1_000);
-		buy(member, account, stock, 1_000, 10);
-		String key = UUID.randomUUID().toString();
-		Map<String, Object> body = transferBody(account, receiverAccount, stock, 3);
-
-		postJson("/api/stocks/transfer", member, key, body).andExpect(status().isOk()).andExpect(content().string("이체완료"));
-		postJson("/api/stocks/transfer", member, key, body).andExpect(status().isOk()).andExpect(content().string("이체완료"));
-
-		assertThat(holding(account, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(7);
-		assertThat(holding(receiverAccount, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(3);
-		assertThat(balanceOf(account)).isEqualTo(100_000 - 10_001 - 30);
-	}
-
-	@Test
 	void 성공한_이체를_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_응답을_받고_틀린_횟수가_오르지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 100_000);
@@ -225,6 +207,9 @@ class StockTransferTest extends ApiTest {
 
 		assertThat(passwordFailCountOf(account)).isZero();
 		assertThat(holding(account, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(7);
+		assertThat(holding(receiverAccount, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(3);
+		// 매수 대금·수수료 10,001원과 이체 수수료 30원이 한 번씩만 빠짐
+		assertThat(balanceOf(account)).isEqualTo(100_000 - 10_001 - 30);
 	}
 
 	@Test
