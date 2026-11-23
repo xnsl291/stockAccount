@@ -1,14 +1,24 @@
 package zb.accountMangement.member;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
+import zb.accountMangement.member.service.MemberService;
 import zb.accountMangement.stock.model.entity.StockBalance;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
@@ -20,6 +30,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static zb.accountMangement.member.model.VerificationPurpose.PHONE_CHANGE;
@@ -28,7 +39,13 @@ import static zb.accountMangement.member.model.VerificationPurpose.SIGN_UP;
 class MemberSecurityTest extends ApiTest {
 
 	@Autowired
+	PlatformTransactionManager transactionManager;
+
+	@Autowired
 	StockBalanceRepository stockBalanceRepository;
+
+	@Autowired
+	MemberService memberService;
 
 	@Test
 	void 인증번호를_5회_틀리면_맞는_인증번호로도_인증되지_않는다() throws Exception {
@@ -125,6 +142,33 @@ class MemberSecurityTest extends ApiTest {
 	}
 
 	@Test
+	void 같은_새_번호로_바꾸는_요청이_겹쳐도_500이_아니라_중복_번호_오류로_응답한다() throws Exception {
+		Member member = saveMember();
+		String oldPhone = member.getPhoneNumber();
+		String newPhone = randomPhone();
+		verifyPhone(newPhone, sendCode(newPhone), PHONE_CHANGE).andExpect(status().isOk());
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> update;
+
+		// 다른 회원이 그 번호를 쓰도록 저장만 하고 커밋하지 않은 상태를 만들어, 번호 변경이 중복 검사는 통과하고 반영에서 기다리게 함
+		TransactionStatus otherMember = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			memberRepository.saveAndFlush(Member.builder().name("other").phoneNumber(newPhone).password("x").build());
+			update = executor.submit(() -> updatePhone(member, newPhone).andReturn());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(otherMember);
+		}
+
+		MvcResult result = update.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(400);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
+				.isEqualTo("DUPLICATED_PHONE_NUMBER");
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getPhoneNumber()).isEqualTo(oldPhone);
+	}
+
+	@Test
 	void 가입용으로_받은_인증으로는_핸드폰번호를_바꿀_수_없다() throws Exception {
 		Member member = saveMember();
 		String newPhone = randomPhone();
@@ -186,6 +230,64 @@ class MemberSecurityTest extends ApiTest {
 		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
 		assertThat(statusOf(first)).isEqualTo(AccountStatus.DELETED);
 		assertThat(statusOf(second)).isEqualTo(AccountStatus.DELETED);
+	}
+
+	@Test
+	void 탈퇴와_계좌_개설이_겹쳐도_탈퇴한_회원에게_살아_있는_계좌가_남지_않는다() throws Exception {
+		Member member = saveMember();
+		Account existing = saveAccount(member);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		Future<Integer> signOut;
+		Future<Integer> open;
+
+		// 기존 계좌 행을 잠근 트랜잭션을 열어 두어, 탈퇴가 계좌 목록을 읽은 뒤 그 계좌의 잠금에서 기다리게 하고 그동안 계좌를 개설함
+		TransactionStatus holdingAccount = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			accountRepository.findByIdForUpdate(existing.getId()).orElseThrow();
+			signOut = executor.submit(() -> signOut(member).andReturn().getResponse().getStatus());
+			awaitLockWaits(1);
+			open = executor.submit(() -> mockMvc.perform(as(member, post("/api/accounts/open"))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(Map.of("password", ACCOUNT_PASSWORD))))
+					.andReturn().getResponse().getStatus());
+			// 개설이 탈퇴보다 먼저 끝나거나, 탈퇴가 잡은 잠금에서 개설도 기다리기 시작할 때까지 진행시킨 뒤 계좌 잠금을 풂
+			try {
+				open.get(3, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				awaitLockWaits(2);
+			}
+		} finally {
+			transactionManager.commit(holdingAccount);
+		}
+
+		assertThat(signOut.get(30, TimeUnit.SECONDS)).isEqualTo(200);
+		open.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
+		assertThat(accountRepository.findByMemberId(member.getId())).noneMatch(Account::isExistsAccount);
+	}
+
+	@Test
+	void 회원정보_수정과_탈퇴가_겹쳐도_탈퇴가_되돌려지지_않는다() throws Exception {
+		Member member = saveMember();
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Integer> update;
+
+		// 탈퇴가 회원 행에 하는 일(잠그고 탈퇴로 바꿈)을 커밋하지 않은 채로 회원정보 수정을 보내,
+		// 수정이 회원을 읽은 뒤에 탈퇴가 커밋되는 순서를 만듦. 토큰 무효화는 Redis 쪽이라 이 겹침과 무관해 넣지 않음
+		TransactionStatus signOut = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			memberService.withdraw(memberService.getMemberForUpdate(member.getId()));
+			memberRepository.flush();
+			update = executor.submit(() -> updatePhone(member, member.getPhoneNumber()).andReturn().getResponse().getStatus());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(signOut);
+		}
+
+		update.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(memberRepository.findById(member.getId()).orElseThrow().getRole()).isEqualTo(RoleType.WITHDRAWN);
 	}
 
 	private ResultActions updatePhone(Member member, String phone) throws Exception {

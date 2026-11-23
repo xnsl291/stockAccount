@@ -1,17 +1,43 @@
 package zb.accountMangement.account;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import zb.accountMangement.account.dto.AccountManagementDto;
+import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.account.model.TransactionType;
+import zb.accountMangement.account.service.AccountService;
+import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.common.type.RoleType;
 import zb.accountMangement.member.model.entity.Member;
+import zb.accountMangement.stock.model.entity.Stock;
+import zb.accountMangement.stock.model.entity.StockBalance;
+import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static zb.accountMangement.member.model.VerificationPurpose.ACCOUNT_UNLOCK;
 import static zb.accountMangement.member.model.VerificationPurpose.SIGN_UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -22,6 +48,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AccountManagementTest extends ApiTest {
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
+	@Autowired
+	StockBalanceRepository stockBalanceRepository;
+	@Autowired
+	AccountService accountService;
+	@Autowired
+	TransactionService transactionService;
 
 	@Test
 	void 회원_조회와_수정_응답에_로그인_비밀번호_해시가_없다() throws Exception {
@@ -76,6 +111,30 @@ class AccountManagementTest extends ApiTest {
 	}
 
 	@Test
+	void 별명이_DB_칸보다_길면_계좌번호_중복이_아니라_입력_검증_오류로_응답한다() throws Exception {
+		Member member = saveMember();
+
+		mockMvc.perform(as(member, post("/api/accounts/open"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of("nickname", "가".repeat(256), "password", ACCOUNT_PASSWORD))))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
+				.andExpect(jsonPath("$.errors.nickname").exists());
+
+		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+	}
+
+	@Test
+	void 계좌번호_유니크_위반이_아닌_저장_오류는_계좌번호_중복으로_바꾸지_않는다() {
+		Member member = saveMember();
+		// 입력 검증을 거치지 않는 서비스 호출로, 길이 초과처럼 유니크 위반이 아닌 저장 오류를 일부러 냄
+		AccountManagementDto tooLong = AccountManagementDto.builder().nickname("가".repeat(256)).password(ACCOUNT_PASSWORD).build();
+
+		assertThatThrownBy(() -> accountService.openAccount(member.getId(), tooLong))
+				.isInstanceOf(DataIntegrityViolationException.class);
+	}
+
+	@Test
 	void 탈퇴한_회원은_남은_액세스_토큰으로도_계좌를_개설할_수_없다() throws Exception {
 		Member member = saveMember();
 		MockHttpServletRequestBuilder openWithTokenIssuedBeforeWithdrawal = as(member, post("/api/accounts/open"))
@@ -87,6 +146,37 @@ class AccountManagementTest extends ApiTest {
 		mockMvc.perform(openWithTokenIssuedBeforeWithdrawal)
 				.andExpect(jsonPath("$.code").value("WITHDRAWN_MEMBER"));
 
+		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
+	}
+
+	@Test
+	void 같은_계좌번호의_개설이_겹쳐도_500이_아니라_계좌번호_중복_오류로_응답한다() throws Exception {
+		Member member = saveMember();
+		Member other = saveMember();
+		String accountNumber = "9" + ThreadLocalRandom.current().nextLong(1_000_000_000_000L, 10_000_000_000_000L);
+		doReturn(accountNumber).when(accountNumberGenerator).generate();
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> open;
+
+		// 같은 번호의 계좌를 저장만 하고 커밋하지 않은 상태를 만들어, 개설 요청이 번호 조회는 통과하고 저장에서 기다리게 함
+		TransactionStatus otherOpen = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			accountRepository.saveAndFlush(Account.builder()
+					.memberId(other.getId()).accountNumber(accountNumber).password("x").build());
+			open = executor.submit(() -> mockMvc.perform(as(member, post("/api/accounts/open"))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(Map.of("password", ACCOUNT_PASSWORD))))
+					.andReturn());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(otherOpen);
+		}
+
+		MvcResult result = open.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(409);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
+				.isEqualTo("DUPLICATED_ACCOUNT_NUMBER");
 		assertThat(accountRepository.findByMemberId(member.getId())).isEmpty();
 	}
 
@@ -160,6 +250,32 @@ class AccountManagementTest extends ApiTest {
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(status().isOk());
 	}
 
+	// 수정 뒤 코드는 getData를 부르지 않아 아래 끼워넣기 장치가 걸리지 않음. 다른 비원자 방식(예: 확인 후 삭제)으로 바뀌면 이 테스트가 우연히 통과할 수 있음
+	@Test
+	void 문자_인증_한_번으로는_거래정지된_계좌_하나만_풀린다() throws Exception {
+		Member member = saveMember();
+		Account first = saveAccount(member, 50_000);
+		Account second = saveAccount(member, 50_000);
+		lock(member, first);
+		lock(member, second);
+		verifyPhone(member.getPhoneNumber(), sendCode(member.getPhoneNumber()), ACCOUNT_UNLOCK).andExpect(status().isOk());
+		// 두 요청이 모두 인증 표시를 읽은 뒤에야 지우러 가게 해, 읽기와 지우기 사이에 다른 요청이 끼어드는 순서를 매번 만듦.
+		// 그냥 동시에 보내면 한 요청이 지운 뒤에 다른 요청이 읽어 우연히 하나만 풀릴 수 있음
+		CyclicBarrier bothRead = new CyclicBarrier(2);
+		doAnswer(invocation -> {
+			Object value = invocation.callRealMethod();
+			bothRead.await(10, TimeUnit.SECONDS);
+			return value;
+		}).when(redisService).getData(argThat(key -> key.startsWith("SMS_VERIFIED:")));
+
+		List<Integer> statuses = runConcurrently(2, i -> () ->
+				unlock(member, i == 0 ? first : second).andReturn().getResponse().getStatus());
+
+		assertThat(statuses).containsExactlyInAnyOrder(200, 400);
+		assertThat(List.of(statusOf(first), statusOf(second)))
+				.containsExactlyInAnyOrder(AccountStatus.EXISTS, AccountStatus.PENDING);
+	}
+
 	@Test
 	void 남의_계좌는_잠금을_풀_수_없다() throws Exception {
 		Member owner = saveMember();
@@ -205,6 +321,88 @@ class AccountManagementTest extends ApiTest {
 		search(saveMember(), closed.getAccountNumber())
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.code").value("ACCOUNT_NOT_EXIST"));
+	}
+
+	@Test
+	void 해지한_계좌를_빼고_하나만_남으면_해지를_거절하고_계좌_목록에는_해지한_계좌가_없다() throws Exception {
+		Member member = saveMember();
+		Account closed = saveAccount(member);
+		Account last = saveAccount(member);
+		closeAccount(member, closed).andExpect(status().isOk());
+
+		closeAccount(member, last)
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("LAST_ACCOUNT"));
+
+		assertThat(statusOf(last)).isEqualTo(AccountStatus.EXISTS);
+		mockMvc.perform(as(member, get("/api/accounts")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].id").value(last.getId()));
+	}
+
+	@Test
+	void 계좌_두_개를_동시에_해지해도_하나는_남는다() throws Exception {
+		Member member = saveMember();
+		Account first = saveAccount(member);
+		Account second = saveAccount(member);
+		Stock stock = saveStock(1_000);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		List<Future<Integer>> closes = new ArrayList<>();
+
+		// 두 계좌에 보유 주식을 넣고 커밋하지 않은 상태를 만들어, 두 해지 요청이 계좌 수를 센 다음 보유 주식 확인에서 기다리게 함.
+		// 그 뒤 넣은 것을 되돌려 두 요청이 해지를 이어 가게 함. 계좌 수를 잠금 없이 세면 둘 다 "2개"를 본 채로 해지함
+		TransactionStatus incoming = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			for (Account account : List.of(first, second))
+				stockBalanceRepository.saveAndFlush(StockBalance.builder()
+						.accountId(account.getId()).stockId(stock.getId()).quantity(1).build());
+			for (Account account : List.of(first, second))
+				closes.add(executor.submit(() -> closeAccount(member, account).andReturn().getResponse().getStatus()));
+			awaitLockWaits(2);
+		} finally {
+			transactionManager.rollback(incoming);
+		}
+
+		List<Integer> statuses = new ArrayList<>();
+		for (Future<Integer> close : closes)
+			statuses.add(close.get(30, TimeUnit.SECONDS));
+		executor.shutdown();
+		assertThat(statuses).containsExactlyInAnyOrder(200, 400);
+		assertThat(List.of(statusOf(first), statusOf(second)))
+				.containsExactlyInAnyOrder(AccountStatus.EXISTS, AccountStatus.DELETED);
+	}
+
+	@Test
+	void 별명_수정과_입금이_겹쳐도_입금이_사라지지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 50_000);
+		UpdateAccountDto rename = new UpdateAccountDto();
+		rename.setNickname("생활비");
+		rename.setCurrentPassword(ACCOUNT_PASSWORD);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Account> update;
+
+		// 입금을 반영하고 커밋하지 않은 채로 별명 수정을 돌려, 수정이 계좌를 읽은 뒤에 입금이 커밋되는 순서를 만듦.
+		// 계좌 비밀번호 확인은 수정보다 앞서 끝나는 별도 트랜잭션이라 이 겹침과 무관해 서비스를 바로 부름
+		TransactionStatus deposit = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			transactionService.changeBalance(account.getId(), TransactionType.DEPOSIT, 10_000, "입금", null);
+			update = executor.submit(() -> accountService.updateAccount(account.getId(), rename));
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(deposit);
+		}
+
+		update.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		Account saved = accountRepository.findById(account.getId()).orElseThrow();
+		assertThat(saved.getNickname()).isEqualTo("생활비");
+		assertThat(saved.getBalance()).isEqualTo(60_000);
+	}
+
+	private ResultActions closeAccount(Member member, Account account) throws Exception {
+		return mockMvc.perform(as(member, delete("/api/accounts/" + account.getId())));
 	}
 
 	private void lock(Member member, Account account) throws Exception {

@@ -5,11 +5,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.repository.TransactionRepository;
 import zb.accountMangement.member.model.entity.Member;
@@ -41,6 +50,10 @@ class StockOrderTest extends ApiTest {
 	StockBalanceRepository stockBalanceRepository;
 	@Autowired
 	TransactionRepository transactionRepository;
+	@Autowired
+	PlatformTransactionManager transactionManager;
+	@Autowired
+	JdbcTemplate jdbcTemplate;
 
 	@Test
 	void 시세가_주문가를_만족하면_주문가가_아닌_시세로_바로_체결된다() throws Exception {
@@ -141,6 +154,37 @@ class StockOrderTest extends ApiTest {
 				"DEPOSIT 20000 20000", "STOCK_BUY -10000 10000", "FEE -1 9999", "STOCK_SELL 12000 21999", "FEE -1 21998");
 		assertThat(stockBalanceRepository.findByAccountIdAndStockId(sellerAccount.getId(), stock.getId())).isEmpty();
 		assertThat(ordersOf(tooLow)).containsExactly("BUY PENDING");
+	}
+
+	@Test
+	void 주문_접수와_시세_갱신이_겹쳐도_새_시세로_체결될_주문이_미체결로_남지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 10_000);
+		Stock stock = saveStock(1_000);
+		Member admin = saveAdmin();
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		Future<MvcResult> buy;
+
+		// 주문 테이블 끝에 새 줄이 들어가지 못하게 잠근 트랜잭션을 열어 두어, 주문 접수가 옛 시세(1,000원)를 읽은 뒤 주문 저장에서
+		// 기다리게 함. 그동안 시세를 900원으로 갱신하면 시세 갱신은 아직 저장되지 않은 이 주문을 보지 못함
+		TransactionStatus blockOrders = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			Long lastId = jdbcTemplate.queryForObject("select coalesce(max(id), 0) from trading", Long.class);
+			jdbcTemplate.queryForList("select id from trading where id > ? for update", lastId);
+			buy = executor.submit(() -> order("buy", member, account, stock, 900, 10).andReturn());
+			awaitLockWaits(1);
+			// 이 스레드는 위 트랜잭션에 묶여 있어, 시세 갱신 요청은 다른 스레드에서 보내고 끝날 때까지 기다림
+			assertThat(executor.submit(() -> updatePrice(admin, stock, 900).andReturn().getResponse().getStatus())
+					.get(30, TimeUnit.SECONDS)).isEqualTo(200);
+		} finally {
+			transactionManager.commit(blockOrders);
+		}
+
+		MvcResult result = buy.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(200);
+		assertThat(ordersOf(account)).containsExactly("BUY FILLED");
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("status").asText()).isEqualTo("FILLED");
 	}
 
 	@Test
@@ -362,6 +406,31 @@ class StockOrderTest extends ApiTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(1))
 				.andExpect(jsonPath("$[0].name").value(name));
+	}
+
+	@Test
+	void 같은_종목코드의_등록이_겹쳐도_500이_아니라_종목코드_중복_오류로_응답한다() throws Exception {
+		Member admin = saveAdmin();
+		String code = "0" + randomPhone().substring(3, 8);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<MvcResult> register;
+
+		// 같은 코드의 종목을 저장만 하고 커밋하지 않은 상태를 만들어, 등록 요청이 코드 중복 검사는 통과하고 저장에서 기다리게 함
+		TransactionStatus otherRegister = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			stockRepository.saveAndFlush(Stock.builder().code(code).name("먼저등록").currentPrice(1_000).build());
+			register = executor.submit(() ->
+					postJson("/admin/stocks", admin, Map.of("code", code, "name", "나중등록", "currentPrice", 5_000)).andReturn());
+			awaitLockWaits(1);
+		} finally {
+			transactionManager.commit(otherRegister);
+		}
+
+		MvcResult result = register.get(30, TimeUnit.SECONDS);
+		executor.shutdown();
+		assertThat(result.getResponse().getStatus()).isEqualTo(409);
+		assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("code").asText())
+				.isEqualTo("DUPLICATED_STOCK_CODE");
 	}
 
 	@Test

@@ -1,14 +1,19 @@
 package zb.accountMangement.support;
 
 import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import zb.accountMangement.account.service.AccountNumberGenerator;
+import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.member.service.SmsSender;
 
 /**
@@ -32,6 +37,15 @@ public abstract class IntegrationTest {
 	@MockBean
 	protected SmsSender smsSender;
 
+	// 평소에는 실제 Redis를 그대로 쓰고, 동시성 테스트만 특정 호출 직후에 멈춰 세우는 데 씀
+	@SpyBean
+	protected RedisService redisService;
+	@SpyBean
+	protected AccountNumberGenerator accountNumberGenerator;
+
+	@Autowired
+	private JdbcTemplate lockInspector;
+
 	@DynamicPropertySource
 	static void containerProperties(DynamicPropertyRegistry registry) {
 		registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
@@ -50,6 +64,21 @@ public abstract class IntegrationTest {
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+	/**
+	 * 잠금을 기다리는 트랜잭션이 count개 이상 생길 때까지 기다림.
+	 * 정해진 시간만 쉬면 다른 스레드의 요청이 잠금에 닿기 전에 테스트가 커밋해 버려 겹치는 순서를 만들지 못할 수 있음
+	 */
+	protected void awaitLockWaits(int count) throws InterruptedException {
+		for (int i = 0; i < 300; i++) {
+			Integer waiting = lockInspector.queryForObject(
+					"select count(*) from information_schema.innodb_trx where trx_state = 'LOCK WAIT'", Integer.class);
+			if (waiting != null && waiting >= count)
+				return;
+			Thread.sleep(100);
+		}
+		throw new AssertionError("30초 안에 잠금을 기다리는 트랜잭션이 " + count + "개 생기지 않음");
 	}
 
 	/**

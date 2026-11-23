@@ -70,6 +70,8 @@ public class StockController {
                 type + " " + tradeStockDto.getAccountId() + " " + tradeStockDto.getStockId() + " "
                         + tradeStockDto.getPrice() + " " + tradeStockDto.getQuantity(),
                 () -> String.valueOf(orderService.placeOrder(type, tradeStockDto)));
+        // 위의 접수 트랜잭션이 커밋된 뒤에 다시 확인해야, 접수 중에 지나간 시세 갱신이 놓친 체결을 잡음
+        orderService.recheckFill(tradeStockDto.getAccountId(), Long.valueOf(orderId));
         Trading order = orderService.getOrder(Long.valueOf(orderId));
         return TradingResponse.of(order, stockService.getStockById(order.getStockId()));
     }

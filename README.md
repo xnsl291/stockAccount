@@ -93,11 +93,11 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 | 메서드 | 경로 | 설명 |
 |---|---|---|
 | POST | `/api/accounts/open` | 계좌 개설 |
-| GET | `/api/accounts` | 내 계좌 목록 |
+| GET | `/api/accounts` | 내 계좌 목록. 해지한 계좌는 빠짐 |
 | GET | `/api/accounts/{account_id}` | 계좌 조회(잔액, 주문에 묶인 금액, 쓸 수 있는 금액) |
 | PATCH | `/api/accounts/{account_id}` | 별칭·계좌 비밀번호 변경. 현재 계좌 비밀번호 필요 |
 | POST | `/api/accounts/{account_id}/unlock` | 거래정지 계좌 잠금 해제. 등록된 번호로 문자 인증을 먼저 마쳐야 함 |
-| DELETE | `/api/accounts/{account_id}` | 계좌 해지. 잔액·보유 주식이 없고 계좌가 2개 이상일 때만 |
+| DELETE | `/api/accounts/{account_id}` | 계좌 해지. 잔액·보유 주식이 없고 해지하지 않은 계좌가 2개 이상일 때만. 마지막 남은 계좌면 `LAST_ACCOUNT`, 거래정지 계좌면 `PENDING_ACCOUNT`로 거절 |
 | GET | `/api/accounts/search/{account_number}` | 계좌번호로 검색. 내 계좌면 잔액까지, 남의 계좌면 계좌 ID와 소유주 이름만. 해지 계좌는 찾지 않음 |
 
 ### 계좌 거래
@@ -158,7 +158,7 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 
 ## 테스트
 
-`./gradlew test`로 99개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
+`./gradlew test`로 146개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
 
 - `TransactionConsistencyTest`: 동시 출금·맞송금, Idempotency-Key 재전송·동시 전송, 거래 기록 합계와 잔액 일치, 금액·계좌 상태 검증
 - `TransactionHistoryTest`: 거래내역 페이지 나눔, 정렬, 기간·종류 필터
@@ -179,7 +179,7 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 
 ## 알려진 한계
 
-- **주문과 시세 갱신이 동시에 일어나면 체결될 주문이 PENDING으로 남을 수 있음.** 주문은 받을 때의 시세로 바로 체결할지 정하고, 시세 갱신은 그 순간 커밋된 미체결 주문만 다시 확인함. 시세가 바뀌는 사이에 들어온 주문은 둘 다에서 빠져 다음 시세 갱신 때 체결됨
+- **주문 접수를 커밋한 직후 앱이 죽으면 체결될 주문이 다음 시세 갱신 때까지 PENDING으로 남을 수 있음.** 접수 중에 시세 갱신이 지나가도 놓치지 않도록 접수를 커밋한 뒤 체결 조건을 한 번 더 확인하는데, 커밋과 이 확인 사이에 앱이 멈추면 확인이 일어나지 않음
 - **리프레시 토큰은 회원당 하나.** 새로 로그인하면 이전 기기의 리프레시 토큰은 더는 쓸 수 없음
 - **남이 내 번호로 인증번호를 3번 받으면 10분 동안 나도 인증번호를 받을 수 없음.** 번호별 발송 한도를 공격자와 본인이 같이 쓰기 때문임. IP별 한도(10분에 10번)로 한 곳에서 여러 번호를 막는 것은 제한하지만, IP를 바꿔 가며 특정 번호를 노리면 막지 못함. 요청 IP는 `X-Forwarded-For`를 믿지 않고 접속한 주소를 쓰므로, 프록시 뒤에 둘 때는 프록시가 넘긴 주소를 믿도록 따로 설정해야 함
 - **로그인 비밀번호 오류 횟수 제한이 없음.** 계좌 비밀번호와 문자 인증번호에만 횟수 제한이 있음

@@ -1,6 +1,7 @@
 package zb.accountMangement.stock.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.exception.CustomException;
+import zb.accountMangement.common.exception.UniqueConstraint;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.model.entity.StockBalance;
@@ -118,11 +120,19 @@ public class StockService {
     public Stock registerStock(RegisterStockDto registerStockDto) {
         if (stockRepository.existsByCode(registerStockDto.getCode()))
             throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
-        return stockRepository.save(Stock.builder()
-                .code(registerStockDto.getCode())
-                .name(registerStockDto.getName())
-                .currentPrice(registerStockDto.getCurrentPrice())
-                .build());
+        // 위의 검사는 아직 커밋되지 않은 같은 코드의 등록을 보지 못해, 그런 등록이 먼저 커밋되면 저장이 유니크 제약에 걸림.
+        // 종목코드 유니크 위반일 때만 같은 오류 코드로 바꾸고, 다른 저장 오류는 그대로 올려 보냄
+        try {
+            return stockRepository.saveAndFlush(Stock.builder()
+                    .code(registerStockDto.getCode())
+                    .name(registerStockDto.getName())
+                    .currentPrice(registerStockDto.getCurrentPrice())
+                    .build());
+        } catch (DataIntegrityViolationException e) {
+            if (UniqueConstraint.isViolated(e, "uk_stock_code"))
+                throw new CustomException(ErrorCode.DUPLICATED_STOCK_CODE);
+            throw e;
+        }
     }
 
     /**
