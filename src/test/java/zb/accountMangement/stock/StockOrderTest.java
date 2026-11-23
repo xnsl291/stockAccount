@@ -35,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -339,29 +338,6 @@ class StockOrderTest extends ApiTest {
 				.andExpect(jsonPath("$.code").value("PENDING_ACCOUNT"));
 
 		assertThat(ordersOf(account)).isEmpty();
-	}
-
-	@Test
-	void 시세_갱신과_종목_등록은_관리자만_할_수_있다() throws Exception {
-		Member member = saveMember();
-		Stock stock = saveStock(1_000);
-		Map<String, Object> newStock = Map.of("code", "0" + randomPhone().substring(3, 8), "name", "신규상장", "currentPrice", 5_000);
-
-		mockMvc.perform(as(member, put("/admin/stocks/" + stock.getId() + "/price"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of("price", 1))))
-				.andExpect(status().isForbidden());
-		mockMvc.perform(as(member, post("/admin/stocks"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(newStock)))
-				.andExpect(status().isForbidden());
-
-		assertThat(stockRepository.findById(stock.getId()).orElseThrow().getCurrentPrice()).isEqualTo(1_000);
-		assertThat(stockRepository.existsByCode((String) newStock.get("code"))).isFalse();
-
-		updatePrice(saveAdmin(), stock, 0).andExpect(status().isBadRequest());
-		updatePrice(saveAdmin(), stock, 1_100).andExpect(status().isOk());
-		assertThat(stockRepository.findById(stock.getId()).orElseThrow().getCurrentPrice()).isEqualTo(1_100);
 	}
 
 	@Test

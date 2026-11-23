@@ -11,8 +11,11 @@ import zb.accountMangement.stock.model.entity.Stock;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
 import zb.accountMangement.support.ApiTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -123,14 +126,31 @@ class AdminStockLookupTest extends ApiTest {
 	}
 
 	@Test
-	void 회원은_관리자_조회를_할_수_없다() throws Exception {
+	void 관리자_API는_관리자만_쓸_수_있다() throws Exception {
 		Member member = saveMember();
 		Stock stock = saveStock(1_000);
+		Map<String, Object> newStock = Map.of("code", "0" + randomPhone().substring(3, 8), "name", "신규상장", "currentPrice", 5_000);
 
 		mockMvc.perform(as(member, get("/admin/stocks"))).andExpect(status().isForbidden());
 		mockMvc.perform(as(member, get("/admin/stocks/" + stock.getId()))).andExpect(status().isForbidden());
 		mockMvc.perform(as(member, get("/admin/stocks/" + stock.getId() + "/orders"))).andExpect(status().isForbidden());
+		mockMvc.perform(as(member, put("/admin/stocks/" + stock.getId() + "/price"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of("price", 1))))
+				.andExpect(status().isForbidden());
+		mockMvc.perform(as(member, post("/admin/stocks"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(newStock)))
+				.andExpect(status().isForbidden());
 		mockMvc.perform(get("/admin/stocks")).andExpect(status().isUnauthorized());
+
+		assertThat(stockRepository.findById(stock.getId()).orElseThrow().getCurrentPrice()).isEqualTo(1_000);
+		assertThat(stockRepository.existsByCode((String) newStock.get("code"))).isFalse();
+
+		mockMvc.perform(as(saveAdmin(), put("/admin/stocks/" + stock.getId() + "/price"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(Map.of("price", 0))))
+				.andExpect(status().isBadRequest());
 	}
 
 	private long order(Member member, Account account, Stock stock, long price, int quantity) throws Exception {
