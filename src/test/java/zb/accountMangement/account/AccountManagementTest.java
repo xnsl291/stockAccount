@@ -3,6 +3,8 @@ package zb.accountMangement.account;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
@@ -35,6 +38,7 @@ import zb.accountMangement.support.ApiTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -255,7 +259,6 @@ class AccountManagementTest extends ApiTest {
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(status().isOk());
 	}
 
-	// 수정 뒤 코드는 getData를 부르지 않아 아래 끼워넣기 장치가 걸리지 않음. 다른 비원자 방식(예: 확인 후 삭제)으로 바뀌면 이 테스트가 우연히 통과할 수 있음
 	@Test
 	void 문자_인증_한_번으로는_거래정지된_계좌_하나만_풀린다() throws Exception {
 		Member member = saveMember();
@@ -264,14 +267,17 @@ class AccountManagementTest extends ApiTest {
 		lock(member, first);
 		lock(member, second);
 		verifyPhone(member.getPhoneNumber(), sendCode(member.getPhoneNumber()), ACCOUNT_UNLOCK).andExpect(status().isOk());
-		// 두 요청이 모두 인증 표시를 읽은 뒤에야 지우러 가게 해, 읽기와 지우기 사이에 다른 요청이 끼어드는 순서를 매번 만듦.
-		// 그냥 동시에 보내면 한 요청이 지운 뒤에 다른 요청이 읽어 우연히 하나만 풀릴 수 있음
-		CyclicBarrier bothRead = new CyclicBarrier(2);
-		doAnswer(invocation -> {
-			Object value = invocation.callRealMethod();
-			bothRead.await(10, TimeUnit.SECONDS);
-			return value;
-		}).when(redisService).getData(argThat(key -> key.startsWith("SMS_VERIFIED:")));
+		// 두 요청이 모두 인증 표시에 처음 손대기 직전까지 온 뒤에 함께 출발시킴. 그냥 동시에 보내면 한 요청이 끝난 뒤에
+		// 다른 요청이 시작돼 우연히 하나만 풀릴 수 있음. 읽은 뒤 지우는 방식이면 둘 다 읽고 나서 지워 둘 다 풀려 실패함
+		CyclicBarrier bothArrived = new CyclicBarrier(2);
+		Set<Long> arrived = ConcurrentHashMap.newKeySet();
+		Answer<Object> waitForOtherOnce = invocation -> {
+			if (arrived.add(Thread.currentThread().getId()))
+				bothArrived.await(10, TimeUnit.SECONDS);
+			return invocation.callRealMethod();
+		};
+		doAnswer(waitForOtherOnce).when(redisService).getData(argThat(key -> key.startsWith("SMS_VERIFIED:")));
+		doAnswer(waitForOtherOnce).when(redisService).deleteIfEquals(argThat(key -> key.startsWith("SMS_VERIFIED:")), anyString());
 
 		List<Integer> statuses = runConcurrently(2, i -> () ->
 				unlock(member, i == 0 ? first : second).andReturn().getResponse().getStatus());
