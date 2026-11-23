@@ -99,6 +99,9 @@ public class Account {
     public boolean isDeletedAccount() {
         return status.equals(AccountStatus.DELETED);
     }
+    public boolean isSuspendedAccount() {
+        return status.equals(AccountStatus.PENDING);
+    }
 
     public void recordPasswordFailure() {
         passwordFailCount++;

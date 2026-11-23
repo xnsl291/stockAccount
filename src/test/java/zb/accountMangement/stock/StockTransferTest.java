@@ -216,6 +216,26 @@ class StockTransferTest extends ApiTest {
 	}
 
 	@Test
+	void 성공한_이체를_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_응답을_받고_틀린_횟수가_오르지_않는다() throws Exception {
+		Member member = saveMember();
+		Account account = saveAccount(member, 100_000);
+		Account receiverAccount = saveAccount(saveMember());
+		Stock stock = saveStock(1_000);
+		buy(member, account, stock, 1_000, 10);
+		String key = UUID.randomUUID().toString();
+		Map<String, Object> body = transferBody(account, receiverAccount, stock, 3);
+		postJson("/api/stocks/transfer", member, key, body).andExpect(status().isOk());
+
+		changeAccountPassword(account, "5678");
+		for (String password : List.of(ACCOUNT_PASSWORD, "0000"))
+			postJson("/api/stocks/transfer", member, key, withPassword(body, password))
+					.andExpect(status().isOk()).andExpect(content().string("이체완료"));
+
+		assertThat(passwordFailCountOf(account)).isZero();
+		assertThat(holding(account, stock)).get().extracting(StockBalance::getQuantity).isEqualTo(7);
+	}
+
+	@Test
 	void 매수_매도_취소_이체를_섞어_해도_거래_기록의_합이_잔액과_같고_묶인_돈이_남지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 1_000_000);

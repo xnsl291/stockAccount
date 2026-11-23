@@ -1,8 +1,8 @@
-package zb.accountMangement.account.repository;
+package zb.accountMangement.idempotency.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import zb.accountMangement.account.model.entity.IdempotencyRecord;
+import zb.accountMangement.idempotency.model.entity.IdempotencyRecord;
 
 import java.util.Optional;
 
