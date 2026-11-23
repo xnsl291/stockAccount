@@ -77,17 +77,15 @@ public class AccountService {
     }
 
     /**
-     * 잠금 밖에서 맞았다고 비교된 계좌 비밀번호를 확정함 - 잠그지 않고 다시 읽어, 비교에 쓴 값에서 바뀐 것이 없는지 봄
-     * @param accountId - 계좌 ID
-     * @param compared - 비교할 때 읽은 계좌
-     * @return 바뀐 것이 없어 통과면 true. 그사이 틀린 요청·거래정지·비밀번호 변경이 있었으면 false이고, 잠금 안에서 다시 확인해야 함
+     * 잠금 밖에서 맞았다고 비교된 계좌 비밀번호를 확정함.
+     * 그사이 비밀번호가 바뀌었거나 남은 틀린 횟수를 0으로 되돌리지 못했으면 false이고, 잠금 안에서 다시 확인해야 함.
+     * 그사이 오른 틀린 횟수나 거래정지는 여기서 보지 않음. 이 요청을 그보다 먼저 처리한 것과 결과가 같고,
+     * 거래정지는 실행 단계가 계좌를 잠근 뒤 틀린 요청과 같은 오류 코드로 막음
      */
     @Transactional
     public boolean confirmPasswordMatch(Long accountId, Account compared) {
-        Account account = getAccountById(accountId);
-        if (account.getStatus() != compared.getStatus()
-                || account.getPasswordFailCount() != compared.getPasswordFailCount()
-                || !account.getPassword().equals(compared.getPassword()))
+        // 비밀번호 변경이 커밋된 뒤에 옛 비밀번호로 비교를 마친 요청을 통과시키지 않기 위함
+        if (!getAccountById(accountId).getPassword().equals(compared.getPassword()))
             return false;
         // 평소(횟수 0)에는 쓰지 않음. 0으로 되돌리지 못했으면 다시 읽은 뒤에 틀린 요청이 커밋된 것이라 잠금 안에서 다시 확인함.
         // 그냥 통과시키면 틀린 횟수가 남아, 어느 순서로 처리해도 나올 수 없는 값이 됨
