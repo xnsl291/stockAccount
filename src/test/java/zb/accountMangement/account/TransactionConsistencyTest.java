@@ -74,22 +74,6 @@ class TransactionConsistencyTest extends ApiTest {
 	}
 
 	@Test
-	void 같은_키로_다시_보낸_요청은_처음_결과만_돌려주고_다시_실행하지_않는다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 50_000);
-		String key = UUID.randomUUID().toString();
-		Map<String, Object> withdrawal = Map.of("accountId", account.getId(), "amount", 10_000, "accountPassword", ACCOUNT_PASSWORD);
-
-		postJson("/api/transactions/withdrawal", member, key, withdrawal)
-				.andExpect(status().isOk()).andExpect(content().string("출금완료"));
-		postJson("/api/transactions/withdrawal", member, key, withdrawal)
-				.andExpect(status().isOk()).andExpect(content().string("출금완료"));
-
-		assertThat(balanceOf(account)).isEqualTo(40_000);
-		assertThat(ledgerOf(account)).hasSize(2);
-	}
-
-	@Test
 	void 성공한_출금과_송금을_같은_키로_다시_보내면_그사이_비밀번호가_바뀌었거나_틀려도_처음_응답을_받고_틀린_횟수가_오르지_않는다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 50_000);
@@ -114,6 +98,7 @@ class TransactionConsistencyTest extends ApiTest {
 		assertThat(passwordFailCountOf(account)).isZero();
 		assertThat(balanceOf(account)).isEqualTo(30_000);
 		assertThat(balanceOf(receiver)).isEqualTo(10_000);
+		assertThat(ledgerOf(account)).containsExactly("DEPOSIT 50000 50000", "WITHDRAW -10000 40000", "TRANSFER_OUT -10000 30000");
 	}
 
 	@Test
