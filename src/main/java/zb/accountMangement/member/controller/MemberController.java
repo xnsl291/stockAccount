@@ -46,7 +46,7 @@ public class MemberController {
       @PathVariable("member_id") @Min(1) long memberId,
       @RequestBody @Valid UpdateMemberDto updateMemberDto){
     validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(MemberResponse.from(memberService.updateMemberInfo(loginMemberId, memberId, updateMemberDto)));
+    return ResponseEntity.ok().body(MemberResponse.from(memberService.updateMemberInfo(memberId, updateMemberDto)));
   }
 
 
@@ -66,7 +66,7 @@ public class MemberController {
           @Valid @RequestBody FindMemberInfoDto findMemberInfoDto,
           HttpServletRequest request) {
     validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(memberService.requestResetPw(loginMemberId,memberId,findMemberInfoDto,request.getRemoteAddr()));
+    return ResponseEntity.ok().body(memberService.requestResetPw(memberId, findMemberInfoDto, request.getRemoteAddr()));
   }
 
   /**
@@ -82,7 +82,7 @@ public class MemberController {
           @PathVariable("member_id") @Min(1) Long memberId,
           @Valid @RequestBody ResetPwDto resetPwDto) {
     validMemberId(loginMemberId,memberId);
-    return ResponseEntity.ok().body(memberService.verifyResetPw(loginMemberId,memberId,resetPwDto));
+    return ResponseEntity.ok().body(memberService.verifyResetPw(memberId, resetPwDto));
   }
 
   private void validMemberId(Long loginMemberId, Long memberId){

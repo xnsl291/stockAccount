@@ -97,9 +97,10 @@ public class MemberService {
 	 * @return Member
 	 */
 	@Transactional
-	public Member updateMemberInfo(Long loginMemberId, long memberId, UpdateMemberDto updateMemberDto) {
+	public Member updateMemberInfo(long memberId, UpdateMemberDto updateMemberDto) {
 		// 저장할 때 역할까지 모든 칸을 다시 쓰므로, 잠그지 않고 읽으면 그사이 커밋된 탈퇴를 읽은 시점 값으로 되돌림
-		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
+		Member member = getMemberForUpdate(memberId);
+		checkActive(member);
 		if (!passwordEncoder.matches(updateMemberDto.getCurrentPassword(), member.getPassword()))
 			throw new CustomException(ErrorCode.UNMATCHED_PASSWORD);
 		String phoneNumber = PhoneNumber.normalize(updateMemberDto.getPhoneNumber());
@@ -129,13 +130,13 @@ public class MemberService {
 	/**
 	 * 비밀번호 재설정 요청 - 입력한 이름·핸드폰번호가 회원 정보와 같으면 등록된 번호로 인증번호 발송
 	 *
-	 * @param loginMemberId     - 로그인한 사용자 ID
 	 * @param findMemberInfoDto - 회원정보 조회 dto (이름, 핸드폰번호)
 	 * @param clientIp          - 요청한 IP
 	 * @return "인증 메세지 발송 완료"
 	 */
-	public String requestResetPw(Long loginMemberId, Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
-		Member member = checkMemberPermission(loginMemberId, getMemberById(memberId));
+	public String requestResetPw(Long memberId, FindMemberInfoDto findMemberInfoDto, String clientIp) {
+		Member member = getMemberById(memberId);
+		checkActive(member);
 
 		if (!member.getName().equals(findMemberInfoDto.getName())
 				|| !member.getPhoneNumber().equals(PhoneNumber.normalize(findMemberInfoDto.getPhoneNumber())))
@@ -151,23 +152,16 @@ public class MemberService {
 	 * @return "비밀번호 재설정 완료"
 	 */
 	@Transactional
-	public String verifyResetPw(Long loginMemberId, Long memberId, ResetPwDto resetPwDto) {
+	public String verifyResetPw(Long memberId, ResetPwDto resetPwDto) {
 		// 회원정보 수정과 같은 이유로 잠그고 읽음
-		Member member = checkMemberPermission(loginMemberId, getMemberForUpdate(memberId));
+		Member member = getMemberForUpdate(memberId);
+		checkActive(member);
 		sendMessageService.confirmCode(member.getPhoneNumber(), resetPwDto.getInputCode());
 		member.setPassword(passwordEncoder.encode(resetPwDto.getNewPassword()));
 		jwtTokenProvider.deleteRefreshToken(member.getId());
 		return "비밀번호 재설정 완료";
 	}
 
-
-	public Member checkMemberPermission(Long loginMemberId, Member member){
-		if(!member.getId().equals(loginMemberId))
-			throw new CustomException(ErrorCode.UNMATCHED_MEMBER);
-
-		checkActive(member);
-		return member;
-	}
 
 	/**
 	 * 탈퇴·정지 회원이면 예외
