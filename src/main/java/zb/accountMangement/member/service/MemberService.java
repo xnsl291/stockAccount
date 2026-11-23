@@ -90,16 +90,6 @@ public class MemberService {
 	}
 
 	/**
-	 * 탈퇴 처리 - 회원 행은 지우지 않고 상태만 탈퇴로 바꿈. 계좌 해지는 호출하는 쪽에서 먼저 해야 함
-	 *
-	 * @param member - 탈퇴할 회원
-	 */
-	@Transactional
-	public void withdraw(Member member) {
-		member.delete();
-	}
-
-	/**
 	 * 회원 정보 수정 - 현재 로그인 비밀번호가 맞아야 함. 핸드폰번호를 바꾸려면 새 번호로 문자 인증을 먼저 마쳐야 하고,
 	 * 비밀번호를 바꾸면 리프레시 토큰을 지워 다른 기기에서 토큰을 재발급받지 못하게 함
 	 *

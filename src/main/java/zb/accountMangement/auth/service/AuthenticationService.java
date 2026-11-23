@@ -52,7 +52,7 @@ public class AuthenticationService {
 		Member member = memberService.getMemberForUpdate(loginMemberId);
 		memberService.checkActive(member);
 		accountService.closeAllAccounts(loginMemberId);
-		memberService.withdraw(member);
+		member.delete();
 		jwtTokenProvider.invalidateTokens(loginMemberId, accessToken);
 		return true;
 	}

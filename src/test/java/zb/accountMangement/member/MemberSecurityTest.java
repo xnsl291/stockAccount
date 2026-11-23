@@ -277,7 +277,7 @@ class MemberSecurityTest extends ApiTest {
 		// 수정이 회원을 읽은 뒤에 탈퇴가 커밋되는 순서를 만듦. 토큰 무효화는 Redis 쪽이라 이 겹침과 무관해 넣지 않음
 		TransactionStatus signOut = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			memberService.withdraw(memberService.getMemberForUpdate(member.getId()));
+			memberService.getMemberForUpdate(member.getId()).delete();
 			memberRepository.flush();
 			update = executor.submit(() -> updatePhone(member, member.getPhoneNumber()).andReturn().getResponse().getStatus());
 			awaitLockWaits(1);
