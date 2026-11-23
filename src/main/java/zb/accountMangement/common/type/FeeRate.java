@@ -1,12 +1,10 @@
 package zb.accountMangement.common.type;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@Getter
 @AllArgsConstructor
 public enum FeeRate {
     TRANSFER_FEE_RATE(new BigDecimal("0.01")),

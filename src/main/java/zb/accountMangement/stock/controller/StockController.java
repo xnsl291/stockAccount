@@ -125,7 +125,7 @@ public class StockController {
     @GetMapping("/{account_id}/balance")
     public ResponseEntity<List<StockBalanceResponse>> getStockBalance(
             @AuthenticationPrincipal Long loginMemberId,
-            @Validated @PathVariable("account_id") Long accountId){
+            @PathVariable("account_id") Long accountId){
         accountValidationService.validAccountOwner(loginMemberId, accountId);
         return ResponseEntity.ok().body(stockService.getStockBalance(accountId));
     }
@@ -141,7 +141,7 @@ public class StockController {
     @GetMapping("/{account_id}/history")
     public ResponseEntity<List<TradingResponse>> getTradeHistory(
             @AuthenticationPrincipal Long loginMemberId,
-            @Validated @PathVariable("account_id") Long accountId,
+            @PathVariable("account_id") Long accountId,
             @RequestParam(required = false) OrderStatus status,
             @ModelAttribute @Valid DateDto dateDto) {
         accountValidationService.validAccountOwner(loginMemberId, accountId);
@@ -180,7 +180,7 @@ public class StockController {
      * @return 주식 가격
      */
     @GetMapping("/{stock_id}")
-    public ResponseEntity<Long> getStockPrice(@Validated @PathVariable("stock_id") Long stockId){
+    public ResponseEntity<Long> getStockPrice(@PathVariable("stock_id") Long stockId){
         return ResponseEntity.ok().body(stockService.getCurrentStockPrice(stockId));
     }
 }

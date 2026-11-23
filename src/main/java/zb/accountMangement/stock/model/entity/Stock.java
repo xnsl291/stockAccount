@@ -1,12 +1,10 @@
 package zb.accountMangement.stock.model.entity;
 
 import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
