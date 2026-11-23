@@ -12,6 +12,7 @@ import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.stock.dto.DateDto;
+import zb.accountMangement.stock.dto.PriceUpdateResponse;
 import zb.accountMangement.stock.dto.TradeStockDto;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
@@ -23,6 +24,7 @@ import zb.accountMangement.stock.repository.StockRepository;
 import zb.accountMangement.stock.repository.TradingRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static zb.accountMangement.common.type.FeeRate.TRADE_FEE_RATE;
@@ -112,27 +114,44 @@ public class OrderService {
 
 	/**
 	 * 종목의 미체결 주문 중 지금 시세로 체결되는 주문을 먼저 들어온 순서대로 체결
-	 * @param stockId - 주식 ID
+	 * @param stock - 시세가 바뀐 종목
+	 * @return 종목 정보와 체결·실패한 주문 ID, 체결하지 않고 남긴 주문 수
 	 */
-	public void matchPendingOrders(Long stockId) {
-		for (Trading pending : tradingRepository.findByStockIdAndStatusOrderByIdAsc(stockId, OrderStatus.PENDING)) {
+	public PriceUpdateResponse matchPendingOrders(Stock stock) {
+		List<Trading> pendings = tradingRepository.findByStockIdAndStatusOrderByIdAsc(stock.getId(), OrderStatus.PENDING);
+		List<Long> filled = new ArrayList<>();
+		List<Long> failed = new ArrayList<>();
+		for (Trading pending : pendings) {
 			// 주문마다 트랜잭션을 따로 열어, 한 주문의 체결이 실패해도 나머지 주문은 체결되게 함
 			try {
-				transactionTemplate.executeWithoutResult(status -> fillIfFillable(pending.getAccountId(), pending.getId()));
+				if (Boolean.TRUE.equals(transactionTemplate.execute(status -> fillIfFillable(pending.getAccountId(), pending.getId()))))
+					filled.add(pending.getId());
 			} catch (RuntimeException e) {
 				log.error("주문 체결 실패 - 주문 ID: {}", pending.getId(), e);
+				failed.add(pending.getId());
 			}
 		}
+		return PriceUpdateResponse.builder()
+				.id(stock.getId())
+				.code(stock.getCode())
+				.name(stock.getName())
+				.currentPrice(stock.getCurrentPrice())
+				.filledOrderIds(filled)
+				.failedOrderIds(failed)
+				.remainingCount(pendings.size() - filled.size() - failed.size())
+				.build();
 	}
 
-	private void fillIfFillable(Long accountId, Long orderId) {
+	private boolean fillIfFillable(Long accountId, Long orderId) {
 		Account account = accountService.getAccountForUpdate(accountId);
 		// 목록을 읽은 뒤 취소되었거나 다른 시세 갱신이 먼저 체결했을 수 있어, 계좌를 잠근 뒤 주문과 시세를 다시 읽음
 		Trading order = tradingRepository.findById(orderId).orElseThrow();
 		Stock stock = stockRepository.findById(order.getStockId()).orElseThrow();
-		if (order.getStatus() == OrderStatus.PENDING && account.isExistsAccount()
-				&& order.isFillableAt(stock.getCurrentPrice()))
-			fill(order, account, stock);
+		if (order.getStatus() != OrderStatus.PENDING || !account.isExistsAccount()
+				|| !order.isFillableAt(stock.getCurrentPrice()))
+			return false;
+		fill(order, account, stock);
+		return true;
 	}
 
 	/**
