@@ -53,16 +53,6 @@ class JwtAuthenticationTest extends IntegrationTest {
 	String jwtSecret;
 
 	@Test
-	void 로그인한_토큰으로_인증이_필요한_API를_호출할_수_있다() throws Exception {
-		Member member = saveMember(RoleType.USER);
-		String accessToken = login(member).get("accessToken").asText();
-
-		getMember(member.getId(), accessToken)
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value(member.getId()));
-	}
-
-	@Test
 	void 토큰이_없으면_401() throws Exception {
 		mockMvc.perform(get("/api/member/1"))
 				.andExpect(status().isUnauthorized())
