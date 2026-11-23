@@ -215,6 +215,8 @@ class AccountManagementTest extends ApiTest {
 		updateAccount(member, account, "0000", "5678")
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
+		// 출금과 같은 틀린 횟수에 더해짐. 한도에 이르면 거래정지되는 것은 계좌 보안 테스트가 확인함
+		assertThat(passwordFailCountOf(account)).isEqualTo(1);
 		withdraw(member, account, "5678").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 
 		updateAccount(member, account, ACCOUNT_PASSWORD, "5678")
@@ -223,19 +225,6 @@ class AccountManagementTest extends ApiTest {
 		withdraw(member, account, ACCOUNT_PASSWORD).andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
 		withdraw(member, account, "5678").andExpect(status().isOk());
 		assertThat(balanceOf(account)).isEqualTo(40_000);
-	}
-
-	@Test
-	void 계좌_수정에서_현재_비밀번호를_연속_5회_틀려도_거래정지된다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 50_000);
-
-		for (int i = 0; i < 5; i++)
-			updateAccount(member, account, "0000", "5678").andExpect(jsonPath("$.code").value("UNMATCHED_PASSWORD"));
-
-		withdraw(member, account, ACCOUNT_PASSWORD)
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("PENDING_ACCOUNT"));
 	}
 
 	@Test
