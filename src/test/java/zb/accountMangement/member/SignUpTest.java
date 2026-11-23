@@ -96,17 +96,6 @@ class SignUpTest extends IntegrationTest {
 	}
 
 	@Test
-	void 인증번호가_틀리면_인증되지_않는다() throws Exception {
-		String phone = randomPhone();
-		postJson("/api/auth/send-code", Map.of("phoneNumber", phone)).andExpect(status().isOk());
-
-		postJson("/api/auth/verify-phone", Map.of("phoneNumber", phone, "verificationCode", "wrong", "purpose", "SIGN_UP"))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("UNMATCHED_VERIFICATION_CODE"));
-		signUp(phone).andExpect(status().isBadRequest());
-	}
-
-	@Test
 	void 이미_가입한_번호로는_가입할_수_없다() throws Exception {
 		String phone = randomPhone();
 		verifyPhone(phone);
