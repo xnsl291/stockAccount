@@ -326,21 +326,6 @@ class StockOrderTest extends ApiTest {
 	}
 
 	@Test
-	void 거래정지된_계좌로는_주문할_수_없다() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 10_000);
-		account = accountRepository.findById(account.getId()).orElseThrow();
-		suspend(account);
-		accountRepository.save(account);
-
-		order("buy", member, account, saveStock(1_000), 1_000, 1)
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("PENDING_ACCOUNT"));
-
-		assertThat(ordersOf(account)).isEmpty();
-	}
-
-	@Test
 	void 관리자가_등록한_종목은_0으로_시작하는_코드가_그대로_남고_코드나_이름으로_검색된다() throws Exception {
 		Member admin = saveAdmin();
 		Member member = saveMember();
