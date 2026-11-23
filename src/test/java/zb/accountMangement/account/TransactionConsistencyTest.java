@@ -110,9 +110,14 @@ class TransactionConsistencyTest extends ApiTest {
 		depositDto.setAccountId(account.getId());
 		depositDto.setAmount(10_000L);
 
+		// 먼저 키를 저장한 요청이 커밋하기 전에 나머지 4개가 같은 키 저장에서 기다리게 해, 실제로 겹친 경우만 확인함
 		List<String> results = runConcurrently(5, i -> () -> idempotencyService.execute(member.getId(), key, "DEPOSIT", () -> {
 			String result = transactionService.deposit(depositDto);
-			sleep(300);
+			try {
+				awaitLockWaits(4);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 			return result;
 		}));
 
@@ -327,13 +332,5 @@ class TransactionConsistencyTest extends ApiTest {
 				.sorted((x, y) -> x.getId().compareTo(y.getId()))
 				.map(transaction -> transaction.getType() + " " + transaction.getAmount() + " " + transaction.getBalanceAfter())
 				.collect(Collectors.toList());
-	}
-
-	private void sleep(long millis) {
-		try {
-			Thread.sleep(millis);
-		} catch (InterruptedException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 }
