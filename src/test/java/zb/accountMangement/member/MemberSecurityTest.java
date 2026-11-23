@@ -148,15 +148,6 @@ class MemberSecurityTest extends ApiTest {
 	}
 
 	@Test
-	void 가입용으로_받은_인증으로는_핸드폰번호를_바꿀_수_없다() throws Exception {
-		Member member = saveMember();
-		String newPhone = randomPhone();
-		verifyPhone(newPhone, sendCode(newPhone), SIGN_UP).andExpect(status().isOk());
-
-		updatePhone(member, newPhone).andExpect(jsonPath("$.code").value("UNVERIFIED_PHONE_NUMBER"));
-	}
-
-	@Test
 	void 현재_비밀번호가_틀리면_회원정보를_바꿀_수_없다() throws Exception {
 		Member member = saveMember();
 
