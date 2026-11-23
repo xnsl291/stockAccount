@@ -171,17 +171,33 @@ class TransactionConsistencyTest extends ApiTest {
 	}
 
 	@Test
-	void Idempotency_Key_헤더가_없으면_400() throws Exception {
+	void 돈이나_주식을_옮기는_요청은_Idempotency_Key_헤더가_없으면_400() throws Exception {
 		Member member = saveMember();
-		Account account = saveAccount(member);
+		Account account = saveAccount(member, 10_000);
+		Account receiver = saveAccount(saveMember());
+		Stock stock = saveStock(1_000);
+		Map<String, Object> order = Map.of("accountId", account.getId(), "stockId", stock.getId(), "price", 1_000,
+				"quantity", 1, "accountPassword", ACCOUNT_PASSWORD);
+		Map<String, Map<String, Object>> requests = Map.of(
+				"/api/transactions/deposit", Map.of("accountId", account.getId(), "amount", 1_000),
+				"/api/transactions/withdrawal", Map.of("accountId", account.getId(), "amount", 1_000, "accountPassword", ACCOUNT_PASSWORD),
+				"/api/transactions/" + account.getId() + "/transfer/" + receiver.getId(), Map.of("amount", 1_000, "accountPassword", ACCOUNT_PASSWORD),
+				"/api/stocks/buy", order,
+				"/api/stocks/sell", order,
+				"/api/stocks/transfer", Map.of("senderAccountId", account.getId(), "receiverAccountId", receiver.getId(),
+						"stockId", stock.getId(), "quantity", 1, "accountPassword", ACCOUNT_PASSWORD));
 
-		mockMvc.perform(as(member, post("/api/transactions/deposit"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(Map.of("accountId", account.getId(), "amount", 10_000))))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
+		for (Map.Entry<String, Map<String, Object>> request : requests.entrySet()) {
+			mockMvc.perform(as(member, post(request.getKey()))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request.getValue())))
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
+		}
 
-		assertThat(balanceOf(account)).isZero();
+		assertThat(ledgerOf(account)).containsExactly("DEPOSIT 10000 10000");
+		assertThat(balanceOf(receiver)).isZero();
+		assertThat(accountRepository.findById(account.getId()).orElseThrow().getHeldAmount()).isZero();
 	}
 
 	@Test

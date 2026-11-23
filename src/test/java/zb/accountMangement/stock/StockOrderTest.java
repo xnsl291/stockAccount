@@ -325,20 +325,6 @@ class StockOrderTest extends ApiTest {
 	}
 
 	@Test
-	void 주문에_Idempotency_Key_헤더가_없으면_400() throws Exception {
-		Member member = saveMember();
-		Account account = saveAccount(member, 10_000);
-
-		mockMvc.perform(as(member, post("/api/stocks/buy"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(orderBody(account, saveStock(1_000), 1_000, 1))))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"));
-
-		assertThat(ordersOf(account)).isEmpty();
-	}
-
-	@Test
 	void 수량이_한도를_넘거나_가격이_0_이하이거나_없는_종목이면_주문을_거절한다() throws Exception {
 		Member member = saveMember();
 		Account account = saveAccount(member, 10_000);
