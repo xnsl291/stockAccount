@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
+import zb.accountMangement.account.model.TransactionCause;
 import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
@@ -144,14 +145,19 @@ public class StockService {
         if (senderStockBalance.getAvailableQuantity() < quantity)
             throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
 
+        long avgPrice = senderStockBalance.getAvgPrice();
+        // 수수료 기록이 이 줄을 가리키므로 먼저 저장함. 묶음 번호는 저장해야 정해지는 자기 ID라 뒤에 채움
+        Trading sent = tradeHistoryRepository.save(transferRecord(senderAccountId, stock.getId(), avgPrice, -quantity));
+        sent.setStockTransferId(sent.getId());
+
         // 수수료는 다른 회원에게 보낼 때만 받음. 같은 회원의 계좌끼리 옮기는 것은 무료
         if (!sender.getMemberId().equals(receiver.getMemberId())) {
             long transferFee = TRANSFER_FEE_RATE.of(Math.multiplyExact(stock.getCurrentPrice(), quantity));
             if (transferFee > 0)
-                transactionService.changeBalance(sender, TransactionType.FEE, transferFee, "주식 이체 수수료", stock.getName());
+                transactionService.changeBalance(sender, TransactionType.FEE, transferFee, "주식 이체 수수료", stock.getName(),
+                        new TransactionCause.StockTransfer(sent.getId()));
         }
 
-        long avgPrice = senderStockBalance.getAvgPrice();
         senderStockBalance.setQuantity(senderStockBalance.getQuantity() - quantity);
         if (senderStockBalance.getQuantity() == 0)
             stockBalanceRepository.delete(senderStockBalance);
@@ -161,8 +167,9 @@ public class StockService {
         receiverStockBalance.add(quantity, avgPrice);
         stockBalanceRepository.save(receiverStockBalance);
 
-        tradeHistoryRepository.save(transferRecord(senderAccountId, stock.getId(), avgPrice, -quantity));
-        tradeHistoryRepository.save(transferRecord(receiverAccountId, stock.getId(), avgPrice, quantity));
+        Trading received = transferRecord(receiverAccountId, stock.getId(), avgPrice, quantity);
+        received.setStockTransferId(sent.getId());
+        tradeHistoryRepository.save(received);
         return "이체완료";
     }
 

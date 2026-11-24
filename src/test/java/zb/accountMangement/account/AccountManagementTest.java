@@ -25,6 +25,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.account.model.TransactionCause;
 import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
@@ -374,7 +375,8 @@ class AccountManagementTest extends ApiTest {
 		// 계좌 비밀번호 확인은 수정보다 앞서 끝나는 별도 트랜잭션이라 이 겹침과 무관해 서비스를 바로 부름
 		TransactionStatus deposit = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			transactionService.changeBalance(accountService.getAccountForUpdate(account.getId()), TransactionType.DEPOSIT, 10_000, "입금", null);
+			transactionService.changeBalance(accountService.getAccountForUpdate(account.getId()), TransactionType.DEPOSIT, 10_000, "입금", null,
+					TransactionCause.NONE);
 			update = executor.submit(() -> accountService.updateAccount(account.getId(), rename));
 			awaitLockWaits(1);
 		} finally {
