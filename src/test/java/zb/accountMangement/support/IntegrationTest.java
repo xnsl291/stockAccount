@@ -2,7 +2,7 @@ package zb.accountMangement.support;
 
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,7 +12,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.mysql.MySQLContainer;
 import zb.accountMangement.account.service.AccountNumberGenerator;
 import zb.accountMangement.common.service.RedisService;
 import zb.accountMangement.member.service.SmsSender;
@@ -25,7 +25,7 @@ import zb.accountMangement.member.service.SmsSender;
 public abstract class IntegrationTest {
 
 	// 테스트 클래스마다 컨테이너를 다시 띄우지 않도록 JVM 하나에서 한 번만 시작하고 Ryuk가 정리하게 둔다
-	static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
+	static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0");
 	static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
 
 	static {
