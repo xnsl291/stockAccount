@@ -1,0 +1,8 @@
+/* 스타일 입구. main.tsx는 tokens.css와 이 파일만 불러옴
+   글꼴: Pretendard(SIL OFL 1.1)를 npm 패키지에서 받아 빌드 결과에 같이 넣음. 글자 범위별로 쪼갠 파일이라
+   화면에 실제로 나온 글자의 파일만 받음. 외부 CDN을 쓰지 않아 CSP(default-src 'self')를 그대로 지킴 */
+
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import './base.css';
+@import './layout.css';
+@import './pages.css';
