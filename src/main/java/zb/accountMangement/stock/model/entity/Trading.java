@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import zb.accountMangement.stock.model.OrderStatus;
 import zb.accountMangement.stock.model.TradeType;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity

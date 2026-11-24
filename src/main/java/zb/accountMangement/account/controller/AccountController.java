@@ -11,7 +11,7 @@ import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.AccountValidationService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 

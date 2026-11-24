@@ -10,9 +10,9 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.member.dto.*;
 import zb.accountMangement.member.service.MemberService;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 @RestController
 @RequiredArgsConstructor

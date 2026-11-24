@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import zb.accountMangement.stock.model.entity.StockBalance;
 
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 

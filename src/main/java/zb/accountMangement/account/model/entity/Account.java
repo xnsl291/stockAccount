@@ -7,7 +7,7 @@ import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.common.exception.CustomException;
 import zb.accountMangement.common.type.ErrorCode;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity

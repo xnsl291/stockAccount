@@ -20,7 +20,7 @@ import zb.accountMangement.common.type.ErrorCode;
 import zb.accountMangement.common.type.RoleType;
 
 import javax.crypto.SecretKey;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;

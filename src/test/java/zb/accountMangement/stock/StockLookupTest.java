@@ -2,7 +2,7 @@ package zb.accountMangement.stock;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
