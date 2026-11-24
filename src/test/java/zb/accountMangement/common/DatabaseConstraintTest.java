@@ -106,6 +106,12 @@ class DatabaseConstraintTest extends ApiTest {
 			"insert into transaction (account_id, type, amount, balance_after, order_id) values (:account, 'STOCK_BUY', 1, 1, -1) | `fk_transaction_order`",
 			"insert into transaction (account_id, type, amount, balance_after, stock_transfer_id) values (:account, 'FEE', 1, 1, -1) | `fk_transaction_stock_transfer`",
 			"insert into transaction (account_id, type, amount, balance_after, cash_transfer_id, counterparty_account_id) values (:account, 'TRANSFER_IN', 1, 1, 'x', -1) | `fk_transaction_counterparty`",
+			"insert into transaction (account_id, type, amount, balance_after) values (:account, 'deposit', 1, 1) | 'chk_transaction_cause'",
+			"update trading set type = 'buy' where id = :order | 'chk_trading_transfer'",
+			"update trading set status = 'pending' where id = :order | 'chk_trading_fill'",
+			"insert into transaction (account_id, type, amount, balance_after, cash_transfer_id, counterparty_account_id) values (:account, 'TRANSFER_OUT', 1, 1, 'x', :account) | 'chk_transaction_counterparty'",
+			"insert into transaction (account_id, type, amount, balance_after, cash_transfer_id, counterparty_account_id) values (:account, 'TRANSFER_OUT', 1, 1, 'x', :other), (:account, 'TRANSFER_OUT', 1, 1, 'x', :other) | uk_transaction_cash_transfer",
+			"update trading set quantity = 1, stock_transfer_id = null where id = :transfer | 'chk_trading_transfer'",
 	})
 	void 제약을_어기는_SQL은_그_제약에_걸린다(String sql, String constraint) {
 		assertThat(violatedBy(() -> execute(sql))).contains(constraint);
@@ -125,13 +131,14 @@ class DatabaseConstraintTest extends ApiTest {
 	private int execute(String sql) {
 		return jdbcTemplate.update(sql
 				.replace(":account", String.valueOf(accountId))
+				.replace(":other", String.valueOf(otherAccountId))
 				.replace(":order", String.valueOf(orderId))
 				.replace(":transfer", String.valueOf(transferId)));
 	}
 
 	private long insertTrading(String type, String status, Long filledPrice, String tradeAt) {
 		jdbcTemplate.update("insert into trading (account_id, stock_id, type, status, price, quantity, filled_price, trade_at)"
-				+ " values (?, ?, ?, ?, 1000, 1, ?, ?)", accountId, stockId, type, status, filledPrice, tradeAt);
+				+ " values (?, ?, ?, ?, 1000, ?, ?, ?)", accountId, stockId, type, status, "TRANSFER".equals(type) ? -1 : 1, filledPrice, tradeAt);
 		return jdbcTemplate.queryForObject("select last_insert_id()", Long.class);
 	}
 
