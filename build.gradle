@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '2.7.8'
-	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.springframework.boot' version '3.5.16'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'zb'
@@ -22,12 +22,12 @@ repositories {
 }
 
 dependencies {
-	implementation 'mysql:mysql-connector-java:8.0.33'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	// 스키마 변경을 SQL 파일로 관리. 버전은 Spring Boot 2.7이 관리하는 값(8.5.x)을 따르고, 8.x부터 MySQL 지원이 별도 모듈임
+	// 스키마 변경을 SQL 파일로 관리. 버전은 Spring Boot가 관리하는 값을 따르고, 8.x부터 MySQL 지원이 별도 모듈임
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-mysql'
 
@@ -55,7 +55,7 @@ dependencies {
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.21.4')
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:mysql'
-	// 모듈 사이 import 규칙을 테스트로 고정. 1.5.1은 Java 8 바이트코드로 배포되어 Java 11에서 돎
+	// 모듈 사이 import 규칙을 테스트로 고정. 1.5.1은 Java 8 바이트코드로 배포되어 Java 17에서 돎
 	testImplementation 'com.tngtech.archunit:archunit:1.5.1'
 }
 
