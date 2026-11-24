@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import zb.accountMangement.account.model.AccountStatus;
 import zb.accountMangement.account.model.entity.Account;
 
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 

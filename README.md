@@ -6,14 +6,14 @@
 
 ## 기술 스택
 
-- Java 11(빌드 대상), Spring Boot 2.7.8, Spring Data JPA, Spring Security, JWT(jjwt 0.11.5)
+- Java 17, Spring Boot 3.5.16, Spring Data JPA, Spring Security, JWT(jjwt 0.11.5)
 - MySQL 8.0, Redis 7(문자 인증번호, 리프레시 토큰, 로그아웃한 토큰)
 - CoolSMS(문자 발송, 로컬에서는 로그로 대체)
 - 테스트: JUnit 5, MockMvc, Testcontainers(MySQL·Redis)
 
 ## 실행 방법
 
-JDK 17에서 빌드·테스트를 확인했고, 컴파일 대상은 Java 11임. MySQL·Redis와 테스트용 컨테이너를 띄우려면 Docker가 있어야 함
+JDK 17 이상이 있어야 빌드·테스트됨(컴파일 대상 Java 17). MySQL·Redis와 테스트용 컨테이너를 띄우려면 Docker가 있어야 함
 
 ```bash
 # 1. MySQL·Redis 띄우기 (DB accountSystem, 계정 account/account)

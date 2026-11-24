@@ -4,10 +4,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -35,15 +35,15 @@ public abstract class IntegrationTest {
 	}
 
 	// 모든 테스트가 같은 스프링 컨텍스트를 재사용하도록 부모 클래스에 한 번만 둔다
-	@MockBean
+	@MockitoBean
 	protected SmsSender smsSender;
 
 	// 평소에는 실제 Redis를 그대로 쓰고, 동시성 테스트만 특정 호출 직후에 멈춰 세우는 데 씀
-	@SpyBean
+	@MockitoSpyBean
 	protected RedisService redisService;
-	@SpyBean
+	@MockitoSpyBean
 	protected AccountNumberGenerator accountNumberGenerator;
-	@SpyBean
+	@MockitoSpyBean
 	protected BCryptPasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -54,8 +54,8 @@ public abstract class IntegrationTest {
 		registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
 		registry.add("spring.datasource.username", MYSQL::getUsername);
 		registry.add("spring.datasource.password", MYSQL::getPassword);
-		registry.add("spring.redis.host", REDIS::getHost);
-		registry.add("spring.redis.port", () -> REDIS.getMappedPort(6379));
+		registry.add("spring.data.redis.host", REDIS::getHost);
+		registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
 		registry.add("jwt.secret", () -> "dGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLWludGVncmF0aW9uLXRlc3Rz");
 	}
 

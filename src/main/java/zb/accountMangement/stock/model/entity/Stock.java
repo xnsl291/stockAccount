@@ -2,7 +2,7 @@ package zb.accountMangement.stock.model.entity;
 
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Getter

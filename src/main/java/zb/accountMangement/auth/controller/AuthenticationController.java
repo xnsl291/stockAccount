@@ -10,8 +10,8 @@ import zb.accountMangement.common.auth.JwtTokenProvider;
 import zb.accountMangement.auth.dto.*;
 import zb.accountMangement.auth.service.AuthenticationService;
 import zb.accountMangement.member.service.SendMessageService;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
