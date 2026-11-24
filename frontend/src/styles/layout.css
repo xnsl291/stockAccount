@@ -1,7 +1,11 @@
 /* 화면 틀: 왼쪽 메뉴, 윗줄(회원·기준시각·화면 설정), 본문, 상담 버튼, 로그인 전 화면
    데스크톱은 왼쪽 메뉴, 760px 아래는 윗줄 아래 가로로 넘기는 메뉴(아이콘 + 이름) */
 
-.shell { display: grid; grid-template-columns: var(--shell-w) minmax(0, 1fr); min-height: 100vh; }
+.shell {
+  display: grid; grid-template-columns: var(--shell-w) minmax(0, 1fr); min-height: 100vh;
+  /* 메뉴는 화면 높이만큼만 따라다니므로, 본문이 길 때 메뉴 칸 아래쪽도 같은 흰색으로 칠함 */
+  background: linear-gradient(to right, var(--surface) var(--shell-w), transparent var(--shell-w));
+}
 
 .side {
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
@@ -159,7 +163,7 @@
 
 /* 900px 아래(태블릿·휴대폰): 왼쪽 메뉴를 윗줄 아래 가로 메뉴로 바꿈 */
 @media (max-width: 900px) {
-  .shell { display: flex; flex-direction: column; }
+  .shell { display: flex; flex-direction: column; background: none; }
   .side {
     order: 2; position: static; height: auto; overflow: visible;
     padding: 0 var(--s3) var(--s2); gap: 0; background: var(--bg);
