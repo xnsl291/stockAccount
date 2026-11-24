@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import zb.accountMangement.account.model.TransactionCause;
 import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.service.AccountService;
@@ -160,10 +161,11 @@ public class OrderService {
 	// 주문가가 아닌 현재 시세로 체결하고, 묶어 둔 돈이나 주식을 풀어 실제 대금과 수수료를 반영함
 	private void fill(Trading order, Account account, Stock stock) {
 		long amount = Math.multiplyExact(stock.getCurrentPrice(), order.getQuantity());
+		TransactionCause cause = new TransactionCause.Order(order.getId());
 
 		if (order.getType() == TradeType.BUY) {
 			account.releaseHold(buyHold(order));
-			transactionService.changeBalance(account, TransactionType.STOCK_BUY, amount, stock.getName(), null);
+			transactionService.changeBalance(account, TransactionType.STOCK_BUY, amount, stock.getName(), null, cause);
 
 			StockBalance stockBalance = stockBalanceRepository.findByAccountIdAndStockId(account.getId(), stock.getId())
 					.orElseGet(() -> StockBalance.builder().accountId(account.getId()).stockId(stock.getId()).build());
@@ -175,12 +177,12 @@ public class OrderService {
 			stockBalance.setQuantity(stockBalance.getQuantity() - order.getQuantity());
 			if (stockBalance.getQuantity() == 0)
 				stockBalanceRepository.delete(stockBalance);
-			transactionService.changeBalance(account, TransactionType.STOCK_SELL, amount, stock.getName(), null);
+			transactionService.changeBalance(account, TransactionType.STOCK_SELL, amount, stock.getName(), null, cause);
 		}
 
 		long fee = TRADE_FEE_RATE.of(amount);
 		if (fee > 0)
-			transactionService.changeBalance(account, TransactionType.FEE, fee, "주식 매매 수수료", stock.getName());
+			transactionService.changeBalance(account, TransactionType.FEE, fee, "주식 매매 수수료", stock.getName(), cause);
 		order.fill(stock.getCurrentPrice());
 	}
 

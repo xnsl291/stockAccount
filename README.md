@@ -43,7 +43,7 @@ openssl rand -base64 48   # 출력값을 application-secret.yml의 jwt.secret에
 
 스키마는 Flyway가 `src/main/resources/db/migration`의 SQL 파일로 만들고, Hibernate는 엔티티와 스키마가 맞는지만 확인함(`ddl-auto: validate`). 스키마를 바꿀 때는 기존 파일을 고치지 않고 다음 번호의 파일(`V2__...sql`)을 추가함
 
-Flyway 도입 전(`ddl-auto: update`)에 만든 로컬 DB가 있으면 지우고 새로 만들어야 함. 지킬 운영 데이터가 없어 기존 DB를 첫 버전으로 표시(baseline)하지 않고 빈 DB에서 첫 파일부터 적용하는 방식으로 정했음. 기존 DB에는 `flyway_schema_history`가 없어 Flyway가 테이블이 이미 있다며 기동을 멈춤
+Flyway 도입 전(`ddl-auto: update`)에 만든 로컬 DB가 있으면 지우고 새로 만들어야 함. 지킬 운영 데이터가 없어 기존 DB를 첫 버전으로 표시(baseline)하지 않고 빈 DB에서 첫 파일부터 적용하는 방식으로 정했음. 기존 DB에는 `flyway_schema_history`가 없어 Flyway가 테이블이 이미 있다며 기동을 멈춤. V2까지 적용한 DB도 원인이 없는 옛 거래 기록이 V4의 제약에 걸려 멈추므로 새로 만들어야 함
 
 ```bash
 docker compose down -v && docker compose up -d
@@ -158,7 +158,7 @@ UPDATE member SET role = 'ADMIN' WHERE phone_number = '01012345678';
 
 ## 테스트
 
-`./gradlew test`로 132개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
+`./gradlew test`로 180개 테스트가 실제 MySQL·Redis 컨테이너 위에서 돌아감
 
 - `TransactionConsistencyTest`: 동시 출금·맞송금, Idempotency-Key 재전송·동시 전송, 거래 기록 합계와 잔액 일치, 금액·계좌 상태 검증
 - `TransactionHistoryTest`: 거래내역 페이지 나눔, 정렬, 기간·종류 필터

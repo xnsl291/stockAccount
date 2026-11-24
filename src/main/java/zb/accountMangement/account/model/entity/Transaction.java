@@ -1,12 +1,15 @@
 package zb.accountMangement.account.model.entity;
 
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import zb.accountMangement.account.model.TransactionType;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -36,4 +39,13 @@ public class Transaction {
 
     @CreatedDate
     private LocalDateTime transactedAt;
+
+    private Long orderId; // 매매 대금·수수료를 만든 주문
+
+    private Long stockTransferId; // 주식 이체 수수료를 만든 이체. 보낸 쪽 이체 기록의 ID
+
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID cashTransferId; // 보낸 쪽과 받은 쪽 두 줄이 같은 값을 가짐
+
+    private Long counterpartyAccountId; // 송금 상대 계좌
 }

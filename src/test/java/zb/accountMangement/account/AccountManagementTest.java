@@ -25,6 +25,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import zb.accountMangement.account.dto.AccountManagementDto;
 import zb.accountMangement.account.dto.UpdateAccountDto;
 import zb.accountMangement.account.model.AccountStatus;
+import zb.accountMangement.account.model.TransactionCause;
 import zb.accountMangement.account.model.TransactionType;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
@@ -337,18 +338,23 @@ class AccountManagementTest extends ApiTest {
 		ExecutorService executor = Executors.newFixedThreadPool(2);
 		List<Future<Integer>> closes = new ArrayList<>();
 
-		// 두 계좌에 보유 주식을 넣고 커밋하지 않은 상태를 만들어, 두 해지 요청이 계좌 수를 센 다음 보유 주식 확인에서 기다리게 함.
-		// 그 뒤 넣은 것을 되돌려 두 요청이 해지를 이어 가게 함. 계좌 수를 잠금 없이 세면 둘 다 "2개"를 본 채로 해지함
-		TransactionStatus incoming = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		for (Account account : List.of(first, second))
+			stockBalanceRepository.save(StockBalance.builder()
+					.accountId(account.getId()).stockId(stock.getId()).quantity(1).build());
+
+		// 두 계좌의 보유 주식을 지우고 커밋하지 않은 상태를 만들어, 두 해지 요청이 계좌 수를 센 다음 보유 주식 확인에서 기다리게 함.
+		// 그 뒤 커밋해 두 요청이 해지를 이어 가게 함. 계좌 수를 잠금 없이 세면 둘 다 "2개"를 본 채로 해지함.
+		// 보유 주식을 넣으면 외래키가 계좌 행까지 잠가, 요청이 계좌 수를 세기 전에 멈추므로 지우는 쪽을 씀
+		TransactionStatus outgoing = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
 			for (Account account : List.of(first, second))
-				stockBalanceRepository.saveAndFlush(StockBalance.builder()
-						.accountId(account.getId()).stockId(stock.getId()).quantity(1).build());
+				stockBalanceRepository.findByAccountId(account.getId()).forEach(stockBalanceRepository::delete);
+			stockBalanceRepository.flush();
 			for (Account account : List.of(first, second))
 				closes.add(executor.submit(() -> closeAccount(member, account).andReturn().getResponse().getStatus()));
 			awaitLockWaits(2);
 		} finally {
-			transactionManager.rollback(incoming);
+			transactionManager.commit(outgoing);
 		}
 
 		List<Integer> statuses = new ArrayList<>();
@@ -374,7 +380,8 @@ class AccountManagementTest extends ApiTest {
 		// 계좌 비밀번호 확인은 수정보다 앞서 끝나는 별도 트랜잭션이라 이 겹침과 무관해 서비스를 바로 부름
 		TransactionStatus deposit = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			transactionService.changeBalance(accountService.getAccountForUpdate(account.getId()), TransactionType.DEPOSIT, 10_000, "입금", null);
+			transactionService.changeBalance(accountService.getAccountForUpdate(account.getId()), TransactionType.DEPOSIT, 10_000, "입금", null,
+					TransactionCause.NONE);
 			update = executor.submit(() -> accountService.updateAccount(account.getId(), rename));
 			awaitLockWaits(1);
 		} finally {

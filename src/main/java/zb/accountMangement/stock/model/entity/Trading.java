@@ -43,6 +43,8 @@ public class Trading {
 
   private LocalDateTime tradeAt; // 체결 시각
 
+  private Long stockTransferId; // 주식 이체 두 줄을 잇는 번호. 보낸 쪽 이체 기록의 ID
+
   /**
    * 지정가 주문이 이 시세에서 체결되는지 - 매수는 시세가 주문가 이하, 매도는 주문가 이상일 때
    */
