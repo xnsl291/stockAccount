@@ -1,5 +1,6 @@
 package zb.accountMangement.common;
 
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,14 @@ class DatabaseConstraintTest extends ApiTest {
 			TransactionType.STOCK_SELL, "1000",
 			TransactionType.FEE, "1000 0100");
 
+	// 송금은 회원끼리라 어느 시스템 계정에도 적지 못함
+	private static final Map<TransactionType, String> SYSTEM_ACCOUNTS = Map.of(
+			TransactionType.DEPOSIT, "EXTERNAL_CASH",
+			TransactionType.WITHDRAW, "EXTERNAL_CASH",
+			TransactionType.STOCK_BUY, "TRADE_COUNTERPARTY",
+			TransactionType.STOCK_SELL, "TRADE_COUNTERPARTY",
+			TransactionType.FEE, "FEE_INCOME");
+
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
@@ -41,6 +50,7 @@ class DatabaseConstraintTest extends ApiTest {
 	long stockId;
 	long orderId;
 	long transferId;
+	long depositId;
 
 	@BeforeEach
 	void 올바른_행을_넣어_둔다() {
@@ -54,6 +64,7 @@ class DatabaseConstraintTest extends ApiTest {
 		orderId = insertTrading("BUY", "PENDING", null, null);
 		transferId = insertTrading("TRANSFER", "FILLED", 1_000L, "2026-01-01");
 		jdbcTemplate.update("update trading set stock_transfer_id = id where id = ?", transferId);
+		depositId = insertTransaction(TransactionType.DEPOSIT, "0000");
 	}
 
 	@Test
@@ -68,6 +79,38 @@ class DatabaseConstraintTest extends ApiTest {
 					assertThat(violated).as(type + " " + filled).contains("'chk_transaction_cause'");
 			}
 		}
+	}
+
+	@Test
+	void 시스템_기록은_거래_종류에_정해진_시스템_계정에만_들어간다() {
+		for (TransactionType type : TransactionType.values()) {
+			long transactionId = insertTransaction(type, ALLOWED_CAUSES.get(type).substring(0, 4));
+			for (String account : List.of("EXTERNAL_CASH", "TRADE_COUNTERPARTY", "FEE_INCOME")) {
+				String violated = violatedBy(() -> insertEntry(transactionId, type.name(), account));
+				if (account.equals(SYSTEM_ACCOUNTS.get(type)))
+					assertThat(violated).as(type + " " + account).isEmpty();
+				else
+					assertThat(violated).as(type + " " + account).contains("'chk_system_entry_account'");
+			}
+		}
+	}
+
+	@Test
+	void 금액이_정확히_반대인_시스템_기록_한_줄만_들어간다() {
+		insertEntry(depositId, "DEPOSIT", "EXTERNAL_CASH");
+
+		assertThat(jdbcTemplate.queryForObject("select amount from system_entry where transaction_id = ?", Long.class, depositId)).isEqualTo(-1);
+		assertThat(violatedBy(() -> insertEntry(depositId, "DEPOSIT", "EXTERNAL_CASH"))).contains("uk_system_entry_transaction");
+		assertThat(violatedBy(() -> execute("update system_entry set amount = 5 where transaction_id = :deposit")))
+				.contains("generated column 'amount'");
+		assertThat(violatedBy(() -> execute("update system_entry set transaction_amount = 2 where transaction_id = :deposit")))
+				.contains("`fk_system_entry_transaction`");
+		assertThat(violatedBy(() -> execute("update transaction set amount = 2 where id = :deposit")))
+				.contains("`fk_system_entry_transaction`");
+		assertThat(violatedBy(() -> execute("delete from transaction where id = :deposit")))
+				.contains("`fk_system_entry_transaction`");
+		assertThat(violatedBy(() -> execute("delete from system_account where code = 'EXTERNAL_CASH'")))
+				.contains("`fk_system_entry_system_account`");
 	}
 
 	@ParameterizedTest
@@ -112,6 +155,15 @@ class DatabaseConstraintTest extends ApiTest {
 			"insert into transaction (account_id, type, amount, balance_after, cash_transfer_id, counterparty_account_id) values (:account, 'TRANSFER_OUT', 1, 1, 'x', :account) | 'chk_transaction_counterparty'",
 			"insert into transaction (account_id, type, amount, balance_after, cash_transfer_id, counterparty_account_id) values (:account, 'TRANSFER_OUT', 1, 1, 'x', :other), (:account, 'TRANSFER_OUT', 1, 1, 'x', :other) | uk_transaction_cash_transfer",
 			"update trading set quantity = 1, stock_transfer_id = null where id = :transfer | 'chk_trading_transfer'",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (-1, 'DEPOSIT', 1, 'EXTERNAL_CASH', now()) | `fk_system_entry_transaction`",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, 'DEPOSIT', 2, 'EXTERNAL_CASH', now()) | `fk_system_entry_transaction`",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, 'WITHDRAW', 1, 'EXTERNAL_CASH', now()) | `fk_system_entry_transaction`",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, 'deposit', 1, 'EXTERNAL_CASH', now()) | 'chk_system_entry_account'",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, 'DEPOSIT', 1, 'external_cash', now()) | 'chk_system_entry_account'",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (null, 'DEPOSIT', 1, 'EXTERNAL_CASH', now()) | Column 'transaction_id' cannot be null",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, null, 1, 'EXTERNAL_CASH', now()) | Column 'transaction_type' cannot be null",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, 'DEPOSIT', null, 'EXTERNAL_CASH', now()) | Column 'transaction_amount' cannot be null",
+			"insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at) values (:deposit, 'DEPOSIT', 1, null, now()) | Column 'system_account' cannot be null",
 	})
 	void 제약을_어기는_SQL은_그_제약에_걸린다(String sql, String constraint) {
 		assertThat(violatedBy(() -> execute(sql))).contains(constraint);
@@ -133,7 +185,8 @@ class DatabaseConstraintTest extends ApiTest {
 				.replace(":account", String.valueOf(accountId))
 				.replace(":other", String.valueOf(otherAccountId))
 				.replace(":order", String.valueOf(orderId))
-				.replace(":transfer", String.valueOf(transferId)));
+				.replace(":transfer", String.valueOf(transferId))
+				.replace(":deposit", String.valueOf(depositId)));
 	}
 
 	private long insertTrading(String type, String status, Long filledPrice, String tradeAt) {
@@ -142,7 +195,7 @@ class DatabaseConstraintTest extends ApiTest {
 		return jdbcTemplate.queryForObject("select last_insert_id()", Long.class);
 	}
 
-	private void insertTransaction(TransactionType type, String filled) {
+	private long insertTransaction(TransactionType type, String filled) {
 		jdbcTemplate.update("insert into transaction (account_id, type, amount, balance_after,"
 						+ " order_id, stock_transfer_id, cash_transfer_id, counterparty_account_id) values (?, ?, 1, 1, ?, ?, ?, ?)",
 				accountId, type.name(),
@@ -150,6 +203,12 @@ class DatabaseConstraintTest extends ApiTest {
 				filled.charAt(1) == '1' ? transferId : null,
 				filled.charAt(2) == '1' ? "7d0f3c1e-2b7a-4a57-9a43-0f6f6b1e0c11" : null,
 				filled.charAt(3) == '1' ? otherAccountId : null);
+		return jdbcTemplate.queryForObject("select last_insert_id()", Long.class);
+	}
+
+	private void insertEntry(long transactionId, String type, String systemAccount) {
+		jdbcTemplate.update("insert into system_entry (transaction_id, transaction_type, transaction_amount, system_account, created_at)"
+				+ " values (?, ?, 1, ?, now())", transactionId, type, systemAccount);
 	}
 
 	private String violatedBy(Runnable sql) {
