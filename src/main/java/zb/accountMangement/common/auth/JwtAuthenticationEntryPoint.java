@@ -1,6 +1,6 @@
 package zb.accountMangement.common.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,7 +25,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Ac
 
 	static final String ERROR_CODE_ATTRIBUTE = "jwtErrorCode";
 
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
@@ -44,6 +44,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Ac
 		response.setStatus(errorCode.getStatus().value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		objectMapper.writeValue(response.getWriter(), ErrorResponse.toResponseEntity(errorCode).getBody());
+		jsonMapper.writeValue(response.getWriter(), ErrorResponse.toResponseEntity(errorCode).getBody());
 	}
 }

@@ -31,6 +31,10 @@ spring:
     # 모든 SQL을 로그로 찍으면 부하 측정 때 로그 쓰기가 응답 시간에 섞이므로 기본으로 끔
     show-sql: false
 
+  jackson:
+    # Jackson 3의 바뀐 기본값(속성 정렬, 빈 값 처리 등)으로 API 입출력이 달라지지 않게 예전 기본값을 씀
+    use-jackson2-defaults: true
+
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
