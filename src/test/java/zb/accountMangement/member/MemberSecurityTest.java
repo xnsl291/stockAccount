@@ -220,7 +220,7 @@ class MemberSecurityTest extends ApiTest {
 		Member member = saveMember();
 		Account empty = saveAccount(member);
 		Account holding = saveAccount(member);
-		stockBalanceRepository.save(StockBalance.builder().accountId(holding.getId()).stockId(1L).quantity(1).build());
+		stockBalanceRepository.save(StockBalance.builder().accountId(holding.getId()).stockId(saveStock(1_000).getId()).quantity(1).build());
 
 		signOut(member)
 				.andExpect(status().isBadRequest())
