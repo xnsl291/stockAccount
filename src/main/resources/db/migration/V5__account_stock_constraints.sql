@@ -15,7 +15,7 @@ ALTER TABLE `stock_balance`
   ADD CONSTRAINT `chk_stock_balance_held_within_quantity` CHECK (`held_quantity` <= `quantity`),
   ADD CONSTRAINT `chk_stock_balance_avg_price` CHECK (`avg_price` >= 0);
 
--- 이체 기록의 묶음 번호는 자기 id라 처음 저장할 때 비어 있으므로, 이체이면 반드시 차야 한다는 조건은 걸 수 없음
+-- 보낸 쪽 이체 기록의 묶음 번호는 자기 id라 처음 저장할 때 비어 있으므로, 받는 쪽(수량 양수)만 반드시 차야 함
 ALTER TABLE `trading`
   MODIFY COLUMN `account_id` bigint NOT NULL,
   MODIFY COLUMN `stock_id` bigint NOT NULL,
@@ -24,7 +24,8 @@ ALTER TABLE `trading`
   ADD CONSTRAINT `fk_trading_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   ADD CONSTRAINT `fk_trading_stock` FOREIGN KEY (`stock_id`) REFERENCES `stock` (`id`),
   ADD CONSTRAINT `chk_trading_transfer` CHECK (
-    (`type` IN ('BUY', 'SELL') AND `stock_transfer_id` IS NULL) OR `type` = 'TRANSFER'),
+    (`type` COLLATE utf8mb4_bin IN ('BUY', 'SELL') AND `stock_transfer_id` IS NULL)
+    OR (`type` COLLATE utf8mb4_bin = 'TRANSFER' AND (`quantity` < 0 OR `stock_transfer_id` IS NOT NULL))),
   ADD CONSTRAINT `chk_trading_fill` CHECK (
-    (`status` IN ('PENDING', 'CANCELLED') AND `filled_price` IS NULL AND `trade_at` IS NULL)
-    OR (`status` = 'FILLED' AND `filled_price` IS NOT NULL AND `trade_at` IS NOT NULL));
+    (`status` COLLATE utf8mb4_bin IN ('PENDING', 'CANCELLED') AND `filled_price` IS NULL AND `trade_at` IS NULL)
+    OR (`status` COLLATE utf8mb4_bin = 'FILLED' AND `filled_price` IS NOT NULL AND `trade_at` IS NOT NULL));
