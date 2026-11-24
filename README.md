@@ -6,7 +6,7 @@
 
 ## 기술 스택
 
-- Java 17, Spring Boot 3.5.16, Spring Data JPA, Spring Security, JWT(jjwt 0.11.5)
+- Java 17, Spring Boot 4.1.3, Spring Data JPA, Spring Security, JWT(jjwt 0.11.5)
 - MySQL 8.0, Redis 7(문자 인증번호, 리프레시 토큰, 로그아웃한 토큰)
 - CoolSMS(문자 발송, 로컬에서는 로그로 대체)
 - 테스트: JUnit 5, MockMvc, Testcontainers(MySQL·Redis)
