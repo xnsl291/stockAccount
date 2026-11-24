@@ -4,6 +4,8 @@
 -- 계좌 잔액은 거래 기록(입금)을 더한 값과 같게 넣어, 측정 뒤 "잔액 = 거래 기록 합계" 확인의 출발점이 맞게 함
 
 SET SESSION cte_max_recursion_depth = 20000;
+-- 외래키가 가리키는 테이블은 비어 있어도 TRUNCATE가 거절되므로 비우는 동안만 검사를 끔
+SET SESSION foreign_key_checks = 0;
 TRUNCATE TABLE `transaction`;
 TRUNCATE TABLE trading;
 TRUNCATE TABLE stock_balance;
@@ -11,6 +13,7 @@ TRUNCATE TABLE stock;
 TRUNCATE TABLE idempotency_record;
 TRUNCATE TABLE account;
 TRUNCATE TABLE member;
+SET SESSION foreign_key_checks = 1;
 
 SET @login_pw = '$2a$10$uwcDJclOLgtrPZzNA7rA5uDJul13o60BZBpqewsRdIw30eptD1zlS';
 SET @account_pw = '$2a$10$NewfmPKv3C/EZ8qhJg8jmuL03zGYTpNKXeUpm313fVakNBKm7720S';
