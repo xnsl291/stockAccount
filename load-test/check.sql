@@ -53,7 +53,7 @@ LEFT JOIN system_entry e ON e.transaction_id = t.id
 WHERE IF(t.type IN ('TRANSFER_OUT', 'TRANSFER_IN'), e.id IS NOT NULL, e.id IS NULL OR e.amount <> -t.amount)
 UNION ALL
 SELECT '회원 거래와 시스템 기록을 모두 더한 금액',
-       (SELECT COALESCE(SUM(amount), 0) FROM `transaction`) + (SELECT COALESCE(SUM(amount), 0) FROM system_entry);
+       ABS((SELECT COALESCE(SUM(amount), 0) FROM `transaction`) + (SELECT COALESCE(SUM(amount), 0) FROM system_entry));
 
 -- 측정 뒤 데이터 건수
 SELECT (SELECT COUNT(*) FROM `transaction`) AS 거래기록, (SELECT COUNT(*) FROM trading) AS 주문,
