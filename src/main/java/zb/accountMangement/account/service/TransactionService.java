@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import zb.accountMangement.account.model.entity.Account;
+import zb.accountMangement.account.model.entity.SystemEntry;
 import zb.accountMangement.account.model.entity.Transaction;
 import zb.accountMangement.account.dto.DepositDto;
 import zb.accountMangement.account.dto.TransactionDto;
 import zb.accountMangement.account.dto.TransferDto;
 import zb.accountMangement.account.dto.WithdrawalDto;
+import zb.accountMangement.account.repository.SystemEntryRepository;
 import zb.accountMangement.account.repository.TransactionRepository;
 import zb.accountMangement.account.model.TransactionCause;
 import zb.accountMangement.account.model.TransactionType;
@@ -33,6 +35,7 @@ public class TransactionService {
 	private final AccountService accountService;
 	private final MemberService memberService;
 	private final TransactionRepository transactionRepository;
+	private final SystemEntryRepository systemEntryRepository;
 
 	public String validateRecipient(String accountNumber) {
 		Account account = accountService.getAccountByNumber(accountNumber);
@@ -81,7 +84,7 @@ public class TransactionService {
 	}
 
 	/**
-	 * 잔액을 바꾸고 거래 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드를 거쳐야 함.
+	 * 잔액을 바꾸고 거래 기록과 시스템 계정의 반대 기록을 남김. 잔액을 바꾸는 모든 기능은 이 메서드를 거쳐야 함.
 	 * 저장한 거래 기록의 ID를 돌려줌.
 	 * 계좌는 이 트랜잭션에서 이미 잠가 둔 것을 받음. 잠금 순서를 부르는 쪽이 정하고, 같은 계좌를 다시 잠가 읽지 않기 위함
 	 */
@@ -100,7 +103,7 @@ public class TransactionService {
 			throw new CustomException(ErrorCode.EXCEED_BALANCE);
 
 		lockedAccount.setBalance(balanceAfter);
-		return transactionRepository.save(Transaction.builder()
+		Transaction transaction = transactionRepository.save(Transaction.builder()
 				.accountId(lockedAccount.getId())
 				.type(type)
 				.amount(signedAmount)
@@ -111,7 +114,10 @@ public class TransactionService {
 				.stockTransferId(cause.stockTransferId())
 				.cashTransferId(cause.cashTransferId())
 				.counterpartyAccountId(cause.counterpartyAccountId())
-				.build()).getId();
+				.build());
+		type.systemAccount().ifPresent(systemAccount ->
+				systemEntryRepository.save(new SystemEntry(transaction, systemAccount)));
+		return transaction.getId();
 	}
 
 	/**

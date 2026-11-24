@@ -11,6 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import zb.accountMangement.account.model.entity.Account;
 import zb.accountMangement.account.repository.AccountRepository;
+import zb.accountMangement.account.repository.SystemEntryRepository;
+import zb.accountMangement.account.repository.TransactionRepository;
 import zb.accountMangement.account.service.AccountService;
 import zb.accountMangement.account.service.TransactionService;
 import zb.accountMangement.stock.repository.StockBalanceRepository;
@@ -121,6 +123,14 @@ class ArchitectureTest {
 	void 잔액_setter는_TransactionService만_부른다() {
 		noClasses().that().doNotHaveFullyQualifiedName(TransactionService.class.getName())
 				.should().callMethodWhere(callTo(Account.class, "setBalance"))
+				.check(CLASSES);
+	}
+
+	// 거래 기록만 남기고 시스템 기록을 빠뜨리는 다른 길이 생기지 않게 함
+	@Test
+	void 거래_기록과_시스템_기록_저장소는_TransactionService만_쓴다() {
+		noClasses().that().doNotHaveFullyQualifiedName(TransactionService.class.getName())
+				.should().dependOnClassesThat().belongToAnyOf(TransactionRepository.class, SystemEntryRepository.class)
 				.check(CLASSES);
 	}
 
