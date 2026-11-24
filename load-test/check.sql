@@ -31,13 +31,12 @@ SELECT '체결 주문 수와 매매 대금 거래 기록 수의 차이',
        ABS((SELECT COUNT(*) FROM trading WHERE status = 'FILLED')
          - (SELECT COUNT(*) FROM `transaction` WHERE type IN ('STOCK_BUY', 'STOCK_SELL')))
 UNION ALL
--- 보유 수량 = 처음 넣은 100주(일반 계좌의 1~5번 종목) + 체결된 매수 - 체결된 매도
-SELECT '보유 수량과 (초기 수량 + 체결 매수 - 체결 매도)가 다른 종목', COUNT(*)
+-- 처음 보유 내역도 체결 주문에서 나온 것이라 따로 더하지 않음
+SELECT '보유 수량과 (체결 매수 - 체결 매도)가 다른 종목', COUNT(*)
 FROM (
   SELECT k.account_id, k.stock_id,
          COALESCE(b.quantity, 0) AS actual,
-         (CASE WHEN k.account_id <= 1000 AND k.stock_id <= 5 THEN 100 ELSE 0 END)
-           + COALESCE(f.bought, 0) - COALESCE(f.sold, 0) AS expected
+         COALESCE(f.bought, 0) - COALESCE(f.sold, 0) AS expected
   FROM (SELECT account_id, stock_id FROM stock_balance
         UNION SELECT account_id, stock_id FROM trading WHERE status = 'FILLED') k
   LEFT JOIN stock_balance b ON b.account_id = k.account_id AND b.stock_id = k.stock_id
@@ -46,11 +45,20 @@ FROM (
                     SUM(CASE WHEN type = 'SELL' THEN quantity ELSE 0 END) AS sold
              FROM trading WHERE status = 'FILLED' GROUP BY account_id, stock_id) f
     ON f.account_id = k.account_id AND f.stock_id = k.stock_id
-) q WHERE actual <> expected;
+) q WHERE actual <> expected
+UNION ALL
+SELECT '시스템 기록이 없거나 금액이 반대가 아닌 거래, 시스템 기록이 있는 송금', COUNT(*)
+FROM `transaction` t
+LEFT JOIN system_entry e ON e.transaction_id = t.id
+WHERE IF(t.type IN ('TRANSFER_OUT', 'TRANSFER_IN'), e.id IS NOT NULL, e.id IS NULL OR e.amount <> -t.amount)
+UNION ALL
+SELECT '회원 거래와 시스템 기록을 모두 더한 금액',
+       (SELECT COALESCE(SUM(amount), 0) FROM `transaction`) + (SELECT COALESCE(SUM(amount), 0) FROM system_entry);
 
 -- 측정 뒤 데이터 건수
 SELECT (SELECT COUNT(*) FROM `transaction`) AS 거래기록, (SELECT COUNT(*) FROM trading) AS 주문,
        (SELECT COUNT(*) FROM trading WHERE status = 'FILLED') AS 체결,
        (SELECT COUNT(*) FROM trading WHERE status = 'PENDING') AS 미체결,
        (SELECT COUNT(*) FROM trading WHERE status = 'CANCELLED') AS 취소,
-       (SELECT COUNT(*) FROM idempotency_record) AS 멱등기록;
+       (SELECT COUNT(*) FROM idempotency_record) AS 멱등기록,
+       (SELECT COUNT(*) FROM system_entry) AS 시스템기록;
